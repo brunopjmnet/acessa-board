@@ -64,6 +64,33 @@ export async function loadCloudContext() {
   return { session, profile, workspace };
 }
 
+export async function listBoardProfiles() {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("board_profiles")
+    .select("user_id, display_name, role, directorate, active, created_at, updated_at")
+    .order("display_name");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function updateBoardProfile(userId, changes) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const allowed = {};
+  if (Object.hasOwn(changes, "role")) allowed.role = changes.role;
+  if (Object.hasOwn(changes, "directorate")) allowed.directorate = changes.directorate || null;
+  if (Object.hasOwn(changes, "active")) allowed.active = Boolean(changes.active);
+  allowed.updated_at = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("board_profiles")
+    .update(allowed)
+    .eq("user_id", userId)
+    .select("user_id, display_name, role, directorate, active, created_at, updated_at")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function saveCloudState(workspaceId, state, expectedVersion) {
   if (!supabase) return null;
   const { data, error } = await supabase

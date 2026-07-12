@@ -1,6 +1,7 @@
 import {
   cloudConfigured,
   isPasswordRecoveryRedirect,
+  listBoardProfiles,
   loadCloudContext,
   onAuthEvent,
   requestPasswordReset,
@@ -8,6 +9,7 @@ import {
   signIn,
   signOut,
   subscribeToWorkspace,
+  updateBoardProfile,
   updatePassword,
 } from "./cloud.js";
 
@@ -532,6 +534,11 @@ const newPasswordForm = document.querySelector("#new-password-form");
 const newPasswordMessage = document.querySelector("#new-password-message");
 const forgotPasswordButton = document.querySelector("#forgot-password");
 const backToLoginButton = document.querySelector("#back-to-login");
+const usersNav = document.querySelector("#users-nav");
+const adminNavLabel = document.querySelector("#admin-nav-label");
+const usersTableBody = document.querySelector("#users-table-body");
+const usersMessage = document.querySelector("#users-message");
+const refreshUsersButton = document.querySelector("#refresh-users");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
@@ -548,6 +555,7 @@ const cloudContext = {
   version: null,
   role: "local",
   canEdit: !cloudConfigured,
+  currentUserId: null,
 };
 
 function showAuthPanel(panel) {
@@ -702,10 +710,14 @@ async function initializeCloud() {
     }
     if (!context.profile?.active) throw new Error("Este usuário não possui acesso ativo ao Acessa Board.");
     cloudContext.connected = true;
+    cloudContext.currentUserId = context.session.user.id;
     cloudContext.workspaceId = context.workspace.id;
     cloudContext.version = Number(context.workspace.version);
     cloudContext.role = context.profile.role;
     cloudContext.canEdit = ["admin", "socio", "diretor", "gestor", "rh"].includes(context.profile.role);
+    const canManageUsers = ["admin", "socio", "rh"].includes(context.profile.role);
+    usersNav.hidden = !canManageUsers;
+    adminNavLabel.hidden = !canManageUsers;
     if (passwordRecoveryPending) showAuthPanel("new-password");
     else authGate.hidden = true;
     accountButton.textContent = context.profile.display_name || context.session.user.email;
@@ -849,7 +861,55 @@ async function restoreBackup(file) {
 function setView(id) {
   views.forEach((view) => view.classList.toggle("active", view.id === id));
   navButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === id));
+  if (id === "users") renderUsers();
 }
+
+const boardRoles = ["admin", "socio", "diretor", "gestor", "rh", "auditor", "colaborador"];
+
+async function renderUsers() {
+  usersMessage.textContent = "Carregando usuários...";
+  usersMessage.classList.remove("auth-success");
+  try {
+    const profiles = await listBoardProfiles();
+    usersTableBody.innerHTML = profiles.map((profile) => {
+      const isSelf = profile.user_id === cloudContext.currentUserId;
+      return `<tr data-profile-id="${escapeHtml(profile.user_id)}">
+        <td><strong>${escapeHtml(profile.display_name || "Usuário")}</strong><small>${isSelf ? "Sua conta" : "Cadastrado no Supabase"}</small></td>
+        <td><select data-profile-field="role" ${isSelf ? "disabled title=\"Seu próprio papel deve ser alterado por outro administrador\"" : ""}>${boardRoles.map((role) => `<option value="${role}" ${profile.role === role ? "selected" : ""}>${role}</option>`).join("")}</select></td>
+        <td><input data-profile-field="directorate" value="${escapeHtml(profile.directorate || "")}" placeholder="Ex.: Comercial" /></td>
+        <td><label class="access-switch"><input data-profile-field="active" type="checkbox" ${profile.active ? "checked" : ""} ${isSelf ? "disabled" : ""} /><span>${profile.active ? "Ativo" : "Inativo"}</span></label></td>
+      </tr>`;
+    }).join("") || `<tr><td colspan="4">Nenhum usuário encontrado.</td></tr>`;
+    usersMessage.textContent = `${profiles.length} usuário(s) carregado(s). Alterações são salvas automaticamente.`;
+    usersMessage.classList.add("auth-success");
+  } catch (error) {
+    usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível carregar os usuários.";
+  }
+}
+
+usersTableBody.addEventListener("change", async (event) => {
+  const control = event.target.closest("[data-profile-field]");
+  const row = event.target.closest("[data-profile-id]");
+  if (!control || !row) return;
+  const field = control.dataset.profileField;
+  const value = field === "active" ? control.checked : control.value.trim();
+  control.disabled = true;
+  usersMessage.classList.remove("auth-success");
+  usersMessage.textContent = "Salvando permissão...";
+  try {
+    await updateBoardProfile(row.dataset.profileId, { [field]: value });
+    usersMessage.textContent = "Permissão atualizada com sucesso.";
+    usersMessage.classList.add("auth-success");
+    if (field === "active") control.closest("label").querySelector("span").textContent = value ? "Ativo" : "Inativo";
+  } catch (error) {
+    usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível atualizar a permissão.";
+    await renderUsers();
+  } finally {
+    if (!(field === "active" && row.dataset.profileId === cloudContext.currentUserId)) control.disabled = false;
+  }
+});
+
+refreshUsersButton.addEventListener("click", renderUsers);
 
 function render() {
   renderMetrics();

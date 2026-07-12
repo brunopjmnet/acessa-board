@@ -1809,6 +1809,13 @@ html[data-theme="dark"] dialog::backdrop { background: rgba(2,4,12,.78); }
 .auth-error.auth-success { color: var(--green); }
 .auth-link { justify-self: center; padding: 4px; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
 .auth-link:hover { text-decoration: underline; }
+.access-table { width: 100%; border-collapse: collapse; }
+.access-table th, .access-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.access-table td:first-child { min-width: 220px; }
+.access-table td strong, .access-table td small { display: block; }
+.access-table td small { margin-top: 3px; color: var(--muted); }
+.access-table select, .access-table input[type="text"], .access-table input:not([type]) { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); }
+.access-switch { display: inline-flex; align-items: center; gap: 8px; font-weight: 750; }
 body.read-only [data-edit-id],
 body.read-only [data-archive-id],
 body.read-only [data-edit-career-level],

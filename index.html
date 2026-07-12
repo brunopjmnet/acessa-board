@@ -40,6 +40,8 @@
           <button class="nav-item" data-view="audit">Auditoria</button>
           <button class="nav-item" data-view="archive">Arquivo</button>
           <button class="nav-item" data-view="org">Organograma</button>
+          <span class="nav-group-label" id="admin-nav-label" hidden>Administração</span>
+          <button class="nav-item" id="users-nav" data-view="users" hidden>Usuários e acessos</button>
         </nav>
 
         <div class="sidebar-note">
@@ -341,6 +343,25 @@
           </div>
           <div class="org-chart" id="org-chart"></div>
           <div class="org-grid" id="org-grid"></div>
+        </section>
+        <section class="view" id="users">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Administração</p>
+              <h2>Usuários e acessos</h2>
+              <p>Ative, desative e atribua papéis aos usuários cadastrados no Supabase.</p>
+            </div>
+            <button class="ghost-button" id="refresh-users" type="button">Atualizar lista</button>
+          </div>
+          <div class="panel">
+            <p class="auth-error" id="users-message" role="status"></p>
+            <div class="table-wrap">
+              <table class="access-table">
+                <thead><tr><th>Usuário</th><th>Papel</th><th>Diretoria</th><th>Status</th></tr></thead>
+                <tbody id="users-table-body"></tbody>
+              </table>
+            </div>
+          </div>
         </section>
       </main>
     </div>
