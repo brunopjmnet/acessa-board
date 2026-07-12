@@ -26,6 +26,10 @@ Este projeto deve evitar complexidade precoce. Primeiro validar o fluxo com dado
 4. Definir como sera a integracao com email e WhatsApp.
 5. Conectar ao projeto existente de login.
 
+## Implantacao Acessa Nordeste
+
+O escopo societario da Fase 0 foi incorporado ao quadro inicial e a migracao de dados. A referencia consolidada, os status importados e os criterios de acompanhamento estao documentados em `CLICKUP_FASE_0.md`.
+
 ## Fundação corporativa
 
 A conexão com o Supabase, autenticação, papéis, persistência central, auditoria e documentos já está preparada. Consulte `FUNDACAO_CORPORATIVA.md` e aplique a migration em `supabase/migrations` para ativar o modo multiusuário.

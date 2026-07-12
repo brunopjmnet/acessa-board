@@ -368,8 +368,70 @@ const audits = [
   { control: "Rastreio de acoes criticas", owner: "PMO Acessa", cadence: "Semanal", evidence: "Quadro operacional", status: "Ativo" },
 ];
 
+const phaseZeroTasks = [
+  {
+    id: "clickup-86e1xx6qh",
+    title: "Definir Modelo de Integração da Acessa Nordeste (Fase 0)",
+    owner: "A definir",
+    due: "",
+    priority: "Alta",
+    status: "waiting",
+    checklist: [
+      "Formalizar o documento de valuation",
+      "Formalizar os percentuais de participacao acordados entre os socios",
+      "Concluir o Acordo de Socios",
+      "Validar as pre-condicoes societarias, juridicas e tributarias do POP-INT-001 v2.0",
+    ],
+  },
+  {
+    id: "clickup-86e1xx6r8",
+    title: "Definir modelo de holding",
+    owner: "A definir",
+    due: "",
+    priority: "Alta",
+    status: "doing",
+    checklist: ["Definir estrutura da holding", "Validar impactos juridicos e tributarios", "Submeter aos socios"],
+  },
+  {
+    id: "clickup-86e1xx6rm",
+    title: "Definir estrategia de marca",
+    owner: "A definir",
+    due: "",
+    priority: "Alta",
+    status: "todo",
+    checklist: ["Definir arquitetura de marca", "Validar transicao das marcas atuais", "Aprovar com os socios"],
+  },
+  {
+    id: "clickup-86e1xx6rz",
+    title: "Definir estrategia de tombamento",
+    owner: "A definir",
+    due: "",
+    priority: "Alta",
+    status: "todo",
+    checklist: ["Mapear ativos, contratos e cadastros", "Definir sequencia de tombamento", "Validar requisitos juridicos e tributarios"],
+  },
+  {
+    id: "clickup-86e1xx6tk",
+    title: "Definir estrategia de comunicacao",
+    owner: "A definir",
+    due: "",
+    priority: "Alta",
+    status: "todo",
+    checklist: ["Mapear publicos impactados", "Definir mensagens e canais", "Aprovar cronograma de comunicacao"],
+  },
+];
+
+const phaseZeroDocument = {
+  id: "clickup-lista-modelo-societario",
+  title: "Fase 0 - Modelo Societario e Acordo de Socios",
+  type: "Societario / M&A",
+  owner: "Conselho de Socios",
+  link: "https://app.clickup.com/90171323045/v/li/901714603208",
+  note: "Fonte operacional do POP-INT-001 v2.0: holding, valuation, due diligence, compatibilidade tributaria e Acordo de Socios.",
+};
+
 const seed = {
-  businessModelVersion: 9,
+  businessModelVersion: 10,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -379,6 +441,7 @@ const seed = {
   governance: defaultGovernance,
   raci: defaultRaci,
   tasks: [
+    ...phaseZeroTasks,
     {
       id: crypto.randomUUID(),
       title: "Fechar pacote executivo de indicadores por diretoria",
@@ -455,6 +518,7 @@ const seed = {
     },
   ],
   documents: [
+    phaseZeroDocument,
     {
       id: crypto.randomUUID(),
       title: "Organograma executivo Acessa Nordeste",
@@ -637,7 +701,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 9) return source;
+  if (Number(source.businessModelVersion || 0) >= 10) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -673,7 +737,13 @@ function migrateBusinessStructure(source) {
   defaultGovernance.forEach((standard) => { if (!governance.some((item) => item.id === standard.id)) governance.push(standard); });
   const enrichedRaci = raci.map((item) => ({ ...(defaultRaci.find((standard) => standard.id === item.id) || {}), ...item }));
   defaultRaci.forEach((standard) => { if (!enrichedRaci.some((item) => item.id === standard.id)) enrichedRaci.push(standard); });
-  return { ...source, businessModelVersion: 9, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis };
+  const tasks = Array.isArray(source.tasks) ? [...source.tasks] : [];
+  phaseZeroTasks.forEach((task) => {
+    if (!tasks.some((item) => item.id === task.id)) tasks.push(task);
+  });
+  const documents = Array.isArray(source.documents) ? [...source.documents] : [];
+  if (!documents.some((item) => item.id === phaseZeroDocument.id)) documents.push(phaseZeroDocument);
+  return { ...source, businessModelVersion: 10, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
