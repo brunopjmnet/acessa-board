@@ -64,8 +64,15 @@ create or replace function public.board_handle_new_user()
 returns trigger language plpgsql security definer set search_path = public
 as $$
 begin
-  insert into public.board_profiles (user_id, display_name)
-  values (new.id, coalesce(new.raw_user_meta_data ->> 'full_name', new.email));
+  insert into public.board_profiles (user_id, display_name, role)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', new.email),
+    case
+      when not exists (select 1 from public.board_profiles) then 'admin'
+      else 'colaborador'
+    end
+  );
   return new;
 end;
 $$;
@@ -73,48 +80,6 @@ $$;
 drop trigger if exists board_on_auth_user_created on auth.users;
 create trigger board_on_auth_user_created after insert on auth.users
 for each row execute function public.board_handle_new_user();
-
-insert into public.board_profiles (user_id, display_name, role)
-select
-  p.id,
-  coalesce(nullif(p.full_name, ''), p.email),
-  case
-    when bool_or(ur.role::text = 'admin') then 'admin'
-    when bool_or(ur.role::text = 'rh') then 'rh'
-    when bool_or(ur.role::text = 'gestor') then 'gestor'
-    when bool_or(ur.role::text = 'lider') then 'gestor'
-    else 'colaborador'
-  end
-from public.profiles p
-left join public.user_roles ur on ur.user_id = p.id
-group by p.id, p.full_name, p.email
-on conflict (user_id) do nothing;
-
-create or replace function public.board_sync_platform_role()
-returns trigger language plpgsql security definer set search_path = public
-as $$
-declare target_user uuid := coalesce(new.user_id, old.user_id);
-begin
-  update public.board_profiles
-  set role = coalesce((
-    select case
-      when bool_or(role::text = 'admin') then 'admin'
-      when bool_or(role::text = 'rh') then 'rh'
-      when bool_or(role::text = 'gestor') then 'gestor'
-      when bool_or(role::text = 'lider') then 'gestor'
-      else 'colaborador'
-    end
-    from public.user_roles where user_id = target_user
-  ), 'colaborador'), updated_at = now()
-  where user_id = target_user;
-  if tg_op = 'DELETE' then return old; end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists board_sync_user_role on public.user_roles;
-create trigger board_sync_user_role after insert or update or delete on public.user_roles
-for each row execute function public.board_sync_platform_role();
 
 create or replace function public.board_audit_workspace_update()
 returns trigger language plpgsql security definer set search_path = public
