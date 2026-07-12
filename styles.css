@@ -1799,12 +1799,16 @@ html[data-theme="dark"] dialog::backdrop { background: rgba(2,4,12,.78); }
 .cloud-status.error { border-color: rgba(180,35,24,.35); background: rgba(180,35,24,.09); color: var(--red); }
 .auth-gate { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(8,11,31,.88); backdrop-filter: blur(14px); }
 .auth-card { display: grid; gap: 12px; width: min(420px,100%); padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 28px 80px rgba(0,0,0,.35); }
+.auth-card[hidden] { display: none; }
 .auth-card .topbar-monogram { width: 46px; height: 46px; }
 .auth-card h1 { margin: 0; font-size: 1.55rem; }
 .auth-card > p:not(.eyebrow,.auth-error) { margin: -4px 0 4px; color: var(--muted); line-height: 1.5; }
 .auth-card label { display: grid; gap: 5px; color: var(--muted); font-size: .75rem; font-weight: 750; }
 .auth-card input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--text); }
 .auth-error { min-height: 18px; margin: 0; color: var(--red); font-size: .72rem; }
+.auth-error.auth-success { color: var(--green); }
+.auth-link { justify-self: center; padding: 4px; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
+.auth-link:hover { text-decoration: underline; }
 body.read-only [data-edit-id],
 body.read-only [data-archive-id],
 body.read-only [data-edit-career-level],

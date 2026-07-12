@@ -388,6 +388,27 @@
         <label>Senha<input name="password" type="password" autocomplete="current-password" required /></label>
         <p class="auth-error" id="auth-error" role="alert"></p>
         <button class="primary-button" type="submit">Entrar com segurança</button>
+        <button class="auth-link" id="forgot-password" type="button">Esqueci minha senha</button>
+      </form>
+      <form class="auth-card" id="recovery-form" hidden>
+        <div class="topbar-monogram" aria-hidden="true">A</div>
+        <p class="eyebrow">Recuperação de acesso</p>
+        <h1>Redefinir senha</h1>
+        <p>Informe seu e-mail corporativo para receber um link seguro.</p>
+        <label>E-mail<input name="email" type="email" autocomplete="email" required /></label>
+        <p class="auth-error" id="recovery-message" role="status"></p>
+        <button class="primary-button" type="submit">Enviar link de recuperação</button>
+        <button class="auth-link" id="back-to-login" type="button">Voltar para o login</button>
+      </form>
+      <form class="auth-card" id="new-password-form" hidden>
+        <div class="topbar-monogram" aria-hidden="true">A</div>
+        <p class="eyebrow">Acesso verificado</p>
+        <h1>Crie uma nova senha</h1>
+        <p>Use pelo menos 8 caracteres e evite senhas utilizadas em outros serviços.</p>
+        <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <label>Confirmar senha<input name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <p class="auth-error" id="new-password-message" role="alert"></p>
+        <button class="primary-button" type="submit">Salvar nova senha</button>
       </form>
     </div>
 

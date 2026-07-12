@@ -24,6 +24,24 @@ export async function signOut() {
   if (error) throw error;
 }
 
+export async function requestPasswordReset(email) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/` });
+  if (error) throw error;
+}
+
+export async function updatePassword(password) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
+
+export function onAuthEvent(callback) {
+  if (!supabase) return () => {};
+  const { data } = supabase.auth.onAuthStateChange((event, session) => callback(event, session));
+  return () => data.subscription.unsubscribe();
+}
+
 export async function getCloudSession() {
   if (!supabase) return null;
   const { data, error } = await supabase.auth.getSession();

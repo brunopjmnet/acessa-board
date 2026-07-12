@@ -1,10 +1,13 @@
 import {
   cloudConfigured,
   loadCloudContext,
+  onAuthEvent,
+  requestPasswordReset,
   saveCloudState,
   signIn,
   signOut,
   subscribeToWorkspace,
+  updatePassword,
 } from "./cloud.js";
 
 const statuses = [
@@ -522,6 +525,12 @@ const accountButton = document.querySelector("#account-button");
 const authGate = document.querySelector("#auth-gate");
 const authForm = document.querySelector("#auth-form");
 const authError = document.querySelector("#auth-error");
+const recoveryForm = document.querySelector("#recovery-form");
+const recoveryMessage = document.querySelector("#recovery-message");
+const newPasswordForm = document.querySelector("#new-password-form");
+const newPasswordMessage = document.querySelector("#new-password-message");
+const forgotPasswordButton = document.querySelector("#forgot-password");
+const backToLoginButton = document.querySelector("#back-to-login");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
@@ -538,6 +547,13 @@ const cloudContext = {
   role: "local",
   canEdit: !cloudConfigured,
 };
+
+function showAuthPanel(panel) {
+  authGate.hidden = false;
+  authForm.hidden = panel !== "login";
+  recoveryForm.hidden = panel !== "recovery";
+  newPasswordForm.hidden = panel !== "new-password";
+}
 
 function clearDialogContext(dialog) {
   if (dialog === taskModal) taskEditId = null;
@@ -2243,9 +2259,65 @@ authForm.addEventListener("submit", async (event) => {
   }
 });
 
+forgotPasswordButton.addEventListener("click", () => {
+  recoveryMessage.textContent = "";
+  recoveryMessage.classList.remove("auth-success");
+  recoveryForm.elements.email.value = authForm.elements.email.value;
+  showAuthPanel("recovery");
+});
+
+backToLoginButton.addEventListener("click", () => showAuthPanel("login"));
+
+recoveryForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = recoveryForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  recoveryMessage.classList.remove("auth-success");
+  recoveryMessage.textContent = "Enviando...";
+  try {
+    await requestPasswordReset(String(recoveryForm.elements.email.value || "").trim());
+    recoveryMessage.textContent = "Se o e-mail estiver autorizado, você receberá um link para criar uma nova senha.";
+    recoveryMessage.classList.add("auth-success");
+  } catch (error) {
+    recoveryMessage.textContent = error instanceof Error ? error.message : "Não foi possível enviar o link.";
+  } finally {
+    button.disabled = false;
+  }
+});
+
+newPasswordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const password = String(newPasswordForm.elements.password.value || "");
+  const confirmation = String(newPasswordForm.elements.passwordConfirm.value || "");
+  newPasswordMessage.classList.remove("auth-success");
+  if (password !== confirmation) {
+    newPasswordMessage.textContent = "As senhas não coincidem.";
+    return;
+  }
+  const button = newPasswordForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  button.textContent = "Salvando...";
+  try {
+    await updatePassword(password);
+    newPasswordMessage.textContent = "Senha atualizada. Conectando ao Acessa Board...";
+    newPasswordMessage.classList.add("auth-success");
+    history.replaceState({}, document.title, `${location.pathname}${location.search}`);
+    await initializeCloud();
+  } catch (error) {
+    newPasswordMessage.textContent = error instanceof Error ? error.message : "Não foi possível atualizar a senha.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Salvar nova senha";
+  }
+});
+
+onAuthEvent((event) => {
+  if (event === "PASSWORD_RECOVERY") showAuthPanel("new-password");
+});
+
 accountButton.addEventListener("click", async () => {
   if (!cloudContext.connected) {
-    authGate.hidden = false;
+    showAuthPanel("login");
     return;
   }
   if (!window.confirm("Deseja sair do Acessa Board?")) return;
