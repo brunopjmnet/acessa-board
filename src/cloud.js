@@ -91,6 +91,16 @@ export async function updateBoardProfile(userId, changes) {
   return data;
 }
 
+export async function inviteBoardUser({ email, role, directorate }) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { data, error } = await supabase.functions.invoke("invite-board-user", {
+    body: { email, role, directorate, redirectTo: `${window.location.origin}/` },
+  });
+  if (error) throw new Error(data?.error || error.message || "Não foi possível enviar o convite.");
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
 export async function saveCloudState(workspaceId, state, expectedVersion) {
   if (!supabase) return null;
   const { data, error } = await supabase

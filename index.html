@@ -354,6 +354,12 @@
             <button class="ghost-button" id="refresh-users" type="button">Atualizar lista</button>
           </div>
           <div class="panel">
+            <form class="invite-user-form" id="invite-user-form">
+              <label>E-mail<input name="email" type="email" autocomplete="email" placeholder="colaborador@empresa.com" required /></label>
+              <label>Papel<select name="role"><option value="colaborador">colaborador</option><option value="gestor">gestor</option><option value="diretor">diretor</option><option value="rh">rh</option><option value="auditor">auditor</option><option value="socio">socio</option><option value="admin">admin</option></select></label>
+              <label>Diretoria<input name="directorate" placeholder="Ex.: Comercial" /></label>
+              <button class="primary-button" type="submit">Enviar convite</button>
+            </form>
             <p class="auth-error" id="users-message" role="status"></p>
             <div class="table-wrap">
               <table class="access-table">

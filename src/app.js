@@ -1,6 +1,7 @@
 import {
   cloudConfigured,
   isPasswordRecoveryRedirect,
+  inviteBoardUser,
   listBoardProfiles,
   loadCloudContext,
   onAuthEvent,
@@ -539,6 +540,7 @@ const adminNavLabel = document.querySelector("#admin-nav-label");
 const usersTableBody = document.querySelector("#users-table-body");
 const usersMessage = document.querySelector("#users-message");
 const refreshUsersButton = document.querySelector("#refresh-users");
+const inviteUserForm = document.querySelector("#invite-user-form");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
@@ -910,6 +912,32 @@ usersTableBody.addEventListener("change", async (event) => {
 });
 
 refreshUsersButton.addEventListener("click", renderUsers);
+
+inviteUserForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = inviteUserForm.querySelector("button[type='submit']");
+  const form = new FormData(inviteUserForm);
+  button.disabled = true;
+  button.textContent = "Enviando...";
+  usersMessage.classList.remove("auth-success");
+  usersMessage.textContent = "Enviando convite seguro...";
+  try {
+    await inviteBoardUser({
+      email: String(form.get("email") || "").trim(),
+      role: String(form.get("role") || "colaborador"),
+      directorate: String(form.get("directorate") || "").trim(),
+    });
+    inviteUserForm.reset();
+    usersMessage.textContent = "Convite enviado. O usuário receberá um link para definir a senha.";
+    usersMessage.classList.add("auth-success");
+    await renderUsers();
+  } catch (error) {
+    usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível enviar o convite.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Enviar convite";
+  }
+});
 
 function render() {
   renderMetrics();

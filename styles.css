@@ -1810,6 +1810,10 @@ html[data-theme="dark"] dialog::backdrop { background: rgba(2,4,12,.78); }
 .auth-link { justify-self: center; padding: 4px; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
 .auth-link:hover { text-decoration: underline; }
 .access-table { width: 100%; border-collapse: collapse; }
+.invite-user-form { display: grid; grid-template-columns: 1.4fr .8fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.invite-user-form label { display: grid; gap: 5px; color: var(--muted); font-size: .72rem; font-weight: 800; }
+.invite-user-form :is(input,select) { min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); }
+@media (max-width: 900px) { .invite-user-form { grid-template-columns: 1fr 1fr; } }
 .access-table th, .access-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
 .access-table td:first-child { min-width: 220px; }
 .access-table td strong, .access-table td small { display: block; }
