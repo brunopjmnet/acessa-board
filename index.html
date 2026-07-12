@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acessa Board</title>
+    <meta
+      name="description"
+      content="Centro de comando executivo e operacional para governança, diretorias, indicadores, riscos e rotinas da Acessa."
+    />
+    <script>
+      try {
+        if (localStorage.getItem("acessa-board-theme") === "dark") document.documentElement.dataset.theme = "dark";
+      } catch {}
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="./logo_acessa_nordeste_grupo_preview.png" alt="Acessa" />
+        </div>
+
+        <nav class="nav" aria-label="Navegação principal">
+          <span class="nav-group-label">Visão executiva</span>
+          <button class="nav-item active" data-view="dashboard">Centro de comando</button>
+          <button class="nav-item" data-view="governance">Governança</button>
+          <button class="nav-item" data-view="areas">Diretorias</button>
+          <span class="nav-group-label">Gestão empresarial</span>
+          <button class="nav-item" data-view="processes">Processos</button>
+          <button class="nav-item" data-view="career">Cargos e carreira</button>
+          <button class="nav-item" data-view="learning">Manual de aprendizado</button>
+          <button class="nav-item" data-view="kpis">Indicadores</button>
+          <button class="nav-item" data-view="risks">Riscos</button>
+          <span class="nav-group-label">Operação e controle</span>
+          <button class="nav-item" data-view="board">Execução</button>
+          <button class="nav-item" data-view="meetings">Rituais</button>
+          <button class="nav-item" data-view="documents">Documentos</button>
+          <button class="nav-item" data-view="audit">Auditoria</button>
+          <button class="nav-item" data-view="archive">Arquivo</button>
+          <button class="nav-item" data-view="org">Organograma</button>
+        </nav>
+
+        <div class="sidebar-note">
+          <span>Base empresarial</span>
+          <p>Manual empresarial vivo da Acessa, com diretorias, responsáveis, processos, equipes e controles de gestão.</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="topbar-identity">
+            <div class="topbar-monogram" aria-hidden="true">A</div>
+            <div>
+              <p class="eyebrow">Acessa Board</p>
+              <h1>Governança e execução empresarial</h1>
+            </div>
+          </div>
+          <div class="top-actions">
+            <span class="cloud-status local" id="cloud-status" title="Os dados estão armazenados somente neste navegador">● Local</span>
+            <button class="ghost-button" id="export-backup" title="Exportar backup completo">Exportar</button>
+            <button class="ghost-button" id="import-backup" title="Restaurar um backup">Restaurar</button>
+            <input id="backup-file" type="file" accept="application/json,.json" hidden />
+            <button class="ghost-button" id="email-summary">Resumo</button>
+            <button class="ghost-button theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Ativar tema escuro">◐ <span>Tema escuro</span></button>
+            <button class="ghost-button" id="account-button" type="button" hidden>Entrar</button>
+            <button class="primary-button" id="new-task">Nova ação</button>
+          </div>
+        </header>
+
+        <section class="view active" id="dashboard">
+          <div class="metrics-grid executive">
+            <article class="metric-card">
+              <span>Diretorias</span>
+              <strong id="metric-areas">0</strong>
+              <small>estrutura executiva ativa</small>
+            </article>
+            <article class="metric-card">
+              <span>Processos</span>
+              <strong id="metric-processes">0</strong>
+              <small>rotinas críticas mapeadas</small>
+            </article>
+            <article class="metric-card">
+              <span>Ações abertas</span>
+              <strong id="metric-open">0</strong>
+              <small>fora de concluído/arquivo</small>
+            </article>
+            <article class="metric-card">
+              <span>Risco médio</span>
+              <strong id="metric-risk">0</strong>
+              <small>severidade ponderada</small>
+            </article>
+            <article class="metric-card">
+              <span>Próximo ritual</span>
+              <strong id="metric-next">-</strong>
+              <small>agenda executiva</small>
+            </article>
+          </div>
+
+          <div class="mission-band">
+            <article>
+              <span>Missão</span>
+              <p>Oferecer soluções completas em conectividade e tecnologia com excelência operacional e foco na experiência do cliente.</p>
+            </article>
+            <article>
+              <span>Visão</span>
+              <p>Ser referência em conectividade e tecnologia na Paraíba, crescendo de forma sustentável e valorizando pessoas.</p>
+            </article>
+            <article>
+              <span>Valores</span>
+              <p>Excelência, transparência, aprendizado, inovação, segurança, valorização das pessoas, legalidade e sustentabilidade.</p>
+            </article>
+          </div>
+
+          <div class="split-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <span class="eyebrow">Prioridade executiva</span>
+                  <h2>Ações que precisam de tração</h2>
+                </div>
+                <button class="text-button" data-view-jump="board">Ver execução</button>
+              </div>
+              <div class="action-list" id="priority-list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <span class="eyebrow">Ritmo de gestão</span>
+                  <h2>Próximos rituais</h2>
+                </div>
+                <button class="text-button" data-view-jump="meetings">Ver rituais</button>
+              </div>
+              <div class="meeting-list" id="dashboard-meetings"></div>
+            </section>
+          </div>
+
+          <div class="panel wide-panel">
+            <div class="panel-heading">
+              <div>
+                <span class="eyebrow">Saúde operacional</span>
+                <h2>Indicadores por diretoria</h2>
+              </div>
+              <button class="text-button" data-view-jump="kpis">Abrir indicadores</button>
+            </div>
+            <div class="kpi-strip" id="dashboard-kpis"></div>
+          </div>
+        </section>
+
+        <section class="view" id="governance">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Decisão, alçada e responsabilidade</p>
+              <h2>Governança e matriz RACI</h2>
+            </div>
+            <div class="top-actions">
+              <button class="ghost-button" id="new-governance">Novo fórum</button>
+              <button class="primary-button" id="new-raci">Nova responsabilidade</button>
+            </div>
+          </div>
+          <div class="governance-health" id="governance-health" aria-label="Indicadores de saúde da governança"></div>
+          <div class="governance-toolbar" aria-label="Filtros de governança e RACI">
+            <label>Buscar processo ou responsável<input id="governance-search" type="search" placeholder="Ex.: compras, Harley, NOC"></label>
+            <label>Diretoria<select id="governance-area-filter"><option value="">Todas as diretorias</option></select></label>
+            <label>Situação<select id="governance-status-filter"><option value="">Todas</option><option value="Ativo">Ativos</option><option value="Revisar">Revisão pendente</option></select></label>
+          </div>
+          <div class="raci-guide" aria-label="Como interpretar a matriz RACI">
+            <strong>Como usar:</strong>
+            <span><b class="raci-badge r">R</b> executa</span>
+            <span><b class="raci-badge a">A</b> aprova e responde pelo resultado — deve existir apenas um</span>
+            <span><b class="raci-badge c">C</b> é consultado antes da decisão</span>
+            <span><b class="raci-badge i">I</b> é informado depois</span>
+          </div>
+          <div class="governance-subheading"><div><span>Fóruns de decisão</span><h3>Cadência, autoridade e evidências</h3></div></div>
+          <div class="governance-grid" id="governance-grid"></div>
+          <div class="governance-subheading"><div><span>Matriz de responsabilidades</span><h3>Processos críticos e alçadas</h3></div><small id="raci-result-count"></small></div>
+          <div class="raci-table-wrap">
+            <table class="raci-table">
+              <thead>
+                <tr>
+                  <th>Processo / área</th>
+                  <th><span class="raci-badge r">R</span> Executa</th>
+                  <th><span class="raci-badge a">A</span> Aprova</th>
+                  <th><span class="raci-badge c">C</span> Consultado</th>
+                  <th><span class="raci-badge i">I</span> Informado</th>
+                  <th>Controle</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="raci-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="areas">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Mapa operacional</p>
+              <h2>Diretorias, equipes, processos e responsáveis</h2>
+            </div>
+            <button class="primary-button" id="new-area">Nova diretoria</button>
+          </div>
+          <div class="area-grid" id="area-grid"></div>
+        </section>
+
+        <section class="view" id="processes">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Como a operação deve funcionar</p>
+              <h2>Biblioteca de processos e manuais</h2>
+            </div>
+            <button class="primary-button" id="new-process">Novo processo</button>
+          </div>
+          <div class="process-manual-grid" id="process-manual-grid"></div>
+        </section>
+
+        <section class="view" id="career">
+          <div id="career-home">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Pessoas, crescimento e remuneração</p>
+              <h2>Central de cargos e carreira</h2>
+              <p class="section-description">Escolha um setor para ver cargos, salários, benefícios e promoções.</p>
+            </div>
+            <button class="primary-button" id="new-career">Nova carreira</button>
+          </div>
+          <div class="career-overview" id="career-overview"></div>
+          <div class="career-list-heading">
+            <div>
+              <p class="eyebrow">Subpáginas por setor</p>
+              <h3>Escolha uma área profissional</h3>
+            </div>
+            <span class="career-security-note">Informação salarial restrita</span>
+          </div>
+          <div class="career-grid" id="career-grid"></div>
+          <p class="data-disclaimer career-disclaimer">As faixas apresentadas são referências de planejamento. Alterações salariais devem seguir aprovação da diretoria e política de remuneração da Acessa.</p>
+          </div>
+          <div class="career-detail-page" id="career-detail" hidden></div>
+        </section>
+
+        <section class="view" id="learning">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Ferramenta de aprendizado</p>
+              <h2>Trilhas para diretores, líderes e equipes</h2>
+            </div>
+          </div>
+          <div class="learning-grid" id="learning-grid"></div>
+        </section>
+
+        <section class="view" id="kpis">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Painel de indicadores</p>
+              <h2>Metas, resultado atual e tendência</h2>
+              <p class="data-disclaimer">Dados demonstrativos — ainda não conectados às fontes oficiais da Acessa.</p>
+            </div>
+            <button class="primary-button" id="new-kpi">Novo indicador</button>
+          </div>
+          <div class="kpi-grid" id="kpi-grid"></div>
+        </section>
+
+        <section class="view" id="risks">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Controle e mitigação</p>
+              <h2>Mapa de riscos corporativos</h2>
+            </div>
+            <button class="primary-button" id="new-risk">Novo risco</button>
+          </div>
+          <div class="risk-grid" id="risk-grid"></div>
+        </section>
+
+        <section class="view" id="board">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Execução</p>
+              <h2>Quadro operacional</h2>
+            </div>
+            <button class="primary-button" id="new-task-board">Adicionar ação</button>
+          </div>
+          <div class="kanban" id="kanban"></div>
+        </section>
+
+        <section class="view" id="meetings">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Pautas, atas e decisões</p>
+              <h2>Rituais de gestão</h2>
+            </div>
+            <button class="primary-button" id="new-meeting">Novo ritual</button>
+          </div>
+          <div class="meeting-board" id="meeting-board"></div>
+        </section>
+
+        <section class="view" id="documents">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Central documental institucional</p>
+              <h2>Contratos, atos societários e documentos de controle</h2>
+              <p class="data-disclaimer">Organize contrato social, acordo de sócios, MOU, atas, políticas, procurações e demais documentos. Nesta fase, registre o link do repositório seguro; o upload de arquivos será habilitado com o backend.</p>
+            </div>
+            <button class="primary-button" id="new-document">Adicionar documento</button>
+          </div>
+          <div class="document-categories" aria-label="Categorias documentais recomendadas">
+            <span>Contrato social</span><span>Acordo de sócios</span><span>MOU</span><span>Atas e deliberações</span><span>Políticas</span><span>Procurações</span><span>Licenças e certidões</span><span>Contratos estratégicos</span>
+          </div>
+          <div class="document-grid" id="document-grid"></div>
+        </section>
+
+        <section class="view" id="audit">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Rastreabilidade</p>
+              <h2>Auditoria de responsabilidades</h2>
+            </div>
+          </div>
+          <div class="audit-grid" id="audit-grid"></div>
+        </section>
+
+        <section class="view" id="archive">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Retenção e histórico</p>
+              <h2>Itens arquivados</h2>
+              <p class="data-disclaimer">Itens arquivados permanecem nos dados e podem ser restaurados.</p>
+            </div>
+          </div>
+          <div class="archive-groups" id="archive-groups"></div>
+        </section>
+
+        <section class="view" id="org">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Governança</p>
+              <h2>Organograma executivo Acessa</h2>
+            </div>
+            <button class="primary-button" id="new-person">Adicionar pessoa</button>
+          </div>
+          <div class="org-chart" id="org-chart"></div>
+          <div class="org-grid" id="org-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="task-modal">
+      <form method="dialog" class="modal-card" id="task-form">
+        <div class="modal-heading">
+          <h2 id="task-modal-title">Nova ação</h2>
+          <button class="icon-button" type="button" data-dialog-close="task-modal" aria-label="Fechar sem salvar" title="Fechar sem salvar">×</button>
+        </div>
+        <label>Título <input name="title" required placeholder="Ex.: revisar SLA de manutenção" /></label>
+        <label>Diretoria / responsável <input name="owner" required placeholder="Ex.: Diretoria Técnica" /></label>
+        <label>Prazo <input name="due" type="date" required /></label>
+        <label>Prioridade
+          <select name="priority">
+            <option value="Critica">Crítica</option>
+            <option>Alta</option>
+            <option value="Media">Média</option>
+            <option>Baixa</option>
+          </select>
+        </label>
+        <label>Checklist <textarea name="checklist" placeholder="Uma etapa por linha"></textarea></label>
+        <button class="primary-button" type="submit">Salvar ação</button>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="simple-modal">
+      <form method="dialog" class="modal-card" id="simple-form">
+        <div class="modal-heading">
+          <h2 id="simple-title">Novo item</h2>
+          <button class="icon-button" type="button" data-dialog-close="simple-modal" aria-label="Fechar sem salvar" title="Fechar sem salvar">×</button>
+        </div>
+        <div id="simple-fields"></div>
+        <button class="primary-button" type="submit">Salvar</button>
+      </form>
+    </dialog>
+
+    <div class="auth-gate" id="auth-gate" hidden>
+      <form class="auth-card" id="auth-form">
+        <div class="topbar-monogram" aria-hidden="true">A</div>
+        <p class="eyebrow">Acesso corporativo</p>
+        <h1>Entrar no Acessa Board</h1>
+        <p>Use o mesmo usuário autorizado da plataforma Acessa.</p>
+        <label>E-mail<input name="email" type="email" autocomplete="username" required /></label>
+        <label>Senha<input name="password" type="password" autocomplete="current-password" required /></label>
+        <p class="auth-error" id="auth-error" role="alert"></p>
+        <button class="primary-button" type="submit">Entrar com segurança</button>
+      </form>
+    </div>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
