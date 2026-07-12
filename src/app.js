@@ -1,6 +1,7 @@
 import {
   cloudConfigured,
   isPasswordRecoveryRedirect,
+  isUserInviteRedirect,
   inviteBoardUser,
   listBoardProfiles,
   loadCloudContext,
@@ -549,7 +550,7 @@ let careerLevelContext = null;
 let careerBenefitContext = null;
 let cloudSaveTimer = null;
 let unsubscribeWorkspace = () => {};
-let passwordRecoveryPending = isPasswordRecoveryRedirect;
+let passwordRecoveryPending = isPasswordRecoveryRedirect || isUserInviteRedirect;
 const cloudContext = {
   configured: cloudConfigured,
   connected: false,

@@ -3,6 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 export const isPasswordRecoveryRedirect = window.location.hash.includes("type=recovery")
   || new URLSearchParams(window.location.search).get("type") === "recovery";
 
+export const isUserInviteRedirect = window.location.hash.includes("type=invite")
+  || new URLSearchParams(window.location.search).get("type") === "invite";
+
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const workspaceSlug = import.meta.env.VITE_ACESSA_BOARD_WORKSPACE || "acessa";
