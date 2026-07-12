@@ -1,5 +1,6 @@
 import {
   cloudConfigured,
+  isPasswordRecoveryRedirect,
   loadCloudContext,
   onAuthEvent,
   requestPasswordReset,
@@ -539,6 +540,7 @@ let careerLevelContext = null;
 let careerBenefitContext = null;
 let cloudSaveTimer = null;
 let unsubscribeWorkspace = () => {};
+let passwordRecoveryPending = isPasswordRecoveryRedirect;
 const cloudContext = {
   configured: cloudConfigured,
   connected: false,
@@ -704,7 +706,8 @@ async function initializeCloud() {
     cloudContext.version = Number(context.workspace.version);
     cloudContext.role = context.profile.role;
     cloudContext.canEdit = ["admin", "socio", "diretor", "gestor", "rh"].includes(context.profile.role);
-    authGate.hidden = true;
+    if (passwordRecoveryPending) showAuthPanel("new-password");
+    else authGate.hidden = true;
     accountButton.textContent = context.profile.display_name || context.session.user.email;
     accountButton.title = `Perfil: ${context.profile.role}. Clique para sair.`;
     const remoteState = context.workspace.state;
@@ -2299,6 +2302,7 @@ newPasswordForm.addEventListener("submit", async (event) => {
   button.textContent = "Salvando...";
   try {
     await updatePassword(password);
+    passwordRecoveryPending = false;
     newPasswordMessage.textContent = "Senha atualizada. Conectando ao Acessa Board...";
     newPasswordMessage.classList.add("auth-success");
     history.replaceState({}, document.title, `${location.pathname}${location.search}`);
@@ -2312,7 +2316,10 @@ newPasswordForm.addEventListener("submit", async (event) => {
 });
 
 onAuthEvent((event) => {
-  if (event === "PASSWORD_RECOVERY") showAuthPanel("new-password");
+  if (event === "PASSWORD_RECOVERY") {
+    passwordRecoveryPending = true;
+    showAuthPanel("new-password");
+  }
 });
 
 accountButton.addEventListener("click", async () => {
