@@ -1403,10 +1403,10 @@ function renderImplementationHub() {
   const progress = milestones.length ? Math.round((completed / milestones.length) * 100) : 0;
   const totalCustomers = (state.companies || []).reduce((sum, company) => sum + Number(company.customers || 0), 0);
   document.querySelector("#implementation-summary").innerHTML = `
-    <article><span>Avanço dos marcos</span><strong>${progress}%</strong><small>${completed} de ${milestones.length} concluídos</small></article>
-    <article><span>Empresas fundadoras</span><strong>${(state.companies || []).length}</strong><small>holdings serão sócias da Acessa</small></article>
-    <article><span>Base estimada</span><strong>${totalCustomers.toLocaleString("pt-BR")}</strong><small>B2C e B2B; validar nas fontes</small></article>
-    <article><span>Virada comercial</span><strong>01/01/27</strong><small>somente novas vendas</small></article>`;
+    <button class="hub-summary-card" type="button" data-view-jump="implementation" data-scroll-target="milestone-panel" aria-label="Abrir marcos da implantação"><span>Avanço dos marcos</span><strong>${progress}%</strong><small>${completed} de ${milestones.length} concluídos</small></button>
+    <button class="hub-summary-card" type="button" data-view-jump="companies" aria-label="Abrir empresas fundadoras"><span>Empresas fundadoras</span><strong>${(state.companies || []).length}</strong><small>holdings serão sócias da Acessa</small></button>
+    <button class="hub-summary-card" type="button" data-view-jump="diligence" aria-label="Abrir dados da base estimada"><span>Base estimada</span><strong>${totalCustomers.toLocaleString("pt-BR")}</strong><small>B2C e B2B; validar nas fontes</small></button>
+    <button class="hub-summary-card" type="button" data-view-jump="cutover" aria-label="Abrir virada comercial"><span>Virada comercial</span><strong>01/01/27</strong><small>somente novas vendas</small></button>`;
   document.querySelector("#milestone-list").innerHTML = milestones.map((item) => `
     <article class="hub-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status)}</b><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
   bindSimpleActions("milestone", "#milestone-list");
@@ -3053,8 +3053,13 @@ function normalizePortuguese(value) {
 }
 
 navButtons.forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
-document.querySelectorAll("[data-view-jump]").forEach((button) => {
-  button.addEventListener("click", () => setView(button.dataset.viewJump));
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-view-jump]");
+  if (!button) return;
+  setView(button.dataset.viewJump);
+  if (button.dataset.scrollTarget) {
+    requestAnimationFrame(() => document.querySelector(`#${CSS.escape(button.dataset.scrollTarget)}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
 });
 
 document.querySelector("#new-task").addEventListener("click", openTaskModal);
