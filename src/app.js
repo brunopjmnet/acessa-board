@@ -368,7 +368,7 @@ const learningModules = [
 
 const audits = [
   { control: "Dono por processo critico", owner: "Diretorias", cadence: "Mensal", evidence: "Mapa de diretorias e rotinas", status: "Em implantacao" },
-  { control: "Ata e decisoes do Conselho", owner: "Conselho de Socios", cadence: "Mensal", evidence: "Ritual Conselho de Socios", status: "Ativo" },
+  { control: "Ata e decisoes do Conselho", owner: "Conselho de Socios", cadence: "Mensal", evidence: "Reunião do Conselho de Socios", status: "Ativo" },
   { control: "Indicador com meta e tendencia", owner: "Controladoria", cadence: "Semanal", evidence: "Painel de KPIs", status: "Em implantacao" },
   { control: "Risco com mitigacao e responsavel", owner: "Diretoria responsavel", cadence: "Quinzenal", evidence: "Mapa de riscos", status: "Ativo" },
   { control: "Rastreio de acoes criticas", owner: "PMO Acessa", cadence: "Semanal", evidence: "Quadro operacional", status: "Ativo" },
@@ -1933,7 +1933,7 @@ function renderArchive() {
       items: state.tasks.filter((item) => item.status === "archived"),
     },
     {
-      label: "Rituais",
+      label: "Reuniões",
       collection: "meetings",
       items: state.meetings.filter((item) => item.archivedAt),
     },
@@ -2246,8 +2246,8 @@ const simpleConfigs = {
     fields: [["vendor", "Fornecedor", "text"], ["object", "Objeto da despesa", "textarea"], ["competence", "Competência (AAAA-MM)", "text"], ["total", "Valor total", "number"], ["paidBy", "Empresa pagadora", "text"], ["criterion", "Critério de rateio", "text"], ["status", "Situação do pagamento/reembolso", "text"], ["evidence", "Comprovante ou evidência", "textarea"]],
   },
   meeting: {
-    title: "Novo ritual",
-    editTitle: "Editar ritual",
+    title: "Nova reunião",
+    editTitle: "Editar reunião",
     collection: "meetings",
     fields: [
       ["title", "Titulo", "text"],
@@ -2597,7 +2597,7 @@ document.querySelector("#email-summary").addEventListener("click", () => {
     `Processos mapeados: ${state.areas.filter((area) => !area.archivedAt).reduce((total, area) => total + area.processes.length, 0)}\n` +
     `Acoes abertas: ${open}\n` +
     `Riscos mapeados: ${state.risks.filter((risk) => !risk.archivedAt).length}\n` +
-    `Rituais marcados: ${state.meetings.length}`,
+    `Reuniões marcadas: ${state.meetings.length}`,
   );
   location.href = `mailto:?subject=${subject}&body=${body}`;
 });
