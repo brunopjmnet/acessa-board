@@ -294,6 +294,34 @@ a {
   border-radius: 8px;
 }
 
+button.metric-card {
+  width: 100%;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
+}
+
+button.metric-card:focus-visible {
+  border-color: var(--brand);
+  outline: 3px solid rgba(81, 69, 255, 0.2);
+  outline-offset: 3px;
+}
+
+button.metric-card::before {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  color: var(--brand);
+  font-size: 20px;
+  font-weight: 900;
+  content: "→";
+  transition: transform .18s ease;
+}
+
+button.metric-card:hover::before { transform: translateX(4px); }
+
 .metric-card span,
 .kpi-card span,
 .risk-card span,
