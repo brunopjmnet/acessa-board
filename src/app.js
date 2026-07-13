@@ -16,6 +16,7 @@ import {
   saveProtectedContract,
   saveProtectedExpense,
   sanitizeSharedWorkspaceState,
+  setBoardUserPassword,
   signIn,
   signOut,
   subscribeToWorkspace,
@@ -811,6 +812,11 @@ const usersTableBody = document.querySelector("#users-table-body");
 const usersMessage = document.querySelector("#users-message");
 const refreshUsersButton = document.querySelector("#refresh-users");
 const inviteUserForm = document.querySelector("#invite-user-form");
+const userPasswordModal = document.querySelector("#user-password-modal");
+const userPasswordForm = document.querySelector("#user-password-form");
+const userPasswordTarget = document.querySelector("#user-password-target");
+const userPasswordMessage = document.querySelector("#user-password-message");
+const generateUserPasswordButton = document.querySelector("#generate-user-password");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
@@ -819,6 +825,7 @@ let careerLevelContext = null;
 let careerBenefitContext = null;
 let cloudSaveTimer = null;
 let unsubscribeWorkspace = () => {};
+let passwordTargetUserId = null;
 let passwordRecoveryPending = isPasswordRecoveryRedirect || isUserInviteRedirect;
 const cloudContext = {
   configured: cloudConfigured,
@@ -839,6 +846,14 @@ function showAuthPanel(panel) {
 
 function clearDialogContext(dialog) {
   if (dialog === taskModal) taskEditId = null;
+  if (dialog === userPasswordModal) {
+    passwordTargetUserId = null;
+    userPasswordForm.reset();
+    userPasswordForm.elements.password.type = "password";
+    userPasswordForm.elements.passwordConfirm.type = "password";
+    userPasswordMessage.textContent = "";
+    userPasswordMessage.classList.remove("auth-success");
+  }
   if (dialog === simpleModal) {
     simpleEditId = null;
     careerLevelContext = null;
@@ -855,7 +870,7 @@ document.querySelectorAll("[data-dialog-close]").forEach((button) => {
   });
 });
 
-[taskModal, simpleModal].forEach((dialog) => {
+[taskModal, simpleModal, userPasswordModal].forEach((dialog) => {
   dialog.addEventListener("cancel", () => clearDialogContext(dialog));
 });
 
@@ -1184,12 +1199,13 @@ async function renderUsers() {
     usersTableBody.innerHTML = profiles.map((profile) => {
       const isSelf = profile.user_id === cloudContext.currentUserId;
       const canDelete = !isSelf && ["admin", "socio"].includes(cloudContext.role);
+      const canSetPassword = ["admin", "socio"].includes(cloudContext.role);
       return `<tr data-profile-id="${escapeHtml(profile.user_id)}" data-self="${isSelf}">
         <td><input class="user-name-input" data-profile-field="display_name" value="${escapeHtml(profile.display_name || "Usuário")}" aria-label="Nome do usuário" disabled /><small>${isSelf ? "Sua conta" : "Cadastrado no Supabase"}</small></td>
         <td><select data-profile-field="role" disabled title="O papel é alterado no modo de edição">${boardRoles.map((role) => `<option value="${role}" ${profile.role === role ? "selected" : ""}>${role}</option>`).join("")}</select></td>
         <td><input data-profile-field="directorate" value="${escapeHtml(profile.directorate || "")}" placeholder="Ex.: Comercial" disabled /></td>
         <td><label class="access-switch"><input data-profile-field="active" type="checkbox" ${profile.active ? "checked" : ""} disabled /><span>${profile.active ? "Ativo" : "Inativo"}</span></label></td>
-        <td><div class="user-row-actions"><button class="ghost-button" type="button" data-user-edit>Editar</button><button class="primary-button" type="button" data-user-save hidden>Salvar</button><button class="text-button" type="button" data-user-cancel hidden>Cancelar</button>${canDelete ? `<button class="danger-button" type="button" data-user-delete>Excluir</button>` : ""}</div></td>
+        <td><div class="user-row-actions"><button class="ghost-button" type="button" data-user-edit>Editar</button>${canSetPassword ? `<button class="ghost-button" type="button" data-user-password>Alterar senha</button>` : ""}<button class="primary-button" type="button" data-user-save hidden>Salvar</button><button class="text-button" type="button" data-user-cancel hidden>Cancelar</button>${canDelete ? `<button class="danger-button" type="button" data-user-delete>Excluir</button>` : ""}</div></td>
       </tr>`;
     }).join("") || `<tr><td colspan="5">Nenhum usuário encontrado.</td></tr>`;
     usersMessage.textContent = `${profiles.length} usuário(s) carregado(s). Use Editar para alterar nome, papel, diretoria ou status.`;
@@ -1210,12 +1226,23 @@ usersTableBody.addEventListener("click", async (event) => {
     });
     row.querySelector("[data-user-edit]").hidden = true;
     row.querySelector("[data-user-delete]")?.setAttribute("hidden", "");
+    row.querySelector("[data-user-password]")?.setAttribute("hidden", "");
     row.querySelector("[data-user-save]").hidden = false;
     row.querySelector("[data-user-cancel]").hidden = false;
     row.querySelector("[data-profile-field='display_name']").focus();
     return;
   }
   if (event.target.closest("[data-user-cancel]")) return renderUsers();
+  if (event.target.closest("[data-user-password]")) {
+    passwordTargetUserId = row.dataset.profileId;
+    const displayName = row.querySelector("[data-profile-field='display_name']").value || "Usuário";
+    userPasswordTarget.textContent = `Defina uma nova senha para ${displayName}. A senha atual deixará de funcionar imediatamente.`;
+    userPasswordMessage.textContent = "";
+    userPasswordForm.reset();
+    userPasswordModal.showModal();
+    userPasswordForm.elements.password.focus();
+    return;
+  }
   if (event.target.closest("[data-user-save]")) {
     const values = {};
     row.querySelectorAll("[data-profile-field]").forEach((control) => {
@@ -1257,24 +1284,84 @@ inviteUserForm.addEventListener("submit", async (event) => {
   const button = inviteUserForm.querySelector("button[type='submit']");
   const form = new FormData(inviteUserForm);
   button.disabled = true;
-  button.textContent = "Enviando...";
+  button.textContent = "Criando...";
   usersMessage.classList.remove("auth-success");
-  usersMessage.textContent = "Enviando convite seguro...";
+  usersMessage.textContent = "Criando acesso seguro...";
   try {
-    await inviteBoardUser({
+    const result = await inviteBoardUser({
       email: String(form.get("email") || "").trim(),
       role: String(form.get("role") || "colaborador"),
       directorate: String(form.get("directorate") || "").trim(),
+      password: String(form.get("password") || ""),
     });
     inviteUserForm.reset();
-    usersMessage.textContent = "Convite enviado. O usuário receberá um link para definir a senha.";
-    usersMessage.classList.add("auth-success");
     await renderUsers();
+    usersMessage.textContent = result.mode === "password"
+      ? "Usuário criado com a senha inicial definida pelo administrador."
+      : "Convite enviado. O usuário receberá um link para definir a senha.";
+    usersMessage.classList.add("auth-success");
   } catch (error) {
     usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível enviar o convite.";
   } finally {
     button.disabled = false;
-    button.textContent = "Enviar convite";
+    button.textContent = "Criar acesso";
+  }
+});
+
+function generatedStrongPassword() {
+  const groups = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnopqrstuvwxyz", "23456789", "!@#$%&*+-_"];
+  const all = groups.join("");
+  const randomIndex = (length) => crypto.getRandomValues(new Uint32Array(1))[0] % length;
+  const characters = groups.map((group) => group[randomIndex(group.length)]);
+  while (characters.length < 16) characters.push(all[randomIndex(all.length)]);
+  for (let index = characters.length - 1; index > 0; index -= 1) {
+    const swapIndex = randomIndex(index + 1);
+    [characters[index], characters[swapIndex]] = [characters[swapIndex], characters[index]];
+  }
+  return characters.join("");
+}
+
+generateUserPasswordButton.addEventListener("click", () => {
+  const password = generatedStrongPassword();
+  userPasswordForm.elements.password.value = password;
+  userPasswordForm.elements.passwordConfirm.value = password;
+  userPasswordForm.elements.showPassword.checked = true;
+  userPasswordForm.elements.password.type = "text";
+  userPasswordForm.elements.passwordConfirm.type = "text";
+  userPasswordMessage.textContent = "Senha forte gerada. Copie-a e entregue ao usuário por um canal seguro.";
+  userPasswordMessage.classList.add("auth-success");
+});
+
+userPasswordForm.elements.showPassword.addEventListener("change", () => {
+  const type = userPasswordForm.elements.showPassword.checked ? "text" : "password";
+  userPasswordForm.elements.password.type = type;
+  userPasswordForm.elements.passwordConfirm.type = type;
+});
+
+userPasswordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!passwordTargetUserId) return;
+  const password = String(userPasswordForm.elements.password.value || "");
+  const confirmation = String(userPasswordForm.elements.passwordConfirm.value || "");
+  userPasswordMessage.classList.remove("auth-success");
+  if (password !== confirmation) {
+    userPasswordMessage.textContent = "As senhas não coincidem.";
+    return;
+  }
+  const button = userPasswordForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  button.textContent = "Salvando...";
+  try {
+    await setBoardUserPassword(passwordTargetUserId, password);
+    userPasswordModal.close("saved");
+    clearDialogContext(userPasswordModal);
+    usersMessage.textContent = "Senha alterada com sucesso. A senha anterior não funciona mais.";
+    usersMessage.classList.add("auth-success");
+  } catch (error) {
+    userPasswordMessage.textContent = error instanceof Error ? error.message : "Não foi possível alterar a senha.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Salvar nova senha";
   }
 });
 

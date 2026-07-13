@@ -24,18 +24,34 @@ Deno.serve(async (request) => {
     const { data: caller, error: callerError } = await adminClient.from("board_profiles")
       .select("display_name, role, active").eq("user_id", user.id).single();
     if (callerError || !caller?.active || !["admin", "socio"].includes(caller.role)) {
-      return respond({ error: "Somente administradores e sócios podem excluir usuários." }, 403);
+      return respond({ error: "Somente administradores e sócios podem gerenciar credenciais e excluir usuários." }, 403);
     }
 
     const body = await request.json();
     const action = String(body.action || "");
     const targetUserId = String(body.userId || "").trim();
-    if (action !== "delete" || !/^[0-9a-f-]{36}$/i.test(targetUserId)) return respond({ error: "Operação inválida." }, 400);
-    if (targetUserId === user.id) return respond({ error: "Você não pode excluir a própria conta." }, 409);
+    if (!["delete", "set_password"].includes(action) || !/^[0-9a-f-]{36}$/i.test(targetUserId)) return respond({ error: "Operação inválida." }, 400);
 
     const { data: target, error: targetError } = await adminClient.from("board_profiles")
       .select("display_name, role, active").eq("user_id", targetUserId).single();
     if (targetError || !target) return respond({ error: "Usuário não encontrado." }, 404);
+
+    if (action === "set_password") {
+      const password = String(body.password || "");
+      validatePassword(password);
+      const { error: passwordError } = await adminClient.auth.admin.updateUserById(targetUserId, { password });
+      if (passwordError) throw passwordError;
+      const { error: auditError } = await adminClient.from("board_audit_events").insert({
+        workspace_id: await workspaceId(adminClient),
+        actor_id: user.id,
+        action: "board_user_password_changed",
+        metadata: { target_user_id: targetUserId, target_display_name: target.display_name },
+      });
+      if (auditError) console.error("board_user_password_audit", auditError.message);
+      return respond({ passwordChanged: true, userId: targetUserId });
+    }
+
+    if (targetUserId === user.id) return respond({ error: "Você não pode excluir a própria conta." }, 409);
 
     if (target.active && ["admin", "socio"].includes(target.role)) {
       const { count, error: countError } = await adminClient.from("board_profiles")
@@ -63,6 +79,12 @@ Deno.serve(async (request) => {
     return respond({ error: error instanceof Error ? error.message : "Não foi possível excluir o usuário." }, 400);
   }
 });
+
+function validatePassword(password: string) {
+  if (password.length < 10 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+    throw new Error("A senha deve ter ao menos 10 caracteres, com letra maiúscula, minúscula, número e símbolo.");
+  }
+}
 
 async function clearUserReferences(adminClient: ReturnType<typeof createClient>, userId: string) {
   const operations = [

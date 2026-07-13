@@ -95,12 +95,19 @@ export async function updateBoardProfile(userId, changes) {
   return data;
 }
 
-export async function inviteBoardUser({ email, role, directorate }) {
+export async function inviteBoardUser({ email, role, directorate, password }) {
   if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
   const { data, error } = await supabase.functions.invoke("invite-board-user", {
-    body: { email, role, directorate, redirectTo: `${window.location.origin}/` },
+    body: { email, role, directorate, password, redirectTo: `${window.location.origin}/` },
   });
-  if (error) throw new Error(data?.error || error.message || "Não foi possível enviar o convite.");
+  if (error) {
+    let functionMessage = "";
+    try {
+      const payload = await error.context?.json();
+      functionMessage = payload?.error || "";
+    } catch { /* A resposta pode não conter JSON. */ }
+    throw new Error(functionMessage || data?.error || error.message || "Não foi possível criar o acesso.");
+  }
   if (data?.error) throw new Error(data.error);
   return data;
 }
@@ -132,6 +139,23 @@ export async function deleteBoardUser(userId) {
       functionMessage = payload?.error || "";
     } catch { /* A resposta pode não conter JSON. */ }
     throw new Error(functionMessage || data?.error || error.message || "Não foi possível excluir o usuário.");
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function setBoardUserPassword(userId, password) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { data, error } = await supabase.functions.invoke("manage-board-user", {
+    body: { action: "set_password", userId, password },
+  });
+  if (error) {
+    let functionMessage = "";
+    try {
+      const payload = await error.context?.json();
+      functionMessage = payload?.error || "";
+    } catch { /* A resposta pode não conter JSON. */ }
+    throw new Error(functionMessage || data?.error || error.message || "Não foi possível alterar a senha.");
   }
   if (data?.error) throw new Error(data.error);
   return data;

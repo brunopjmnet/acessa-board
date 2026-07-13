@@ -478,7 +478,8 @@
               <label>E-mail<input name="email" type="email" autocomplete="email" placeholder="colaborador@empresa.com" required /></label>
               <label>Papel<select name="role"><option value="colaborador">colaborador</option><option value="gestor">gestor</option><option value="diretor">diretor</option><option value="rh">rh</option><option value="auditor">auditor</option><option value="socio">socio</option><option value="admin">admin</option></select></label>
               <label>Diretoria<input name="directorate" placeholder="Ex.: Comercial" /></label>
-              <button class="primary-button" type="submit">Enviar convite</button>
+              <label>Senha inicial (opcional)<input name="password" type="password" autocomplete="new-password" minlength="10" placeholder="Deixe vazio para convidar" /></label>
+              <button class="primary-button" type="submit">Criar acesso</button>
             </form>
             <p class="auth-error" id="users-message" role="status"></p>
             <div class="table-wrap">
@@ -491,6 +492,28 @@
         </section>
       </main>
     </div>
+
+    <dialog class="modal" id="user-password-modal">
+      <form class="modal-card password-admin-form" id="user-password-form">
+        <div class="modal-heading">
+          <div>
+            <p class="eyebrow">Administração de acesso</p>
+            <h2>Alterar senha</h2>
+          </div>
+          <button class="icon-button" type="button" data-dialog-close="user-password-modal" aria-label="Fechar sem salvar" title="Fechar sem salvar">×</button>
+        </div>
+        <p id="user-password-target">Defina uma senha temporária para o usuário.</p>
+        <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="10" required /></label>
+        <label>Confirmar senha<input name="passwordConfirm" type="password" autocomplete="new-password" minlength="10" required /></label>
+        <p class="password-requirements">Mínimo de 10 caracteres, com letra maiúscula, minúscula, número e símbolo.</p>
+        <label class="password-visibility"><input name="showPassword" type="checkbox" /> Exibir senha</label>
+        <p class="auth-error" id="user-password-message" role="alert"></p>
+        <div class="password-admin-actions">
+          <button class="ghost-button" id="generate-user-password" type="button">Gerar senha forte</button>
+          <button class="primary-button" type="submit">Salvar nova senha</button>
+        </div>
+      </form>
+    </dialog>
 
     <dialog class="modal" id="task-modal">
       <form method="dialog" class="modal-card" id="task-form">

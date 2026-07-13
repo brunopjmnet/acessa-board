@@ -1879,7 +1879,7 @@ html[data-theme="dark"] .nav-group-label { color:#9faac5; }
 .auth-link { justify-self: center; padding: 4px; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
 .auth-link:hover { text-decoration: underline; }
 .access-table { width: 100%; border-collapse: collapse; }
-.invite-user-form { display: grid; grid-template-columns: 1.4fr .8fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.invite-user-form { display: grid; grid-template-columns: 1.3fr .7fr .9fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .invite-user-form label { display: grid; gap: 5px; color: var(--muted); font-size: .72rem; font-weight: 800; }
 .invite-user-form :is(input,select) { min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); }
 @media (max-width: 900px) { .invite-user-form { grid-template-columns: 1fr 1fr; } }
@@ -1891,7 +1891,13 @@ html[data-theme="dark"] .nav-group-label { color:#9faac5; }
 .access-switch { display: inline-flex; align-items: center; gap: 8px; font-weight: 750; }
 .access-table .user-name-input { min-width: 190px; font-weight: 800; }
 .access-table :is(input,select):disabled { border-color: transparent; background: transparent; color: var(--text); opacity: 1; }
-.user-row-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 230px; }
+.user-row-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 340px; }
+.password-admin-form { width: min(520px, calc(100vw - 32px)); }
+.password-admin-form > p:not(.eyebrow) { color: var(--muted); line-height: 1.5; }
+.password-requirements { margin: -5px 0 0; font-size: .78rem; }
+.password-visibility { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 8px; }
+.password-visibility input { min-height: auto !important; width: 17px; height: 17px; }
+.password-admin-actions { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .danger-button { min-height: 36px; padding: 7px 11px; border: 1px solid rgba(180,35,24,.35); border-radius: 9px; background: rgba(180,35,24,.07); color: var(--red); font: inherit; font-size: .74rem; font-weight: 850; cursor: pointer; }
 .danger-button:hover { background: rgba(180,35,24,.14); }
 body.read-only [data-edit-id],

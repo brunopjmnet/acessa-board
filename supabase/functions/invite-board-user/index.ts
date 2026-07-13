@@ -26,22 +26,50 @@ Deno.serve(async (request) => {
     const email = String(body.email || "").trim().toLowerCase();
     const role = String(body.role || "colaborador");
     const directorate = String(body.directorate || "").trim();
+    const password = String(body.password || "");
     if (!/^\S+@\S+\.\S+$/.test(email)) return respond({ error: "Informe um e-mail válido." }, 400);
     if (!allowedRoles.has(role)) return respond({ error: "Papel inválido." }, 400);
+    if (password && !["admin", "socio"].includes(caller.role)) {
+      return respond({ error: "Somente administradores e sócios podem definir uma senha inicial." }, 403);
+    }
+    if (password) validatePassword(password);
 
-    const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      redirectTo: String(body.redirectTo || ""), data: { full_name: email.split("@")[0] },
-    });
-    if (inviteError) throw inviteError;
+    let createdUser;
+    let mode: "password" | "invite";
+    if (password) {
+      const { data, error } = await adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: email.split("@")[0] },
+      });
+      if (error) throw error;
+      createdUser = data.user;
+      mode = "password";
+    } else {
+      const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
+        redirectTo: String(body.redirectTo || ""), data: { full_name: email.split("@")[0] },
+      });
+      if (error) throw error;
+      createdUser = data.user;
+      mode = "invite";
+    }
+    if (!createdUser) throw new Error("Não foi possível criar o usuário.");
     const { error: profileError } = await adminClient.from("board_profiles")
       .update({ role, directorate: directorate || null, active: true, updated_at: new Date().toISOString() })
-      .eq("user_id", invited.user.id);
+      .eq("user_id", createdUser.id);
     if (profileError) throw profileError;
-    return respond({ userId: invited.user.id, email });
+    return respond({ userId: createdUser.id, email, mode });
   } catch (error) {
     return respond({ error: error instanceof Error ? error.message : "Não foi possível enviar o convite." }, 400);
   }
 });
+
+function validatePassword(password: string) {
+  if (password.length < 10 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+    throw new Error("A senha deve ter ao menos 10 caracteres, com letra maiúscula, minúscula, número e símbolo.");
+  }
+}
 
 function respond(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
