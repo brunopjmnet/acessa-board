@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Acessa Board</title>
+    <meta name="theme-color" content="#12152D" />
     <meta
       name="description"
       content="Centro de comando executivo e operacional para governança, diretorias, indicadores, riscos e rotinas da Acessa."
@@ -13,17 +14,22 @@
         if (localStorage.getItem("acessa-board-theme") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./grupoacessa-theme.css" />
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
-        <div class="brand">
+      <header class="sidebar">
+        <button class="brand" type="button" data-view-jump="dashboard" aria-label="Ir para o Centro de comando">
           <img src="./logo_acessa_nordeste_grupo_preview.png" alt="Acessa" />
-          <div class="brand-workspace"><span>Command Center</span><small>Implantação e gestão empresarial</small></div>
-        </div>
+          <div class="brand-workspace"><span>Acessa Board</span><small>Governança e integração empresarial</small></div>
+        </button>
 
-        <nav class="nav" aria-label="Navegação principal">
+        <button class="nav-toggle" id="nav-toggle" type="button" aria-controls="main-navigation" aria-expanded="false"><span aria-hidden="true">☰</span><span>Menu</span></button>
+        <nav class="nav" id="main-navigation" aria-label="Navegação principal">
           <span class="nav-group-label">Visão executiva</span>
           <button class="nav-item active" data-view="dashboard">Centro de comando</button>
           <span class="nav-group-label">Implantação Acessa</span>
@@ -61,7 +67,7 @@
           <span>Ambiente corporativo</span>
           <p>Base única para decisões, execução e integração da Acessa.</p>
         </div>
-      </aside>
+      </header>
 
       <main class="main">
         <header class="topbar">

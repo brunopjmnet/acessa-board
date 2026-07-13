@@ -785,8 +785,42 @@ const seed = {
 
 let state = loadState();
 
+function buildTopNavigation() {
+  const navigation = document.querySelector("#main-navigation");
+  if (!navigation || navigation.querySelector(".nav-menu")) return;
+  const children = [...navigation.children];
+  let currentPanel = null;
+  children.forEach((element) => {
+    if (element.classList.contains("nav-group-label")) {
+      const label = element.textContent.trim();
+      if (label === "Visão executiva") {
+        element.remove();
+        currentPanel = null;
+        return;
+      }
+      const menu = document.createElement("details");
+      menu.className = "nav-menu";
+      menu.hidden = element.hidden;
+      const summary = document.createElement("summary");
+      summary.innerHTML = `${escapeHtml(label.replace(" Acessa", ""))}<span aria-hidden="true">⌄</span>`;
+      const panel = document.createElement("div");
+      panel.className = "nav-dropdown";
+      navigation.insertBefore(menu, element);
+      menu.append(summary, panel);
+      panel.append(element);
+      currentPanel = panel;
+      return;
+    }
+    if (currentPanel) currentPanel.append(element);
+  });
+}
+
+buildTopNavigation();
+
 const views = document.querySelectorAll(".view");
 const navButtons = document.querySelectorAll(".nav-item");
+const mainNavigation = document.querySelector("#main-navigation");
+const navToggle = document.querySelector("#nav-toggle");
 const taskModal = document.querySelector("#task-modal");
 const taskForm = document.querySelector("#task-form");
 const taskModalTitle = document.querySelector("#task-modal-title");
@@ -808,6 +842,7 @@ const forgotPasswordButton = document.querySelector("#forgot-password");
 const backToLoginButton = document.querySelector("#back-to-login");
 const usersNav = document.querySelector("#users-nav");
 const adminNavLabel = document.querySelector("#admin-nav-label");
+const adminNavGroup = adminNavLabel?.closest(".nav-menu");
 const usersTableBody = document.querySelector("#users-table-body");
 const usersMessage = document.querySelector("#users-message");
 const refreshUsersButton = document.querySelector("#refresh-users");
@@ -1042,6 +1077,7 @@ async function initializeCloud() {
     const canManageUsers = ["admin", "socio", "rh"].includes(context.profile.role);
     usersNav.hidden = !canManageUsers;
     adminNavLabel.hidden = !canManageUsers;
+    if (adminNavGroup) adminNavGroup.hidden = !canManageUsers;
     if (passwordRecoveryPending) showAuthPanel("new-password");
     else authGate.hidden = true;
     accountButton.textContent = context.profile.display_name || context.session.user.email;
@@ -3052,7 +3088,38 @@ function normalizePortuguese(value) {
   ), value);
 }
 
-navButtons.forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
+function closeTopNavigation() {
+  mainNavigation?.classList.remove("nav-open");
+  navToggle?.setAttribute("aria-expanded", "false");
+  document.querySelectorAll(".nav-menu[open]").forEach((menu) => { menu.open = false; });
+}
+
+navToggle?.addEventListener("click", () => {
+  const open = mainNavigation.classList.toggle("nav-open");
+  navToggle.setAttribute("aria-expanded", String(open));
+});
+
+document.querySelectorAll(".nav-menu").forEach((menu) => {
+  menu.addEventListener("toggle", () => {
+    if (!menu.open) return;
+    document.querySelectorAll(".nav-menu[open]").forEach((other) => {
+      if (other !== menu) other.open = false;
+    });
+  });
+});
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".sidebar")) closeTopNavigation();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeTopNavigation();
+});
+
+navButtons.forEach((button) => button.addEventListener("click", () => {
+  setView(button.dataset.view);
+  closeTopNavigation();
+}));
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-view-jump]");
   if (!button) return;
