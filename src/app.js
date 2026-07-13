@@ -1729,9 +1729,36 @@ function riskLevel(risk) {
 
 function renderKanban() {
   const kanban = document.querySelector("#kanban");
+  const search = document.querySelector("#board-search").value.trim().toLowerCase();
+  const priority = document.querySelector("#board-priority-filter").value;
+  const selectedPhase = document.querySelector("#board-phase-filter").value;
+  const dueFilter = document.querySelector("#board-due-filter").value;
+  const today = currentCivilDateIso();
+  const weekDate = new Date(`${today}T12:00:00`); weekDate.setDate(weekDate.getDate() + 7);
+  const weekIso = weekDate.toISOString().slice(0, 10);
+  const activeTasks = state.tasks.filter((task) => task.status !== "archived");
+  const phaseSelect = document.querySelector("#board-phase-filter");
+  const phases = [...new Set(activeTasks.map((task) => task.phase).filter(Boolean))].sort();
+  phaseSelect.innerHTML = `<option value="">Todas as fases</option>${phases.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
+  phaseSelect.value = selectedPhase;
+  const filtered = activeTasks.filter((task) => {
+    const haystack = `${task.title} ${task.owner} ${task.company || ""} ${task.category || ""} ${task.phase || ""}`.toLowerCase();
+    if (search && !haystack.includes(search)) return false;
+    if (priority && task.priority !== priority) return false;
+    if (selectedPhase && task.phase !== selectedPhase) return false;
+    if (dueFilter === "overdue" && !(task.due && task.due < today && task.status !== "done")) return false;
+    if (dueFilter === "week" && !(task.due && task.due >= today && task.due <= weekIso)) return false;
+    if (dueFilter === "nodate" && task.due) return false;
+    return true;
+  });
+  const overdue = activeTasks.filter((task) => task.due && task.due < today && !["done", "archived"].includes(task.status)).length;
+  const critical = activeTasks.filter((task) => task.priority === "Critica" && task.status !== "done").length;
+  const waiting = activeTasks.filter((task) => task.status === "waiting").length;
+  const done = activeTasks.filter((task) => task.status === "done").length;
+  document.querySelector("#board-health").innerHTML = `<article class="${overdue ? "danger" : "good"}"><span>Atrasadas</span><strong>${overdue}</strong><small>exigem replanejamento</small></article><article class="${critical ? "warning" : "good"}"><span>Críticas abertas</span><strong>${critical}</strong><small>prioridade máxima</small></article><article><span>Aguardando</span><strong>${waiting}</strong><small>dependências externas</small></article><article class="good"><span>Concluídas</span><strong>${done}</strong><small>entregas registradas</small></article>`;
   kanban.innerHTML = statuses
     .map((status) => {
-      const cards = state.tasks
+      const cards = filtered
         .filter((task) => task.status === status.id)
         .map(renderTaskCard)
         .join("");
@@ -1752,16 +1779,20 @@ function renderKanban() {
   kanban.querySelectorAll("[data-task-edit]").forEach((button) => {
     button.addEventListener("click", () => openTaskModal(button.dataset.taskEdit));
   });
+  kanban.querySelectorAll("[data-task-email]").forEach((button) => button.addEventListener("click", () => prepareTaskEmail(state.tasks.find((task) => task.id === button.dataset.taskEmail))));
 }
 
 function renderTaskCard(task) {
+  const isOverdue = task.due && task.due < currentCivilDateIso() && !["done", "archived"].includes(task.status);
   return `
-    <article class="task-card">
+    <article class="task-card ${isOverdue ? "overdue" : ""}" data-priority="${escapeHtml(task.priority)}">
+      <div class="task-card-head"><span class="task-phase">${escapeHtml(task.phase || task.category || "Operação")}</span>${isOverdue ? `<b class="overdue-label">Atrasada</b>` : ""}</div>
       <h4>${escapeHtml(task.title)}</h4>
       <div class="task-meta">
         <span class="tag">${escapeHtml(task.owner)}</span>
-        <span class="tag violet">${formatDate(task.due)}</span>
+        <span class="tag violet">${task.due ? formatDate(task.due) : "Sem prazo"}</span>
         <span class="tag ${task.priority === "Critica" || task.priority === "Alta" ? "warning" : ""}">${escapeHtml(task.priority)}</span>
+        ${task.company ? `<span class="tag company">${escapeHtml(task.company)}</span>` : ""}
       </div>
       <ul class="checklist">
         ${task.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
@@ -1769,7 +1800,7 @@ function renderTaskCard(task) {
       <select data-task-status="${task.id}" aria-label="Status da acao">
         ${statuses.map((status) => `<option value="${status.id}" ${task.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}
       </select>
-      <button class="ghost-button" type="button" data-task-edit="${task.id}">Editar ação</button>
+      <div class="task-actions"><button class="text-button" type="button" data-task-email="${task.id}">Avisar</button><button class="ghost-button" type="button" data-task-edit="${task.id}">Editar ação</button></div>
     </article>
   `;
 }
@@ -2075,6 +2106,9 @@ function openTaskModal(id = null) {
   if (task) {
     taskForm.elements.namedItem("title").value = task.title ?? "";
     taskForm.elements.namedItem("owner").value = task.owner ?? "";
+    taskForm.elements.namedItem("phase").value = task.phase ?? "";
+    taskForm.elements.namedItem("company").value = task.company ?? "";
+    taskForm.elements.namedItem("category").value = task.category ?? "";
     taskForm.elements.namedItem("due").value = task.due ?? "";
     taskForm.elements.namedItem("priority").value = task.priority ?? "Media";
     taskForm.elements.namedItem("checklist").value = (task.checklist ?? []).join("\n");
@@ -2513,6 +2547,8 @@ document.querySelectorAll("[data-view-jump]").forEach((button) => {
 
 document.querySelector("#new-task").addEventListener("click", openTaskModal);
 document.querySelector("#new-task-board").addEventListener("click", openTaskModal);
+document.querySelectorAll("#board-search, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
+document.querySelector("#board-email-summary").addEventListener("click", () => prepareBoardEmail());
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
 document.querySelector("#new-document").addEventListener("click", () => openSimpleModal("document"));
 document.querySelector("#new-person").addEventListener("click", () => openSimpleModal("person"));
@@ -2577,6 +2613,9 @@ taskForm.addEventListener("submit", (event) => {
   Object.assign(task, {
     title: data.get("title"),
     owner: data.get("owner"),
+    phase: data.get("phase"),
+    company: data.get("company"),
+    category: data.get("category"),
     due: data.get("due"),
     priority: data.get("priority"),
     checklist: String(data.get("checklist") || "")
@@ -2592,6 +2631,22 @@ taskForm.addEventListener("submit", (event) => {
   setView("board");
   render();
 });
+
+function prepareTaskEmail(task) {
+  if (!task) return;
+  const subject = encodeURIComponent(`[Acessa] Ação ${task.due && task.due < currentCivilDateIso() ? "atrasada" : "pendente"}: ${task.title}`);
+  const body = encodeURIComponent(`Responsável: ${task.owner}\nFase: ${task.phase || "Não informada"}\nEmpresa: ${task.company || "Todas / não informada"}\nPrazo: ${task.due ? formatDate(task.due) : "Não definido"}\nPrioridade: ${task.priority}\nStatus: ${statuses.find((status) => status.id === task.status)?.label || task.status}\n\nPróxima atualização solicitada: informar avanço, bloqueios e nova previsão.`);
+  location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function prepareBoardEmail() {
+  const today = currentCivilDateIso();
+  const open = state.tasks.filter((task) => !["done", "archived"].includes(task.status));
+  const overdue = open.filter((task) => task.due && task.due < today);
+  const critical = open.filter((task) => task.priority === "Critica");
+  const lines = open.sort((a, b) => priorityValue(b.priority) - priorityValue(a.priority)).slice(0, 15).map((task) => `- ${task.title} | ${task.owner} | ${task.due ? formatDate(task.due) : "sem prazo"} | ${task.priority}`);
+  location.href = `mailto:?subject=${encodeURIComponent("[Acessa] Resumo do quadro operacional")}&body=${encodeURIComponent(`Ações abertas: ${open.length}\nAtrasadas: ${overdue.length}\nCríticas: ${critical.length}\n\nPrioridades:\n${lines.join("\n")}\n\nEste e-mail foi preparado pelo Acessa Board.`)}`;
+}
 
 simpleForm.addEventListener("submit", async (event) => {
   event.preventDefault();

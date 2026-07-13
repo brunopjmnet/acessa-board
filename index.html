@@ -357,10 +357,18 @@
         <section class="view" id="board">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Execução</p>
-              <h2>Quadro operacional</h2>
+              <p class="eyebrow">Execução integrada</p>
+              <h2>Quadro operacional da implantação</h2>
+              <p class="section-description">Prioridades, responsáveis, fases, empresas e alertas em uma única visão.</p>
             </div>
-            <button class="primary-button" id="new-task-board">Adicionar ação</button>
+            <div class="top-actions"><button class="ghost-button" id="board-email-summary" type="button">Preparar e-mail</button><button class="primary-button" id="new-task-board">Adicionar ação</button></div>
+          </div>
+          <div class="board-health" id="board-health"></div>
+          <div class="board-toolbar">
+            <label>Buscar<input id="board-search" type="search" placeholder="Ação, responsável ou empresa" /></label>
+            <label>Prioridade<select id="board-priority-filter"><option value="">Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></label>
+            <label>Fase<select id="board-phase-filter"><option value="">Todas as fases</option></select></label>
+            <label>Prazo<select id="board-due-filter"><option value="">Todos</option><option value="overdue">Atrasados</option><option value="week">Próximos 7 dias</option><option value="nodate">Sem prazo</option></select></label>
           </div>
           <div class="kanban" id="kanban"></div>
         </section>
@@ -459,6 +467,9 @@
         </div>
         <label>Título <input name="title" required placeholder="Ex.: revisar SLA de manutenção" /></label>
         <label>Diretoria / responsável <input name="owner" required placeholder="Ex.: Diretoria Técnica" /></label>
+        <label>Fase / frente <input name="phase" placeholder="Ex.: Virada comercial" /></label>
+        <label>Empresa relacionada <input name="company" placeholder="Ex.: Megalink ou Todas" /></label>
+        <label>Categoria <input name="category" placeholder="Ex.: Sistemas, Jurídico, Pessoas" /></label>
         <label>Prazo <input name="due" type="date" required /></label>
         <label>Prioridade
           <select name="priority">
