@@ -40,6 +40,24 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Contraste fixo do banner comercial sobre o fundo escuro. */
+.commercial-showcase .commercial-hero h2 {
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .28);
+}
+
+.commercial-showcase .commercial-hero .eyebrow {
+  color: #cfc8ff;
+}
+
+.commercial-showcase .commercial-hero .commercial-lead {
+  color: #f3f5ff;
+}
+
+.commercial-showcase .commercial-hero .data-disclaimer {
+  color: #c7cfe8;
+}
+
 button,
 input,
 select,
