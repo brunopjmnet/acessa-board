@@ -1889,6 +1889,11 @@ html[data-theme="dark"] .nav-group-label { color:#9faac5; }
 .access-table td small { margin-top: 3px; color: var(--muted); }
 .access-table select, .access-table input[type="text"], .access-table input:not([type]) { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--text); }
 .access-switch { display: inline-flex; align-items: center; gap: 8px; font-weight: 750; }
+.access-table .user-name-input { min-width: 190px; font-weight: 800; }
+.access-table :is(input,select):disabled { border-color: transparent; background: transparent; color: var(--text); opacity: 1; }
+.user-row-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 230px; }
+.danger-button { min-height: 36px; padding: 7px 11px; border: 1px solid rgba(180,35,24,.35); border-radius: 9px; background: rgba(180,35,24,.07); color: var(--red); font: inherit; font-size: .74rem; font-weight: 850; cursor: pointer; }
+.danger-button:hover { background: rgba(180,35,24,.14); }
 body.read-only [data-edit-id],
 body.read-only [data-archive-id],
 body.read-only [data-edit-career-level],

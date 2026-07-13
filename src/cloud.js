@@ -80,6 +80,7 @@ export async function listBoardProfiles() {
 export async function updateBoardProfile(userId, changes) {
   if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
   const allowed = {};
+  if (Object.hasOwn(changes, "display_name")) allowed.display_name = changes.display_name?.trim() || null;
   if (Object.hasOwn(changes, "role")) allowed.role = changes.role;
   if (Object.hasOwn(changes, "directorate")) allowed.directorate = changes.directorate || null;
   if (Object.hasOwn(changes, "active")) allowed.active = Boolean(changes.active);
@@ -116,6 +117,23 @@ export async function saveCloudState(workspaceId, state, expectedVersion) {
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("CONFLICT: os dados foram alterados por outro usuário. Recarregue antes de salvar novamente.");
+  return data;
+}
+
+export async function deleteBoardUser(userId) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { data, error } = await supabase.functions.invoke("manage-board-user", {
+    body: { action: "delete", userId },
+  });
+  if (error) {
+    let functionMessage = "";
+    try {
+      const payload = await error.context?.json();
+      functionMessage = payload?.error || "";
+    } catch { /* A resposta pode não conter JSON. */ }
+    throw new Error(functionMessage || data?.error || error.message || "Não foi possível excluir o usuário.");
+  }
+  if (data?.error) throw new Error(data.error);
   return data;
 }
 

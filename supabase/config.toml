@@ -2,3 +2,6 @@ project_id = "acessa-board"
 
 [functions.create-jaas-session]
 verify_jwt = true
+
+[functions.manage-board-user]
+verify_jwt = true

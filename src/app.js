@@ -1,6 +1,7 @@
 import {
   cloudConfigured,
   createJaasMeetingSession,
+  deleteBoardUser,
   isPasswordRecoveryRedirect,
   isUserInviteRedirect,
   inviteBoardUser,
@@ -1182,39 +1183,70 @@ async function renderUsers() {
     const profiles = await listBoardProfiles();
     usersTableBody.innerHTML = profiles.map((profile) => {
       const isSelf = profile.user_id === cloudContext.currentUserId;
-      return `<tr data-profile-id="${escapeHtml(profile.user_id)}">
-        <td><strong>${escapeHtml(profile.display_name || "Usuário")}</strong><small>${isSelf ? "Sua conta" : "Cadastrado no Supabase"}</small></td>
-        <td><select data-profile-field="role" ${isSelf ? "disabled title=\"Seu próprio papel deve ser alterado por outro administrador\"" : ""}>${boardRoles.map((role) => `<option value="${role}" ${profile.role === role ? "selected" : ""}>${role}</option>`).join("")}</select></td>
-        <td><input data-profile-field="directorate" value="${escapeHtml(profile.directorate || "")}" placeholder="Ex.: Comercial" /></td>
-        <td><label class="access-switch"><input data-profile-field="active" type="checkbox" ${profile.active ? "checked" : ""} ${isSelf ? "disabled" : ""} /><span>${profile.active ? "Ativo" : "Inativo"}</span></label></td>
+      const canDelete = !isSelf && ["admin", "socio"].includes(cloudContext.role);
+      return `<tr data-profile-id="${escapeHtml(profile.user_id)}" data-self="${isSelf}">
+        <td><input class="user-name-input" data-profile-field="display_name" value="${escapeHtml(profile.display_name || "Usuário")}" aria-label="Nome do usuário" disabled /><small>${isSelf ? "Sua conta" : "Cadastrado no Supabase"}</small></td>
+        <td><select data-profile-field="role" disabled title="O papel é alterado no modo de edição">${boardRoles.map((role) => `<option value="${role}" ${profile.role === role ? "selected" : ""}>${role}</option>`).join("")}</select></td>
+        <td><input data-profile-field="directorate" value="${escapeHtml(profile.directorate || "")}" placeholder="Ex.: Comercial" disabled /></td>
+        <td><label class="access-switch"><input data-profile-field="active" type="checkbox" ${profile.active ? "checked" : ""} disabled /><span>${profile.active ? "Ativo" : "Inativo"}</span></label></td>
+        <td><div class="user-row-actions"><button class="ghost-button" type="button" data-user-edit>Editar</button><button class="primary-button" type="button" data-user-save hidden>Salvar</button><button class="text-button" type="button" data-user-cancel hidden>Cancelar</button>${canDelete ? `<button class="danger-button" type="button" data-user-delete>Excluir</button>` : ""}</div></td>
       </tr>`;
-    }).join("") || `<tr><td colspan="4">Nenhum usuário encontrado.</td></tr>`;
-    usersMessage.textContent = `${profiles.length} usuário(s) carregado(s). Alterações são salvas automaticamente.`;
+    }).join("") || `<tr><td colspan="5">Nenhum usuário encontrado.</td></tr>`;
+    usersMessage.textContent = `${profiles.length} usuário(s) carregado(s). Use Editar para alterar nome, papel, diretoria ou status.`;
     usersMessage.classList.add("auth-success");
   } catch (error) {
     usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível carregar os usuários.";
   }
 }
 
-usersTableBody.addEventListener("change", async (event) => {
-  const control = event.target.closest("[data-profile-field]");
+usersTableBody.addEventListener("click", async (event) => {
   const row = event.target.closest("[data-profile-id]");
-  if (!control || !row) return;
-  const field = control.dataset.profileField;
-  const value = field === "active" ? control.checked : control.value.trim();
-  control.disabled = true;
-  usersMessage.classList.remove("auth-success");
-  usersMessage.textContent = "Salvando permissão...";
-  try {
-    await updateBoardProfile(row.dataset.profileId, { [field]: value });
-    usersMessage.textContent = "Permissão atualizada com sucesso.";
-    usersMessage.classList.add("auth-success");
-    if (field === "active") control.closest("label").querySelector("span").textContent = value ? "Ativo" : "Inativo";
-  } catch (error) {
-    usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível atualizar a permissão.";
-    await renderUsers();
-  } finally {
-    if (!(field === "active" && row.dataset.profileId === cloudContext.currentUserId)) control.disabled = false;
+  if (!row) return;
+  const isSelf = row.dataset.self === "true";
+  if (event.target.closest("[data-user-edit]")) {
+    row.querySelectorAll("[data-profile-field]").forEach((control) => {
+      const protectedSelfField = isSelf && ["role", "active"].includes(control.dataset.profileField);
+      control.disabled = protectedSelfField;
+    });
+    row.querySelector("[data-user-edit]").hidden = true;
+    row.querySelector("[data-user-delete]")?.setAttribute("hidden", "");
+    row.querySelector("[data-user-save]").hidden = false;
+    row.querySelector("[data-user-cancel]").hidden = false;
+    row.querySelector("[data-profile-field='display_name']").focus();
+    return;
+  }
+  if (event.target.closest("[data-user-cancel]")) return renderUsers();
+  if (event.target.closest("[data-user-save]")) {
+    const values = {};
+    row.querySelectorAll("[data-profile-field]").forEach((control) => {
+      if (isSelf && ["role", "active"].includes(control.dataset.profileField)) return;
+      values[control.dataset.profileField] = control.type === "checkbox" ? control.checked : control.value.trim();
+    });
+    usersMessage.classList.remove("auth-success");
+    usersMessage.textContent = "Salvando alterações...";
+    try {
+      await updateBoardProfile(row.dataset.profileId, values);
+      await renderUsers();
+      usersMessage.textContent = "Usuário atualizado com sucesso.";
+      usersMessage.classList.add("auth-success");
+    } catch (error) {
+      usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível atualizar o usuário.";
+    }
+    return;
+  }
+  if (event.target.closest("[data-user-delete]")) {
+    const displayName = row.querySelector("[data-profile-field='display_name']").value || "este usuário";
+    if (!window.confirm(`Excluir permanentemente ${displayName}? O acesso será removido, mas o histórico de auditoria será preservado.`)) return;
+    usersMessage.classList.remove("auth-success");
+    usersMessage.textContent = "Excluindo usuário com segurança...";
+    try {
+      await deleteBoardUser(row.dataset.profileId);
+      await renderUsers();
+      usersMessage.textContent = "Usuário excluído e histórico preservado.";
+      usersMessage.classList.add("auth-success");
+    } catch (error) {
+      usersMessage.textContent = error instanceof Error ? error.message : "Não foi possível excluir o usuário.";
+    }
   }
 });
 
