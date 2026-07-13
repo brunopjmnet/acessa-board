@@ -1225,8 +1225,17 @@ function renderDecisions() {
 
 function renderCommercialCatalog() {
   state.products.forEach((product) => { if (!product.id) product.id = crypto.randomUUID(); });
-  document.querySelector("#product-grid").innerHTML = (state.products || []).map((product) => `
-    <article class="product-card"><span>${escapeHtml(product.status)}</span><h3>${escapeHtml(product.line)}</h3><strong>${escapeHtml(product.market)}</strong><p>${escapeHtml(product.offers)}</p><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${product.id}">Editar</button></div></article>`).join("");
+  document.querySelector("#product-grid").innerHTML = (state.products || []).map((product, productIndex) => {
+    const offers = String(product.offers || "").split("·").map((offer) => offer.trim()).filter(Boolean);
+    const offerMarkup = offers.map((offer, offerIndex) => {
+      const match = offer.match(/^(.*?)\s+R\$\s*([\d.,]+)$/i);
+      const speed = match ? match[1] : offer;
+      const price = match ? match[2] : "Consulte";
+      return `<div class="plan-offer${offerIndex === offers.length - 1 ? " plan-offer-featured" : ""}"><span class="plan-speed">${escapeHtml(speed)}</span><span class="plan-price">${price === "Consulte" ? "Consulte" : `<small>R$</small>${escapeHtml(price)}<small>/mês</small>`}</span></div>`;
+    }).join("");
+    const labels = ["Para sua casa", "Conexão regional", "Para sua empresa", "Alta performance"];
+    return `<article class="product-card product-theme-${(productIndex % 4) + 1}"><div class="product-card-top"><span class="product-status">${escapeHtml(product.status)}</span><span class="product-number">0${productIndex + 1}</span></div><p class="product-kicker">${labels[productIndex] || "Solução Acessa"}</p><h3>${escapeHtml(product.line)}</h3><strong class="product-market">${escapeHtml(product.market)}</strong><div class="plan-list">${offerMarkup}</div><div class="product-cta"><span>Escolha o plano ideal</span><button class="ghost-button" type="button" data-edit-id="${product.id}" aria-label="Editar ${escapeHtml(product.line)}">Editar</button></div></article>`;
+  }).join("");
   bindSimpleActions("product", "#product-grid");
 }
 
