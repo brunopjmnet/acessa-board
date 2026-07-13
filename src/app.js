@@ -513,8 +513,18 @@ const defaultDueDiligence = defaultCompanies.map((company) => ({
   note: "Consolidar evidências e validar nas fontes oficiais.",
 }));
 
+const defaultSupplierContracts = [
+  { id: "contract-playhub", company: "Compartilhado", category: "Conteúdo e benefícios", supplier: "PlayHub", object: "Contrato comum entre as empresas", monthlyValue: 0, startDate: "", endDate: "", readjustment: "A informar", noticeDays: 0, allocation: "Percentuais do MOU", status: "Vigente", evidence: "Contrato a vincular" },
+];
+
+const defaultConnectors = [
+  { id: "connector-ixc", system: "IXC", scope: "Clientes, contratos, planos, financeiro e ordens de serviço", mode: "API / exportação", owner: "Felipe Melo", status: "Não conectado", lastSync: "", note: "Definir instâncias, perfis somente leitura e campos autorizados." },
+  { id: "connector-sgp", system: "SGP", scope: "Bases Megalink e Turbolink para diagnóstico e migração", mode: "API / exportação", owner: "Felipe Melo", status: "Não conectado", lastSync: "", note: "Começar pela Megalink após cópia e validação da base." },
+  { id: "connector-accounting", system: "Contabilidade", scope: "Despesas, impostos, folha consolidada e centros de custo", mode: "Planilha / API", owner: "Bruno", status: "Não conectado", lastSync: "", note: "Importar apenas dados aprovados e separar informações restritas." },
+];
+
 const seed = {
-  businessModelVersion: 15,
+  businessModelVersion: 16,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -524,6 +534,8 @@ const seed = {
   migrationWaves: defaultMigrationWaves,
   leaderInterviews: defaultLeaderInterviews,
   dueDiligence: defaultDueDiligence,
+  supplierContracts: defaultSupplierContracts,
+  connectors: defaultConnectors,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -794,7 +806,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 15) return source;
+  if (Number(source.businessModelVersion || 0) >= 16) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -845,8 +857,10 @@ function migrateBusinessStructure(source) {
   const migrationWaves = Array.isArray(source.migrationWaves) && source.migrationWaves.length ? source.migrationWaves : defaultMigrationWaves;
   const leaderInterviews = Array.isArray(source.leaderInterviews) && source.leaderInterviews.length ? source.leaderInterviews : defaultLeaderInterviews;
   const dueDiligence = Array.isArray(source.dueDiligence) && source.dueDiligence.length ? source.dueDiligence : defaultDueDiligence;
+  const supplierContracts = Array.isArray(source.supplierContracts) && source.supplierContracts.length ? source.supplierContracts : defaultSupplierContracts;
+  const connectors = Array.isArray(source.connectors) && source.connectors.length ? source.connectors : defaultConnectors;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 15, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 16, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1123,6 +1137,8 @@ function render() {
   renderMigrationWaves();
   renderPeopleTransition();
   renderDueDiligence();
+  renderSupplierContracts();
+  renderConnectors();
   renderMetrics();
   renderDashboardLists();
   renderGovernance();
@@ -1228,6 +1244,19 @@ function renderDueDiligence() {
   const labels = { customers: "Clientes", financial: "Financeiro", people: "Pessoas", network: "Rede", contracts: "Contratos", systems: "Sistemas" };
   document.querySelector("#diligence-grid").innerHTML = records.map((record) => `<article class="diligence-card"><div class="company-top"><div><span>Responsável: ${escapeHtml(record.owner)}</span><h3>${escapeHtml(record.company)}</h3></div><small>${record.deadline ? formatDate(record.deadline) : "Sem prazo"}</small></div><div class="diligence-dimensions">${dimensions.map((field) => `<div><span>${labels[field]}</span><b>${escapeHtml(record[field])}</b></div>`).join("")}</div><p>${escapeHtml(record.note)}</p><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${record.id}">Atualizar</button></div></article>`).join("");
   bindSimpleActions("diligence", "#diligence-grid");
+}
+
+function renderSupplierContracts() {
+  const contracts = state.supplierContracts || [];
+  const monthly = contracts.reduce((sum, item) => sum + Number(item.monthlyValue || 0), 0);
+  document.querySelector("#contract-cost-summary").innerHTML = `<article><span>Contratos cadastrados</span><strong>${contracts.length}</strong><small>links, softwares e fornecedores</small></article><article><span>Custo mensal conhecido</span><strong>${monthly.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong><small>valores sigilosos podem ficar zerados</small></article>`;
+  document.querySelector("#supplier-contract-list").innerHTML = contracts.map((item) => `<article class="expense-card"><div class="company-top"><div><span>${escapeHtml(item.company)} · ${escapeHtml(item.category)}</span><h3>${escapeHtml(item.supplier)}</h3></div><strong>${Number(item.monthlyValue || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês</strong></div><p>${escapeHtml(item.object)}</p><small>${escapeHtml(item.status)} · Rateio: ${escapeHtml(item.allocation)} · Aviso: ${escapeHtml(item.noticeDays)} dias</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("supplierContract", "#supplier-contract-list");
+}
+
+function renderConnectors() {
+  document.querySelector("#connector-grid").innerHTML = (state.connectors || []).map((item) => `<article class="diligence-card"><div class="company-top"><div><span>${escapeHtml(item.mode)}</span><h3>${escapeHtml(item.system)}</h3></div><b class="hub-status">${escapeHtml(item.status)}</b></div><p>${escapeHtml(item.scope)}</p><small>Responsável: ${escapeHtml(item.owner)} · Última sincronização: ${item.lastSync ? formatDate(item.lastSync) : "Nunca"}</small><p>${escapeHtml(item.note)}</p><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${item.id}">Configurar cadastro</button></div></article>`).join("");
+  bindSimpleActions("connector", "#connector-grid");
 }
 
 function renderMetrics() {
@@ -2103,6 +2132,14 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  supplierContract: {
+    title: "Novo contrato de fornecedor ou link", editTitle: "Editar contrato", collection: "supplierContracts",
+    fields: [["company", "Empresa ou compartilhado", "text"], ["category", "Categoria", "text"], ["supplier", "Fornecedor", "text"], ["object", "Objeto contratado", "textarea"], ["monthlyValue", "Valor mensal", "number"], ["startDate", "Início (opcional)", "date", false], ["endDate", "Término (opcional)", "date", false], ["readjustment", "Reajuste e índice", "text"], ["noticeDays", "Aviso prévio em dias", "number"], ["allocation", "Critério de rateio", "text"], ["status", "Status", "text"], ["evidence", "Documento ou evidência", "textarea"]],
+  },
+  connector: {
+    title: "Novo conector", editTitle: "Configurar cadastro do conector", collection: "connectors",
+    fields: [["system", "Sistema", "text"], ["scope", "Dados autorizados", "textarea"], ["mode", "Modo: API, exportação ou planilha", "text"], ["owner", "Responsável", "text"], ["status", "Status", "text"], ["lastSync", "Última sincronização (opcional)", "date", false], ["note", "Requisitos e observações", "textarea"]],
+  },
   diligence: {
     title: "Novo controle de diligência", editTitle: "Atualizar diligência", collection: "dueDiligence",
     fields: [["company", "Empresa", "text"], ["customers", "Clientes: Pendente, Estimado, Preliminar, Informado ou Validado", "text"], ["financial", "Financeiro", "text"], ["people", "Pessoas", "text"], ["network", "Rede", "text"], ["contracts", "Contratos", "text"], ["systems", "Sistemas", "text"], ["owner", "Responsável", "text"], ["deadline", "Prazo (opcional)", "date", false], ["note", "Pendência, fonte ou observação", "textarea"]],
@@ -2463,6 +2500,8 @@ document.querySelector("#new-cutover").addEventListener("click", () => openSimpl
 document.querySelector("#new-migration").addEventListener("click", () => openSimpleModal("migration"));
 document.querySelector("#new-leader-interview").addEventListener("click", () => openSimpleModal("leaderInterview"));
 document.querySelector("#new-diligence").addEventListener("click", () => openSimpleModal("diligence"));
+document.querySelector("#new-supplier-contract").addEventListener("click", () => openSimpleModal("supplierContract"));
+document.querySelector("#new-connector").addEventListener("click", () => openSimpleModal("connector"));
 document.querySelector("#export-backup").addEventListener("click", exportBackup);
 document.querySelector("#import-backup").addEventListener("click", () => {
   document.querySelector("#backup-file").click();
