@@ -33,6 +33,11 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -68,6 +73,7 @@ a {
     linear-gradient(180deg, rgba(67, 56, 255, 0.12), transparent 240px),
     var(--sidebar);
   color: var(--white);
+  overflow-y: auto;
 }
 
 .brand {
@@ -90,6 +96,7 @@ a {
   display: grid;
   gap: 5px;
 }
+.nav-group-label { font-size: 11px; letter-spacing: .07em; line-height: 1.4; }
 
 .nav-item,
 .ghost-button,
@@ -106,7 +113,7 @@ a {
   padding: 10px 12px 10px 14px;
   background: transparent;
   color: #cbd5e1;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 750;
   text-align: left;
 }
@@ -203,7 +210,7 @@ a {
 .eyebrow {
   margin: 0;
   color: var(--brand-dark);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -224,7 +231,7 @@ a {
 .text-button {
   min-height: 38px;
   padding: 9px 13px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 850;
   text-decoration: none;
 }
@@ -1813,6 +1820,36 @@ html[data-theme="dark"] table { border-color: var(--line); color: var(--text); }
 html[data-theme="dark"] :is(th,td) { border-color: var(--line); }
 html[data-theme="dark"] th { background: #171d33; color: #c9d1e5; }
 html[data-theme="dark"] dialog::backdrop { background: rgba(2,4,12,.78); }
+
+/* Escala de leitura confortável em telas desktop e tema escuro */
+:is(.section-description,.data-disclaimer,.lead,.muted) { font-size: 14px; line-height: 1.65; }
+small { font-size: 13px; line-height: 1.55; }
+:is(.hub-summary,.board-health) article > span { font-size: 12px; font-weight: 800; letter-spacing: .045em; }
+:is(.hub-summary,.board-health) article > small { font-size: 13px; }
+.hub-row > div > span,.company-top span,.product-card > span,.decision-card span { font-size: 12px; font-weight: 800; }
+.hub-row h3 { font-size: 16px; line-height: 1.35; }
+.hub-row small { font-size: 13px; }
+.hub-status,.confidence-tag { font-size: 13px; font-weight: 800; }
+.tag { min-height: 27px; padding: 5px 9px; font-size: 12px; }
+.task-card h4 { font-size: 15px; line-height: 1.4; }
+.checklist { font-size: 13px; line-height: 1.5; }
+.column h3 { font-size: 12px; letter-spacing: .055em; }
+.board-toolbar label { font-size: 12px; }
+.board-toolbar :is(input,select),.task-card select { font-size: 14px; }
+.kpi-details :is(dt,dd),.governance-details :is(dt,dd) { font-size: 13px; line-height: 1.45; }
+.document-card p,.person-card p,.risk-card p,.manual-card p,.learning-card li { font-size: 14px; line-height: 1.6; }
+.allocation-table :is(th,td),.raci-table :is(th,td),.access-table :is(th,td) { font-size: 13px; }
+
+html[data-theme="dark"] {
+  --muted: #c3cbe0;
+  --line: #414c6d;
+}
+html[data-theme="dark"] :is(.section-description,.data-disclaimer,.lead,.muted,small) { color:#c3cbe0; }
+html[data-theme="dark"] .eyebrow { color:#c9c5ff; }
+html[data-theme="dark"] .hub-row > div > span { color:#b7c1d9; }
+html[data-theme="dark"] .hub-row small { color:#c7cfe2; }
+html[data-theme="dark"] .nav-item { color:#d3daeb; }
+html[data-theme="dark"] .nav-group-label { color:#9faac5; }
 
 .cloud-status {
   display: inline-flex;
