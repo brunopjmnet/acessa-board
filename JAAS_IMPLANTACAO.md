@@ -15,11 +15,11 @@ No console JaaS, crie a aplicação e uma API Key. Guarde:
 ```powershell
 npx supabase secrets set JAAS_APP_ID="vpaas-magic-cookie-..." --project-ref syfnslczrrkaqnlpkafm
 npx supabase secrets set JAAS_API_KEY_ID="vpaas-magic-cookie-.../ID-DA-CHAVE" --project-ref syfnslczrrkaqnlpkafm
-npx supabase secrets set JAAS_PRIVATE_KEY="CONTEUDO_DA_CHAVE_PRIVADA" --project-ref syfnslczrrkaqnlpkafm
+npx supabase secrets set JAAS_PRIVATE_KEY_B64="CHAVE_PRIVADA_PEM_EM_BASE64" --project-ref syfnslczrrkaqnlpkafm
 npx supabase secrets set JAAS_ENABLE_RECORDING="false" JAAS_ENABLE_TRANSCRIPTION="false" --project-ref syfnslczrrkaqnlpkafm
 ```
 
-Se a chave começar com `-----BEGIN RSA PRIVATE KEY-----`, converta para PKCS#8 caso o ambiente de implantação exija. Nunca salve a chave privada no Git, `.env` do frontend ou JSON do workspace.
+No Windows, converta o arquivo PEM para Base64 antes do envio para preservar as quebras de linha. A função decodifica a chave somente em memória. Nunca salve a chave privada no Git, `.env` do frontend ou JSON do workspace.
 
 ## 3. Publicar a função
 

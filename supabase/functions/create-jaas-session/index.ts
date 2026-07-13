@@ -18,7 +18,7 @@ Deno.serve(async (request) => {
     const serviceRoleKey = requiredSecret("SUPABASE_SERVICE_ROLE_KEY");
     const appId = requiredSecret("JAAS_APP_ID");
     const configuredKeyId = requiredSecret("JAAS_API_KEY_ID");
-    const privateKey = requiredSecret("JAAS_PRIVATE_KEY").replaceAll("\\n", "\n");
+    const privateKey = readPrivateKey();
     const authorization = request.headers.get("Authorization");
     if (!authorization) return respond({ error: "Sessão obrigatória." }, 401);
 
@@ -112,6 +112,18 @@ function requiredSecret(name: string) {
   const value = Deno.env.get(name)?.trim();
   if (!value) throw new Error(`JaaS não configurado: variável ${name} ausente.`);
   return value;
+}
+
+function readPrivateKey() {
+  const encoded = Deno.env.get("JAAS_PRIVATE_KEY_B64")?.trim();
+  if (encoded) {
+    try {
+      return atob(encoded);
+    } catch {
+      throw new Error("JaaS não configurado: JAAS_PRIVATE_KEY_B64 inválida.");
+    }
+  }
+  return requiredSecret("JAAS_PRIVATE_KEY").replaceAll("\\n", "\n");
 }
 
 function roomSlug(value: string) {
