@@ -589,7 +589,7 @@ const defaultConnectors = [
 ];
 
 const seed = {
-  businessModelVersion: 17,
+  businessModelVersion: 18,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -661,29 +661,62 @@ const seed = {
     {
       id: crypto.randomUUID(),
       title: "Conselho de Socios",
+      forum: "Conselho de Sócios",
+      status: "Agendada",
+      organizer: "Bruno",
       date: "2026-07-20",
       time: "09:00",
+      duration: 90,
       participants: "Bruno, Harley, Shirley, Adson, Filipe, Rodrigo",
+      objective: "Deliberar prioridades, riscos e decisões estruturantes da implantação.",
       agenda: "Indicadores gerais, riscos, investimentos, prioridades e aprovacoes.",
+      materials: "Indicadores por diretoria, mapa de riscos e decisões pendentes.",
       decisions: "Validar metas e responsaveis por diretoria.",
+      minutes: "Ata pendente após a realização.",
+      actionItems: "Registrar responsáveis e prazos das deliberações aprovadas.",
+      minutesLink: "",
+      roomUrl: "",
+      confidentiality: "Conselho",
     },
     {
       id: crypto.randomUUID(),
       title: "War room operacional",
+      forum: "Operação integrada",
+      status: "Agendada",
+      organizer: "Diretorias",
       date: "2026-07-22",
       time: "15:00",
+      duration: 60,
       participants: "Comercial, Administrativo-Financeira, Relacionamento e Tecnica",
+      objective: "Resolver dependências críticas entre áreas e preparar a operação integrada.",
       agenda: "SLA, capacidade, base de clientes, estoque, frota, cobranca e dependencias.",
+      materials: "Quadro operacional e indicadores das diretorias.",
       decisions: "Atualizar quadro operacional apos a reuniao.",
+      minutes: "Ata pendente após a realização.",
+      actionItems: "Atualizar o quadro operacional com responsáveis e prazos.",
+      minutesLink: "",
+      roomUrl: "",
+      confidentiality: "Interno",
     },
     {
       id: crypto.randomUUID(),
       title: "Comite de experiencia do cliente",
+      forum: "Experiência do cliente",
+      status: "Agendada",
+      organizer: "Relacionamento",
       date: "2026-07-24",
       time: "10:30",
+      duration: 60,
       participants: "Relacionamento, Tecnica e Comercial",
+      objective: "Priorizar causas de insatisfação e definir medidas de recuperação.",
       agenda: "NPS, churn, suporte tecnico, ativacoes, reclamacoes recorrentes e plano de recuperacao.",
+      materials: "Relatório de NPS, churn e reclamações recorrentes.",
       decisions: "Definir donos de causa raiz.",
+      minutes: "Ata pendente após a realização.",
+      actionItems: "Formalizar donos, prazos e indicadores de recuperação.",
+      minutesLink: "",
+      roomUrl: "",
+      confidentiality: "Interno",
     },
   ],
   documents: [
@@ -871,7 +904,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 17) return source;
+  if (Number(source.businessModelVersion || 0) >= 18) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -921,6 +954,20 @@ function migrateBusinessStructure(source) {
     if (product.line === "Acessa Regional") return { ...product, line: "Acessa Essencial" };
     return product;
   });
+  const meetings = (Array.isArray(source.meetings) ? source.meetings : []).map((meeting) => ({
+    forum: meeting.forum || "Gestão integrada",
+    status: meeting.status || (meeting.date && meeting.date < new Date().toISOString().slice(0, 10) ? "Realizada" : "Agendada"),
+    organizer: meeting.organizer || "A definir",
+    duration: Number(meeting.duration || 60),
+    objective: meeting.objective || "Objetivo a definir antes da reunião.",
+    materials: meeting.materials || "Materiais prévios a anexar ou vincular.",
+    minutes: meeting.minutes || "Ata pendente.",
+    actionItems: meeting.actionItems || "Ações e responsáveis a registrar.",
+    minutesLink: meeting.minutesLink || "",
+    roomUrl: meeting.roomUrl || "",
+    confidentiality: meeting.confidentiality || "Interno",
+    ...meeting,
+  }));
   const expenses = Array.isArray(source.expenses) && source.expenses.length ? source.expenses : defaultExpenses;
   const cutoverChecklist = Array.isArray(source.cutoverChecklist) && source.cutoverChecklist.length ? source.cutoverChecklist : defaultCutoverChecklist;
   const migrationWaves = Array.isArray(source.migrationWaves) && source.migrationWaves.length ? source.migrationWaves : defaultMigrationWaves;
@@ -929,7 +976,7 @@ function migrateBusinessStructure(source) {
   const supplierContracts = Array.isArray(source.supplierContracts) && source.supplierContracts.length ? source.supplierContracts : defaultSupplierContracts;
   const connectors = Array.isArray(source.connectors) && source.connectors.length ? source.connectors : defaultConnectors;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 17, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 18, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1991,12 +2038,46 @@ function renderActionItem(task) {
 }
 
 function renderMeetings() {
-  document.querySelector("#meeting-board").innerHTML = state.meetings
-    .filter((meeting) => !meeting.archivedAt)
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map(renderMeetingCard)
-    .join("");
+  const today = new Date().toISOString().slice(0, 10);
+  const weekLimit = new Date();
+  weekLimit.setDate(weekLimit.getDate() + 7);
+  const weekDate = weekLimit.toISOString().slice(0, 10);
+  const activeMeetings = state.meetings.filter((meeting) => !meeting.archivedAt);
+  const forumFilter = document.querySelector("#meeting-forum-filter");
+  const currentForum = forumFilter.value;
+  const forums = [...new Set(activeMeetings.map((meeting) => meeting.forum || "Gestão integrada"))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  forumFilter.innerHTML = `<option value="">Todos os fóruns</option>${forums.map((forum) => `<option value="${escapeHtml(forum)}">${escapeHtml(forum)}</option>`).join("")}`;
+  forumFilter.value = forums.includes(currentForum) ? currentForum : "";
+  const search = document.querySelector("#meeting-search").value.trim().toLocaleLowerCase("pt-BR");
+  const status = document.querySelector("#meeting-status-filter").value;
+  const period = document.querySelector("#meeting-period-filter").value;
+  const forum = forumFilter.value;
+  const meetings = activeMeetings.filter((meeting) => {
+    const haystack = [meeting.title, meeting.forum, meeting.organizer, meeting.participants, meeting.objective, meeting.agenda, meeting.decisions, meeting.minutes, meeting.actionItems].join(" ").toLocaleLowerCase("pt-BR");
+    const periodMatch = !period
+      || (period === "upcoming" && meeting.date >= today)
+      || (period === "week" && meeting.date >= today && meeting.date <= weekDate)
+      || (period === "past" && meeting.date && meeting.date < today)
+      || (period === "nodate" && !meeting.date);
+    return (!search || haystack.includes(search)) && (!status || meeting.status === status) && (!forum || meeting.forum === forum) && periodMatch;
+  }).sort((a, b) => `${a.date || "9999-12-31"}T${a.time || "23:59"}`.localeCompare(`${b.date || "9999-12-31"}T${b.time || "23:59"}`));
+  const upcoming = activeMeetings.filter((meeting) => meeting.date >= today && meeting.status !== "Cancelada");
+  const nextSevenDays = upcoming.filter((meeting) => meeting.date <= weekDate).length;
+  const minutesPending = activeMeetings.filter((meeting) => (meeting.status === "Realizada" || meeting.date < today) && (!meeting.minutes || /pendente/i.test(meeting.minutes))).length;
+  const withoutRoom = upcoming.filter((meeting) => !meeting.roomUrl).length;
+  document.querySelector("#meeting-summary").innerHTML = `
+    <article><span>Próximas reuniões</span><strong>${upcoming.length}</strong><small>${nextSevenDays} nos próximos 7 dias</small></article>
+    <article><span>Atas pendentes</span><strong>${minutesPending}</strong><small>reuniões realizadas sem ata final</small></article>
+    <article><span>Sem sala definida</span><strong>${withoutRoom}</strong><small>agendamentos futuros sem videoconferência</small></article>
+    <article><span>Fóruns ativos</span><strong>${forums.length}</strong><small>grupos com agenda cadastrada</small></article>`;
+  const nextMeeting = [...upcoming].sort((a, b) => `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`))[0];
+  document.querySelector("#meeting-next").innerHTML = nextMeeting ? `
+    <div><span class="eyebrow">Próximo compromisso</span><h3>${escapeHtml(nextMeeting.title)}</h3><p>${formatDate(nextMeeting.date)} às ${escapeHtml(nextMeeting.time || "a definir")} · ${Number(nextMeeting.duration || 60)} min · ${escapeHtml(nextMeeting.forum || "Gestão integrada")}</p></div>
+    <div class="meeting-next-actions">${nextMeeting.roomUrl ? `<button class="primary-button" type="button" data-room-id="${nextMeeting.id}">Entrar na sala</button>` : `<button class="ghost-button" type="button" data-edit-id="${nextMeeting.id}">Adicionar sala</button>`}<button class="ghost-button" type="button" data-calendar-id="${nextMeeting.id}">Adicionar ao calendário</button></div>` : `<div><span class="eyebrow">Agenda livre</span><h3>Nenhuma reunião futura cadastrada</h3><p>Crie uma reunião para organizar pauta, participantes e decisões.</p></div>`;
+  document.querySelector("#meeting-board").innerHTML = meetings.length ? meetings.map(renderMeetingCard).join("") : `<div class="meeting-empty"><strong>Nenhuma reunião encontrada</strong><p>Ajuste os filtros ou cadastre um novo encontro.</p></div>`;
   bindSimpleActions("meeting", "#meeting-board");
+  bindMeetingUtilities(document.querySelector("#meeting-board"));
+  bindMeetingUtilities(document.querySelector("#meeting-next"));
 }
 
 function renderMeetingCompact(meeting) {
@@ -2006,35 +2087,99 @@ function renderMeetingCompact(meeting) {
         <h3>${escapeHtml(meeting.title)}</h3>
         <p class="muted">${formatDate(meeting.date)} às ${meeting.time}</p>
       </div>
-      <span class="tag violet">${escapeHtml(meeting.participants)}</span>
+      <span class="tag violet">${escapeHtml(meeting.forum || meeting.participants)}</span>
     </article>
   `;
 }
 
 function renderMeetingCard(meeting) {
   const subject = encodeURIComponent(`Pauta: ${meeting.title}`);
-  const body = encodeURIComponent(`${meeting.title}\nData: ${formatDate(meeting.date)} ${meeting.time}\n\nPauta:\n${meeting.agenda}`);
+  const body = encodeURIComponent(`${meeting.title}\nData: ${formatDate(meeting.date)} ${meeting.time}\nFórum: ${meeting.forum || "Gestão integrada"}\n\nObjetivo:\n${meeting.objective || "A definir"}\n\nPauta:\n${meeting.agenda}\n\nMateriais:\n${meeting.materials || "A informar"}`);
   const whatsapp = encodeURIComponent(`Lembrete Acessa: ${meeting.title} em ${formatDate(meeting.date)} às ${meeting.time}. Pauta: ${meeting.agenda}`);
+  const statusClass = meeting.status === "Realizada" ? "done" : meeting.status === "Cancelada" ? "cancelled" : "scheduled";
+  const minutesLink = /^https?:/i.test(meeting.minutesLink || "") ? `<a class="ghost-button" href="${escapeHtml(meeting.minutesLink)}" target="_blank" rel="noreferrer">Ata assinada</a>` : "";
   return `
     <article class="meeting-card">
-      <div>
-        <h3>${escapeHtml(meeting.title)}</h3>
-        <p class="muted">${formatDate(meeting.date)} às ${meeting.time}</p>
+      <div class="meeting-card-header">
+        <div>
+          <div class="meeting-card-labels"><span class="meeting-status ${statusClass}">${escapeHtml(meeting.status || "Agendada")}</span><span>${escapeHtml(meeting.forum || "Gestão integrada")}</span><span>${escapeHtml(meeting.confidentiality || "Interno")}</span></div>
+          <h3>${escapeHtml(meeting.title)}</h3>
+          <p class="meeting-date">${formatDate(meeting.date)} às ${escapeHtml(meeting.time || "a definir")} · ${Number(meeting.duration || 60)} minutos</p>
+        </div>
+        <div class="meeting-owner"><span>Organização</span><strong>${escapeHtml(meeting.organizer || "A definir")}</strong></div>
       </div>
-      <div class="tag-row">
-        <span class="tag">${escapeHtml(meeting.participants)}</span>
-        <span class="tag violet">Pauta</span>
+      <div class="meeting-core-grid">
+        <div><span>Objetivo</span><p>${escapeHtml(meeting.objective || "A definir antes da reunião.")}</p></div>
+        <div><span>Participantes</span><p>${escapeHtml(meeting.participants || "A definir")}</p></div>
       </div>
-      <p class="muted">${escapeHtml(meeting.agenda)}</p>
-      <p><strong>Decisoes:</strong> ${escapeHtml(meeting.decisions)}</p>
+      <div class="meeting-agenda"><span>Pauta</span><p>${escapeHtml(meeting.agenda || "Pauta pendente")}</p></div>
+      <details class="meeting-details"><summary>Ver preparação, decisões, ata e ações</summary><div class="meeting-detail-grid"><section><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></section><section><span>Decisões</span><p>${escapeHtml(meeting.decisions || "Decisões ainda não registradas.")}</p></section><section><span>Ata / resumo</span><p>${escapeHtml(meeting.minutes || "Ata pendente.")}</p></section><section><span>Ações decorrentes</span><p>${escapeHtml(meeting.actionItems || "Ações ainda não registradas.")}</p></section></div></details>
       <div class="card-actions">
+        ${meeting.roomUrl ? `<button class="primary-button" type="button" data-room-id="${meeting.id}">Entrar na sala</button>` : `<button class="ghost-button" type="button" data-edit-id="${meeting.id}">Adicionar sala</button>`}
+        <button class="ghost-button" type="button" data-calendar-id="${meeting.id}">Calendário</button>
         <a class="ghost-button" href="mailto:?subject=${subject}&body=${body}">Email</a>
         <a class="ghost-button" href="https://wa.me/?text=${whatsapp}" target="_blank" rel="noreferrer">WhatsApp</a>
+        ${minutesLink}
         <button class="ghost-button" type="button" data-edit-id="${meeting.id}">Editar</button>
         <button class="text-button" type="button" data-archive-id="${meeting.id}">Arquivar</button>
       </div>
     </article>
   `;
+}
+
+function bindMeetingUtilities(container) {
+  container.querySelectorAll("[data-room-id]").forEach((button) => button.addEventListener("click", () => openMeetingRoom(button.dataset.roomId)));
+  container.querySelectorAll("[data-calendar-id]").forEach((button) => button.addEventListener("click", () => downloadMeetingCalendar(button.dataset.calendarId)));
+  if (container.id === "meeting-next") container.querySelectorAll("[data-edit-id]").forEach((button) => button.addEventListener("click", () => openSimpleModal("meeting", button.dataset.editId)));
+}
+
+function safeMeetingUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+function openMeetingRoom(id) {
+  const meeting = state.meetings.find((item) => item.id === id);
+  const url = safeMeetingUrl(meeting?.roomUrl);
+  if (!meeting || !url) {
+    window.alert("Adicione um link HTTPS válido à reunião antes de entrar na sala.");
+    return;
+  }
+  const embeddable = url.hostname === "meet.jit.si" || url.hostname.endsWith(".whereby.com") || url.hostname === "whereby.com";
+  if (!embeddable) {
+    window.open(url.href, "_blank", "noopener,noreferrer");
+    return;
+  }
+  document.querySelector("#meeting-room-title").textContent = meeting.title;
+  document.querySelector("#open-meeting-external").href = url.href;
+  document.querySelector("#meeting-room-frame").src = url.href;
+  document.querySelector("#meeting-room-frame").hidden = false;
+  document.querySelector("#meeting-room-empty").hidden = true;
+  setView("meeting-room");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function downloadMeetingCalendar(id) {
+  const meeting = state.meetings.find((item) => item.id === id);
+  if (!meeting?.date || !meeting?.time) {
+    window.alert("Defina data e hora para adicionar a reunião ao calendário.");
+    return;
+  }
+  const startsAt = new Date(`${meeting.date}T${meeting.time}:00`);
+  const endsAt = new Date(startsAt.getTime() + Number(meeting.duration || 60) * 60000);
+  const icsDate = (date) => date.toISOString().replaceAll("-", "").replaceAll(":", "").replace(/\.\d{3}/, "");
+  const icsText = (value) => String(value || "").replaceAll("\\", "\\\\").replaceAll(";", "\\;").replaceAll(",", "\\,").replaceAll("\n", "\\n");
+  const content = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Acessa//Central de Reunioes//PT-BR", "BEGIN:VEVENT", `UID:${meeting.id}@acessa.local`, `DTSTAMP:${icsDate(new Date())}`, `DTSTART:${icsDate(startsAt)}`, `DTEND:${icsDate(endsAt)}`, `SUMMARY:${icsText(meeting.title)}`, `DESCRIPTION:${icsText(`Objetivo: ${meeting.objective || ""}\nPauta: ${meeting.agenda || ""}\nSala: ${meeting.roomUrl || ""}`)}`, meeting.roomUrl ? `URL:${icsText(meeting.roomUrl)}` : "", "END:VEVENT", "END:VCALENDAR"].filter(Boolean).join("\r\n");
+  const url = URL.createObjectURL(new Blob([content], { type: "text/calendar;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${meeting.title.toLocaleLowerCase("pt-BR").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "reuniao"}.ics`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderDocuments() {
@@ -2422,12 +2567,24 @@ const simpleConfigs = {
     editTitle: "Editar reunião",
     collection: "meetings",
     fields: [
-      ["title", "Titulo", "text"],
+      ["title", "Título da reunião", "text"],
+      ["forum", "Fórum ou grupo responsável", "text"],
+      ["status", "Status: Agendada, Em preparação, Realizada ou Cancelada", "text"],
+      ["organizer", "Organizador responsável", "text"],
       ["date", "Data", "date"],
       ["time", "Hora", "time"],
-      ["participants", "Participantes", "text"],
-      ["agenda", "Pauta", "textarea"],
-      ["decisions", "Decisoes iniciais", "textarea"],
+      ["duration", "Duração prevista em minutos", "number"],
+      ["participants", "Participantes e convidados", "textarea"],
+      ["confidentiality", "Confidencialidade: Interno, Restrito ou Conselho", "text"],
+      ["objective", "Objetivo e resultado esperado", "textarea"],
+      ["agenda", "Pauta detalhada", "textarea"],
+      ["materials", "Materiais prévios e links", "textarea", false],
+      ["roomUrl", "Link da sala: Jitsi, Whereby, Google Meet ou Teams", "text", false],
+      ["decisions", "Decisões e deliberações", "textarea", false],
+      ["minutes", "Ata ou resumo oficial", "textarea", false],
+      ["actionItems", "Ações, responsáveis e prazos", "textarea", false],
+      ["minutesLink", "Link seguro da ata assinada", "text", false],
+      ["nextDate", "Próxima reunião (opcional)", "date", false],
     ],
   },
   document: {
@@ -2722,6 +2879,14 @@ document.querySelector("#new-task-board").addEventListener("click", openTaskModa
 document.querySelectorAll("#board-search, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
 document.querySelector("#board-email-summary").addEventListener("click", () => prepareBoardEmail());
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
+document.querySelectorAll("#meeting-search, #meeting-status-filter, #meeting-period-filter, #meeting-forum-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderMeetings));
+document.querySelector("#back-to-meetings").addEventListener("click", () => {
+  document.querySelector("#meeting-room-frame").src = "about:blank";
+  document.querySelector("#meeting-room-frame").hidden = true;
+  document.querySelector("#meeting-room-empty").hidden = false;
+  setView("meetings");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 document.querySelector("#new-document").addEventListener("click", () => openSimpleModal("document"));
 document.querySelector("#new-person").addEventListener("click", () => openSimpleModal("person"));
 document.querySelector("#new-kpi").addEventListener("click", () => openSimpleModal("kpi"));

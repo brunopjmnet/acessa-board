@@ -393,12 +393,28 @@
         <section class="view" id="meetings">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Pautas, atas e decisões</p>
-              <h2>Reuniões de gestão</h2>
+              <p class="eyebrow">Agenda, preparação, deliberação e acompanhamento</p>
+              <h2>Central de Reuniões</h2>
+              <p class="data-disclaimer">Fonte única para agendamentos, pautas, participantes, materiais prévios, decisões, atas e ações decorrentes das reuniões do grupo.</p>
             </div>
             <button class="primary-button" id="new-meeting">Nova reunião</button>
           </div>
+          <div class="meeting-summary" id="meeting-summary"></div>
+          <div class="meeting-next" id="meeting-next"></div>
+          <div class="meeting-toolbar">
+            <label>Pesquisar<input id="meeting-search" type="search" placeholder="Reunião, pauta, participante..." /></label>
+            <label>Status<select id="meeting-status-filter"><option value="">Todos</option><option>Agendada</option><option>Em preparação</option><option>Realizada</option><option>Cancelada</option></select></label>
+            <label>Período<select id="meeting-period-filter"><option value="">Todas as datas</option><option value="upcoming">Próximas</option><option value="week">Próximos 7 dias</option><option value="past">Realizadas ou vencidas</option><option value="nodate">Sem data</option></select></label>
+            <label>Fórum<select id="meeting-forum-filter"><option value="">Todos os fóruns</option></select></label>
+          </div>
           <div class="meeting-board" id="meeting-board"></div>
+        </section>
+
+        <section class="view meeting-room-view" id="meeting-room">
+          <div class="meeting-room-header"><button class="ghost-button" id="back-to-meetings" type="button">← Voltar às reuniões</button><span class="tag violet">Sala integrada</span></div>
+          <div class="section-heading"><div><p class="eyebrow">Videoconferência</p><h2 id="meeting-room-title">Sala de reunião</h2><p class="data-disclaimer" id="meeting-room-note">A sala será carregada somente após uma ação do usuário e poderá solicitar acesso à câmera e ao microfone.</p></div><a class="ghost-button" id="open-meeting-external" href="#" target="_blank" rel="noreferrer">Abrir em nova janela</a></div>
+          <div class="meeting-room-shell"><iframe id="meeting-room-frame" title="Sala de videoconferência da reunião" allow="camera; microphone; fullscreen; display-capture; autoplay" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="meeting-room-empty" id="meeting-room-empty"><strong>Sala ainda não carregada</strong><p>Use “Entrar na sala” em uma reunião com link Jitsi ou Whereby. Links do Google Meet e Microsoft Teams serão abertos externamente porque esses serviços normalmente bloqueiam incorporação.</p></div></div>
+          <div class="meeting-privacy-note"><strong>Privacidade e LGPD</strong><p>A plataforma de vídeo recebe dados técnicos dos participantes. Para reuniões societárias, financeiras ou com dados pessoais, prefira uma instância contratada ou auto-hospedada, com autenticação, política de retenção e gravação aprovadas.</p></div>
         </section>
 
         <section class="view" id="documents">
