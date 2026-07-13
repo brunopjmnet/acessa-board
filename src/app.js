@@ -8,6 +8,7 @@ import {
   onAuthEvent,
   requestPasswordReset,
   saveCloudState,
+  sanitizeSharedWorkspaceState,
   signIn,
   signOut,
   subscribeToWorkspace,
@@ -864,6 +865,7 @@ function migrateBusinessStructure(source) {
 }
 
 function mergeCloudState(remoteState) {
+  remoteState = sanitizeSharedWorkspaceState(remoteState);
   return migrateBusinessStructure({
     ...seed,
     ...remoteState,

@@ -106,9 +106,10 @@ export async function inviteBoardUser({ email, role, directorate }) {
 
 export async function saveCloudState(workspaceId, state, expectedVersion) {
   if (!supabase) return null;
+  const safeState = sanitizeSharedWorkspaceState(state);
   const { data, error } = await supabase
     .from("board_workspaces")
-    .update({ state, version: expectedVersion + 1, updated_at: new Date().toISOString() })
+    .update({ state: safeState, version: expectedVersion + 1, updated_at: new Date().toISOString() })
     .eq("id", workspaceId)
     .eq("version", expectedVersion)
     .select("version, updated_at")
@@ -116,6 +117,31 @@ export async function saveCloudState(workspaceId, state, expectedVersion) {
   if (error) throw error;
   if (!data) throw new Error("CONFLICT: os dados foram alterados por outro usuário. Recarregue antes de salvar novamente.");
   return data;
+}
+
+export function sanitizeSharedWorkspaceState(state) {
+  const safe = typeof structuredClone === "function"
+    ? structuredClone(state || {})
+    : JSON.parse(JSON.stringify(state || {}));
+
+  // Remuneração individual pertence exclusivamente a board_employee_compensation.
+  if (Array.isArray(safe.people)) {
+    safe.people = safe.people.map(({ salary, ...person }) => person);
+  }
+
+  // Valores reais pertencem às tabelas financeiras protegidas por RLS.
+  if (Array.isArray(safe.expenses)) {
+    safe.expenses = safe.expenses.map((item) => ({ ...item, total: 0, evidence: "Disponível no registro financeiro restrito" }));
+  }
+  if (Array.isArray(safe.supplierContracts)) {
+    safe.supplierContracts = safe.supplierContracts.map((item) => ({ ...item, monthlyValue: 0, evidence: "Disponível no contrato restrito" }));
+  }
+
+  // Nunca sincronizar endereços, referências de segredo ou credenciais no JSON compartilhado.
+  if (Array.isArray(safe.connectors)) {
+    safe.connectors = safe.connectors.map(({ baseUrl, secretReference, token, password, ...item }) => item);
+  }
+  return safe;
 }
 
 export function subscribeToWorkspace(workspaceId, onChange) {
