@@ -119,6 +119,24 @@ export async function saveCloudState(workspaceId, state, expectedVersion) {
   return data;
 }
 
+export async function createJaasMeetingSession(meetingId) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { data, error } = await supabase.functions.invoke("create-jaas-session", {
+    body: { meetingId, workspaceSlug },
+  });
+  if (error) {
+    let functionMessage = "";
+    try {
+      const payload = await error.context?.json();
+      functionMessage = payload?.error || "";
+    } catch { /* A resposta pode não conter JSON. */ }
+    throw new Error(functionMessage || data?.error || error.message || "Não foi possível preparar a sala JaaS.");
+  }
+  if (data?.error) throw new Error(data.error);
+  if (!data?.token || !data?.appId || !data?.roomName) throw new Error("A resposta da sala JaaS está incompleta.");
+  return data;
+}
+
 export async function loadProtectedBusinessData(workspaceId) {
   if (!supabase || !workspaceId) return { compensation: [], contracts: [], expenses: [], connections: [] };
   const queries = await Promise.all([

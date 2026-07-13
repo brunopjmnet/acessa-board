@@ -1,5 +1,6 @@
 import {
   cloudConfigured,
+  createJaasMeetingSession,
   isPasswordRecoveryRedirect,
   isUserInviteRedirect,
   inviteBoardUser,
@@ -2064,16 +2065,16 @@ function renderMeetings() {
   const upcoming = activeMeetings.filter((meeting) => meeting.date >= today && meeting.status !== "Cancelada");
   const nextSevenDays = upcoming.filter((meeting) => meeting.date <= weekDate).length;
   const minutesPending = activeMeetings.filter((meeting) => (meeting.status === "Realizada" || meeting.date < today) && (!meeting.minutes || /pendente/i.test(meeting.minutes))).length;
-  const withoutRoom = upcoming.filter((meeting) => !meeting.roomUrl).length;
+  const withoutSchedule = activeMeetings.filter((meeting) => meeting.status !== "Cancelada" && (!meeting.date || !meeting.time)).length;
   document.querySelector("#meeting-summary").innerHTML = `
     <article><span>Próximas reuniões</span><strong>${upcoming.length}</strong><small>${nextSevenDays} nos próximos 7 dias</small></article>
     <article><span>Atas pendentes</span><strong>${minutesPending}</strong><small>reuniões realizadas sem ata final</small></article>
-    <article><span>Sem sala definida</span><strong>${withoutRoom}</strong><small>agendamentos futuros sem videoconferência</small></article>
+    <article><span>Sem horário definido</span><strong>${withoutSchedule}</strong><small>agendamentos que precisam ser concluídos</small></article>
     <article><span>Fóruns ativos</span><strong>${forums.length}</strong><small>grupos com agenda cadastrada</small></article>`;
   const nextMeeting = [...upcoming].sort((a, b) => `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`))[0];
   document.querySelector("#meeting-next").innerHTML = nextMeeting ? `
     <div><span class="eyebrow">Próximo compromisso</span><h3>${escapeHtml(nextMeeting.title)}</h3><p>${formatDate(nextMeeting.date)} às ${escapeHtml(nextMeeting.time || "a definir")} · ${Number(nextMeeting.duration || 60)} min · ${escapeHtml(nextMeeting.forum || "Gestão integrada")}</p></div>
-    <div class="meeting-next-actions">${nextMeeting.roomUrl ? `<button class="primary-button" type="button" data-room-id="${nextMeeting.id}">Entrar na sala</button>` : `<button class="ghost-button" type="button" data-edit-id="${nextMeeting.id}">Adicionar sala</button>`}<button class="ghost-button" type="button" data-calendar-id="${nextMeeting.id}">Adicionar ao calendário</button></div>` : `<div><span class="eyebrow">Agenda livre</span><h3>Nenhuma reunião futura cadastrada</h3><p>Crie uma reunião para organizar pauta, participantes e decisões.</p></div>`;
+    <div class="meeting-next-actions"><button class="primary-button" type="button" data-room-id="${nextMeeting.id}">Entrar na sala JaaS</button><button class="ghost-button" type="button" data-calendar-id="${nextMeeting.id}">Adicionar ao calendário</button></div>` : `<div><span class="eyebrow">Agenda livre</span><h3>Nenhuma reunião futura cadastrada</h3><p>Crie uma reunião para organizar pauta, participantes e decisões.</p></div>`;
   document.querySelector("#meeting-board").innerHTML = meetings.length ? meetings.map(renderMeetingCard).join("") : `<div class="meeting-empty"><strong>Nenhuma reunião encontrada</strong><p>Ajuste os filtros ou cadastre um novo encontro.</p></div>`;
   bindSimpleActions("meeting", "#meeting-board");
   bindMeetingUtilities(document.querySelector("#meeting-board"));
@@ -2115,7 +2116,7 @@ function renderMeetingCard(meeting) {
       <div class="meeting-agenda"><span>Pauta</span><p>${escapeHtml(meeting.agenda || "Pauta pendente")}</p></div>
       <details class="meeting-details"><summary>Ver preparação, decisões, ata e ações</summary><div class="meeting-detail-grid"><section><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></section><section><span>Decisões</span><p>${escapeHtml(meeting.decisions || "Decisões ainda não registradas.")}</p></section><section><span>Ata / resumo</span><p>${escapeHtml(meeting.minutes || "Ata pendente.")}</p></section><section><span>Ações decorrentes</span><p>${escapeHtml(meeting.actionItems || "Ações ainda não registradas.")}</p></section></div></details>
       <div class="card-actions">
-        ${meeting.roomUrl ? `<button class="primary-button" type="button" data-room-id="${meeting.id}">Entrar na sala</button>` : `<button class="ghost-button" type="button" data-edit-id="${meeting.id}">Adicionar sala</button>`}
+        <button class="primary-button" type="button" data-room-id="${meeting.id}">Entrar na sala JaaS</button>
         <button class="ghost-button" type="button" data-calendar-id="${meeting.id}">Calendário</button>
         <a class="ghost-button" href="mailto:?subject=${subject}&body=${body}">Email</a>
         <a class="ghost-button" href="https://wa.me/?text=${whatsapp}" target="_blank" rel="noreferrer">WhatsApp</a>
@@ -2142,25 +2143,87 @@ function safeMeetingUrl(value) {
   }
 }
 
-function openMeetingRoom(id) {
+let activeJaasApi = null;
+let activeJaasScriptAppId = "";
+
+async function openMeetingRoom(id) {
   const meeting = state.meetings.find((item) => item.id === id);
-  const url = safeMeetingUrl(meeting?.roomUrl);
-  if (!meeting || !url) {
-    window.alert("Adicione um link HTTPS válido à reunião antes de entrar na sala.");
+  if (!meeting) {
+    window.alert("Reunião não encontrada.");
     return;
   }
-  const embeddable = url.hostname === "meet.jit.si" || url.hostname.endsWith(".whereby.com") || url.hostname === "whereby.com";
-  if (!embeddable) {
-    window.open(url.href, "_blank", "noopener,noreferrer");
+  const button = document.querySelector(`[data-room-id="${CSS.escape(id)}"]`);
+  if (button) { button.disabled = true; button.textContent = "Preparando sala..."; }
+  const fallbackUrl = safeMeetingUrl(meeting.roomUrl);
+  let session;
+  try {
+    session = await createJaasMeetingSession(id);
+    await loadJaasExternalApi(session.appId);
+  } catch (error) {
+    if (fallbackUrl) {
+      window.alert(`${error instanceof Error ? error.message : "Não foi possível abrir o JaaS."}\n\nO link externo alternativo será aberto.`);
+      window.open(fallbackUrl.href, "_blank", "noopener,noreferrer");
+    } else {
+      window.alert(error instanceof Error ? error.message : "Não foi possível preparar a sala JaaS.");
+    }
+    renderMeetings();
     return;
   }
+  disposeJaasMeeting();
   document.querySelector("#meeting-room-title").textContent = meeting.title;
-  document.querySelector("#open-meeting-external").href = url.href;
-  document.querySelector("#meeting-room-frame").src = url.href;
-  document.querySelector("#meeting-room-frame").hidden = false;
+  document.querySelector("#meeting-room-note").textContent = `Sala JaaS protegida · ${session.moderator ? "acesso de moderador" : "acesso de participante"} · token temporário`;
+  document.querySelector("#open-meeting-external").href = `https://8x8.vc/${session.roomName}?jwt=${encodeURIComponent(session.token)}`;
   document.querySelector("#meeting-room-empty").hidden = true;
   setView("meeting-room");
+  const container = document.querySelector("#jaas-meeting-container");
+  activeJaasApi = new window.JitsiMeetExternalAPI("8x8.vc", {
+    roomName: session.roomName,
+    jwt: session.token,
+    parentNode: container,
+    width: "100%",
+    height: "100%",
+    lang: "ptBR",
+    configOverwrite: {
+      brandingRoomAlias: session.room,
+      prejoinPageEnabled: true,
+      disableDeepLinking: true,
+      startWithAudioMuted: false,
+      startWithVideoMuted: false,
+    },
+  });
+  activeJaasApi.addEventListener("videoConferenceJoined", () => {
+    document.querySelector("#meeting-room-note").textContent = `Conectado com segurança ao JaaS · ${session.moderator ? "moderador" : "participante"}`;
+  });
+  activeJaasApi.addEventListener("readyToClose", closeJaasMeetingView);
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function loadJaasExternalApi(appId) {
+  if (window.JitsiMeetExternalAPI && activeJaasScriptAppId === appId) return Promise.resolve();
+  const existing = document.querySelector("#jaas-external-api");
+  if (existing) existing.remove();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.id = "jaas-external-api";
+    script.src = `https://8x8.vc/${encodeURIComponent(appId)}/external_api.js`;
+    script.async = true;
+    script.onload = () => { activeJaasScriptAppId = appId; resolve(); };
+    script.onerror = () => reject(new Error("Não foi possível carregar o serviço de videoconferência JaaS."));
+    document.head.appendChild(script);
+  });
+}
+
+function disposeJaasMeeting() {
+  if (activeJaasApi) {
+    activeJaasApi.dispose();
+    activeJaasApi = null;
+  }
+  document.querySelector("#jaas-meeting-container")?.replaceChildren();
+}
+
+function closeJaasMeetingView() {
+  disposeJaasMeeting();
+  setView("meetings");
 }
 
 function downloadMeetingCalendar(id) {
@@ -2579,7 +2642,7 @@ const simpleConfigs = {
       ["objective", "Objetivo e resultado esperado", "textarea"],
       ["agenda", "Pauta detalhada", "textarea"],
       ["materials", "Materiais prévios e links", "textarea", false],
-      ["roomUrl", "Link da sala: Jitsi, Whereby, Google Meet ou Teams", "text", false],
+      ["roomUrl", "Link externo alternativo (opcional)", "text", false],
       ["decisions", "Decisões e deliberações", "textarea", false],
       ["minutes", "Ata ou resumo oficial", "textarea", false],
       ["actionItems", "Ações, responsáveis e prazos", "textarea", false],
@@ -2881,8 +2944,7 @@ document.querySelector("#board-email-summary").addEventListener("click", () => p
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
 document.querySelectorAll("#meeting-search, #meeting-status-filter, #meeting-period-filter, #meeting-forum-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderMeetings));
 document.querySelector("#back-to-meetings").addEventListener("click", () => {
-  document.querySelector("#meeting-room-frame").src = "about:blank";
-  document.querySelector("#meeting-room-frame").hidden = true;
+  disposeJaasMeeting();
   document.querySelector("#meeting-room-empty").hidden = false;
   setView("meetings");
   window.scrollTo({ top: 0, behavior: "smooth" });
