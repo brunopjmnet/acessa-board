@@ -470,6 +470,65 @@ const defaultProducts = [
   { line: "Acessa Dedicado", market: "B2B dedicado", offers: "100/100 R$ 299 · 200/200 R$ 599 · 300/300 R$ 899", status: "Referência a validar" },
 ];
 
+const marketReferencePlans = [
+  { company: "PJMNET", group: "Fundadora", audience: "B2C", plan: "Plano 300", download: "300 Mbps", upload: "A validar", price: 69.90, benefits: "Fibra óptica", conditions: "Plano informado internamente; não consta no site", confirmation: "Informado internamente", source: "https://www.pjm.net.br/nossos-planos.php" },
+  { company: "PJMNET", group: "Fundadora", audience: "B2C", plan: "Plus", download: "500 Mbps", upload: "A validar", price: 79.90, benefits: "ITTV Smart e Deezer", conditions: "Fidelidade de 12 meses; equipamento em comodato; instalação sujeita a CPF", confirmation: "Publicado", source: "https://www.pjm.net.br/nossos-planos.php" },
+  { company: "PJMNET", group: "Fundadora", audience: "B2C", plan: "Ultra", download: "700 Mbps", upload: "A validar", price: 109.90, benefits: "ITTV Smart, Watch Brasil e Deezer", conditions: "Fidelidade de 12 meses; equipamento em comodato", confirmation: "Publicado", source: "https://www.pjm.net.br/nossos-planos.php" },
+  { company: "PJMNET", group: "Fundadora", audience: "B2C", plan: "Gamer", download: "700 Mbps", upload: "A validar", price: 139.90, benefits: "ExitLag, IP fixo, Casa Conectada e Deezer", conditions: "Fidelidade de 12 meses; equipamento em comodato", confirmation: "Publicado", source: "https://www.pjm.net.br/nossos-planos.php" },
+
+  { company: "Megalink", group: "Fundadora", audience: "B2C", plan: "Economic", download: "50 Mbps", upload: "A validar", price: 59.90, benefits: "Fibra e suporte diário via WhatsApp", conditions: "Consultar instalação e disponibilidade regional", confirmation: "Publicado", source: "https://megalinkinternet.com.br/pb/planos/" },
+  { company: "Megalink", group: "Fundadora", audience: "B2C", plan: "Basic", download: "200 Mbps", upload: "A validar", price: 69.90, benefits: "Fibra, Wi-Fi Turbo e suporte diário", conditions: "Consultar disponibilidade regional", confirmation: "Publicado", source: "https://megalinkinternet.com.br/pb/planos/" },
+  { company: "Megalink", group: "Fundadora", audience: "B2C", plan: "Top", download: "400 Mbps", upload: "A validar", price: 79.90, benefits: "Fibra, Wi-Fi Turbo e suporte diário", conditions: "Consultar disponibilidade regional", confirmation: "Publicado", source: "https://megalinkinternet.com.br/pb/planos/" },
+  { company: "Megalink", group: "Fundadora", audience: "B2C", plan: "Family", download: "500 Mbps", upload: "A validar", price: 99.90, benefits: "Fibra, Wi-Fi Turbo e suporte diário", conditions: "Consultar disponibilidade regional", confirmation: "Publicado", source: "https://megalinkinternet.com.br/pb/planos/" },
+
+  { company: "Turbolink", group: "Fundadora", audience: "B2C", plan: "Turbo Social", download: "100 Mbps", upload: "A validar", price: 59.99, benefits: "Wi-Fi, suporte humanizado e Turbo TV", conditions: "Zona urbana; sem fidelidade; cobertura regional publicada", confirmation: "Publicado", source: "https://www.turbolinkpb.com.br/#planos" },
+  { company: "Turbolink", group: "Fundadora", audience: "B2C", plan: "Turbo Básico", download: "200 Mbps", upload: "A validar", price: 69.99, benefits: "Wi-Fi, 1 app Standard e Turbo TV", conditions: "Zona urbana; sem fidelidade", confirmation: "Publicado", source: "https://www.turbolinkpb.com.br/#planos" },
+  { company: "Turbolink", group: "Fundadora", audience: "B2C", plan: "Turbinados", download: "400 Mbps", upload: "A validar", price: 79.99, benefits: "Wi-Fi Premium, 1 app Standard e Turbo TV", conditions: "Zona urbana; sem fidelidade", confirmation: "Publicado", source: "https://www.turbolinkpb.com.br/#planos" },
+  { company: "Turbolink", group: "Fundadora", audience: "B2C", plan: "Família Turbinada", download: "500 Mbps", upload: "A validar", price: 99.99, benefits: "Wi-Fi Premium, 1 app Standard e Turbo TV", conditions: "Zona urbana; sem fidelidade", confirmation: "Publicado", source: "https://www.turbolinkpb.com.br/#planos" },
+  { company: "Turbolink", group: "Fundadora", audience: "B2C", plan: "Turbo Premium", download: "600 Mbps", upload: "A validar", price: 119.99, benefits: "Wi-Fi Premium e pacote de apps", conditions: "Zona urbana; sem fidelidade", confirmation: "Publicado", source: "https://www.turbolinkpb.com.br/#planos" },
+
+  { company: "Linax", group: "Fundadora", audience: "B2C", plan: "Plano 300", download: "300 Mbps", upload: "A validar", price: null, benefits: "Fibra e instalação grátis com fidelidade", conditions: "Preço não publicado em texto acessível; R$ 100 de instalação sem fidelidade", confirmation: "A validar", source: "https://linax.net.br/planos.php" },
+  { company: "Linax", group: "Fundadora", audience: "B2C", plan: "Plano 500", download: "500 Mbps", upload: "A validar", price: null, benefits: "Fibra e instalação grátis com fidelidade", conditions: "Preço não publicado em texto acessível; R$ 100 de instalação sem fidelidade", confirmation: "A validar", source: "https://linax.net.br/planos.php" },
+  { company: "Linax", group: "Fundadora", audience: "B2C", plan: "Plano 700", download: "700 Mbps", upload: "A validar", price: null, benefits: "Fibra e instalação grátis com fidelidade", conditions: "Preço não publicado em texto acessível; R$ 100 de instalação sem fidelidade", confirmation: "A validar", source: "https://linax.net.br/planos.php" },
+  { company: "Linax", group: "Fundadora", audience: "B2C", plan: "Plano 1 Giga", download: "1 Gbps", upload: "A validar", price: 129.90, benefits: "Fibra, foco gamer e baixa latência", conditions: "Instalação grátis com fidelidade; R$ 100 sem fidelidade", confirmation: "Publicado", source: "https://linax.net.br/" },
+
+  { company: "PointNet", group: "Fundadora", audience: "B2C", plan: "Mais vendido", download: "500 Mbps", upload: "200 Mbps", price: 89.99, benefits: "Wi-Fi 6 e aplicativos", conditions: "Instalação grátis após aprovação cadastral", confirmation: "Publicado", source: "https://web.pointnet.net.br/planos-residenciais/" },
+  { company: "PointNet", group: "Fundadora", audience: "B2C", plan: "Melhor plano", download: "700 Mbps", upload: "350 Mbps", price: 99.99, benefits: "Wi-Fi 6 e aplicativos", conditions: "Instalação grátis após aprovação cadastral", confirmation: "Publicado", source: "https://web.pointnet.net.br/planos-residenciais/" },
+  { company: "PointNet", group: "Fundadora", audience: "B2C", plan: "Mais rápido", download: "800 Mbps", upload: "400 Mbps", price: 109.99, benefits: "Wi-Fi 6 e aplicativos", conditions: "Instalação grátis após aprovação cadastral", confirmation: "Publicado", source: "https://web.pointnet.net.br/planos-residenciais/" },
+  { company: "PointNet", group: "Fundadora", audience: "B2C", plan: "Wi-Fi 6 Total", download: "1 Gbps", upload: "500 Mbps", price: 139.99, benefits: "Wi-Fi 6 e aplicativos", conditions: "Instalação grátis após aprovação cadastral", confirmation: "Publicado", source: "https://web.pointnet.net.br/planos-residenciais/" },
+
+  { company: "ISPTEC", group: "Fundadora", audience: "B2B", plan: "Semi-dedicado 200", download: "200 Mbps", upload: "140 Mbps", price: 129.90, benefits: "IP fixo + R$ 50; telefone ilimitado + R$ 35", conditions: "Valor publicado para Campina Grande", confirmation: "Publicado", source: "https://www.isptec.com.br/servicos/internet" },
+  { company: "ISPTEC", group: "Fundadora", audience: "B2B", plan: "Semi-dedicado 250", download: "250 Mbps", upload: "175 Mbps", price: 179.90, benefits: "IP fixo e telefonia opcionais", conditions: "Valor publicado para Campina Grande", confirmation: "Publicado", source: "https://www.isptec.com.br/servicos/internet" },
+  { company: "ISPTEC", group: "Fundadora", audience: "B2B", plan: "Semi-dedicado 350", download: "350 Mbps", upload: "245 Mbps", price: 199.90, benefits: "IP fixo e telefonia opcionais", conditions: "Valor publicado para Campina Grande", confirmation: "Publicado", source: "https://www.isptec.com.br/servicos/internet" },
+  { company: "ISPTEC", group: "Fundadora", audience: "B2B", plan: "Dedicado Full 100", download: "100 Mbps", upload: "100 Mbps", price: 299, benefits: "Fibra e IP fixo", conditions: "Simétrico; valor publicado para Campina Grande", confirmation: "Publicado", source: "https://www.isptec.com.br/servicos/internet" },
+  { company: "ISPTEC", group: "Fundadora", audience: "B2B", plan: "Dedicado Full 200", download: "200 Mbps", upload: "200 Mbps", price: 599, benefits: "Fibra e IP fixo", conditions: "Simétrico; valor publicado para Campina Grande", confirmation: "Publicado", source: "https://www.isptec.com.br/servicos/internet" },
+  { company: "ISPTEC", group: "Fundadora", audience: "B2B", plan: "Dedicado Full 300", download: "300 Mbps", upload: "300 Mbps", price: 899, benefits: "Fibra e IP fixo", conditions: "Simétrico; valor publicado para Campina Grande", confirmation: "Publicado", source: "https://www.isptec.com.br/servicos/internet" },
+
+  { company: "Claro", group: "Concorrente", audience: "B2C", plan: "Fibra 350", download: "350 Mbps", upload: "Consultar", price: 89.90, benefits: "Globoplay e Wi-Fi", conditions: "Referência nacional; preço e tecnologia variam por CEP", confirmation: "Referência pública", source: "https://loja.claro.com.br/planos/multi" },
+  { company: "Claro", group: "Concorrente", audience: "B2C", plan: "Fibra 500", download: "500 Mbps", upload: "250 Mbps", price: 119.90, benefits: "Globoplay; Wi-Fi 6", conditions: "Preço a partir de; consultar cobertura e oferta na Paraíba", confirmation: "Referência pública", source: "https://www.claro.com.br/produtosclaro/ultrabandalarga/" },
+  { company: "Claro", group: "Concorrente", audience: "B2C", plan: "Fibra 1 Giga", download: "1 Gbps", upload: "500 Mbps", price: 199.90, benefits: "Globoplay e Wi-Fi 6", conditions: "Referência nacional; consultar CEP e promoção vigente", confirmation: "Referência pública", source: "https://loja.claro.com.br/planos/multi" },
+
+  { company: "Vivo", group: "Concorrente", audience: "B2C", plan: "Vivo Fibra 500", download: "500 Mbps", upload: "250 Mbps", price: null, benefits: "Apps, Amazon Prime promocional e bônus Wi-Fi", conditions: "Preço depende de endereço; instalação grátis mediante fidelização", confirmation: "Consultar CEP", source: "https://vivo.com.br/para-voce/produtos-e-servicos/para-casa/internet" },
+  { company: "Vivo", group: "Concorrente", audience: "B2C", plan: "Vivo Fibra 600", download: "600 Mbps", upload: "A validar", price: null, benefits: "Apps e benefícios promocionais", conditions: "Preço depende de endereço e composição do pacote", confirmation: "Consultar CEP", source: "https://vivo.com.br/para-voce/produtos-e-servicos/para-casa/internet" },
+
+  { company: "Brisanet", group: "Concorrente", audience: "B2C", plan: "Brisa Fibra 500", download: "500 Mbps", upload: "A validar", price: 84.99, benefits: "Wi-Fi de alta performance e instalação inclusa", conditions: "Promo: no 7º mês R$ 89,99; disponibilidade por cidade", confirmation: "Promoção pública", source: "https://www.brisanet.com.br/ofertas-especiais/combo-televendas-cidadessolo-26/" },
+  { company: "Brisanet", group: "Concorrente", audience: "B2C", plan: "Brisa Fibra 700", download: "700 Mbps", upload: "A validar", price: 99.90, benefits: "Wi-Fi de alta performance e instalação inclusa", conditions: "Promo: no 13º mês R$ 109,90; disponibilidade por cidade", confirmation: "Promoção pública", source: "https://www.brisanet.com.br/ofertas-especiais/combo-televendas-cidadessolo-26/" },
+  { company: "Brisanet", group: "Concorrente", audience: "B2C", plan: "Brisa Fibra 800", download: "800 Mbps", upload: "A validar", price: 99.90, benefits: "Wi-Fi de alta performance e instalação inclusa", conditions: "Promo: no 7º mês R$ 109,90; disponibilidade por cidade", confirmation: "Promoção pública", source: "https://www.brisanet.com.br/ofertas-especiais/combo-televendas-cidadessolo-26/" },
+
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Me Aproxxima", download: "300 Mbps", upload: "A validar", price: 74.99, benefits: "Wi-Fi 5, Skeelo e Mumo", conditions: "Novo cliente; varia por endereço; possível fidelidade", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Proxxima Play", download: "500 Mbps", upload: "A validar", price: 89.99, benefits: "Wi-Fi 6, Sky+ Light, Amazon Prime, Skeelo e Mumo", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Gamer", download: "700 Mbps", upload: "A validar", price: 99.99, benefits: "Wi-Fi 6, ExitLag, Deezer, IP dedicado e Skeelo", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Wi-Fi Total", download: "700 Mbps", upload: "A validar", price: 99.99, benefits: "Wi-Fi 6, 2 roteadores mesh, Sky+ Light e Amazon Prime", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Flex Max", download: "700 Mbps", upload: "A validar", price: 109.99, benefits: "Wi-Fi 6, Skeelo, Hub Canais, Max e Mumo", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Flex Disney+", download: "700 Mbps", upload: "A validar", price: 109.99, benefits: "Wi-Fi 6, Skeelo e Disney+", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Wi-Fi Total Ultra", download: "800 Mbps", upload: "A validar", price: 149.99, benefits: "Wi-Fi 6, 3 roteadores mesh, Sky+ Light e Amazon Prime", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+  { company: "Proxxima", group: "Concorrente", audience: "B2C", plan: "Ilimitados", download: "1 Gbps", upload: "A validar", price: 199.99, benefits: "Wi-Fi 6, Deezer, Skeelo, Sky+ Light, Amazon Prime e Mumo", conditions: "Novo cliente; varia por endereço", confirmation: "Publicado", source: "https://proxxima.net/" },
+
+  { company: "Tely", group: "Concorrente", audience: "B2C", plan: "Fibra 500", download: "500 Mbps", upload: "A validar", price: 79.90, benefits: "Wi-Fi 6, app bônus e instalação grátis", conditions: "Oferta pública de Cabedelo; preço a partir de", confirmation: "Promoção localizada", source: "https://internet.tely.com.br/cabedelo/" },
+  { company: "Tely", group: "Concorrente", audience: "B2C", plan: "Fibra 750", download: "750 Mbps", upload: "A validar", price: 89.90, benefits: "Wi-Fi 6, app bônus e instalação grátis", conditions: "Oferta pública de Cabedelo; preço a partir de", confirmation: "Promoção localizada", source: "https://internet.tely.com.br/cabedelo/" },
+  { company: "Tely", group: "Concorrente", audience: "B2C", plan: "Fibra 1 Giga", download: "1 Gbps", upload: "A validar", price: 99.90, benefits: "Wi-Fi 6, app bônus e instalação grátis", conditions: "Oferta pública de Cabedelo; preço a partir de", confirmation: "Promoção localizada", source: "https://internet.tely.com.br/cabedelo/" },
+];
+
 const defaultExpenses = [
   { id: "expense-playhub", vendor: "PlayHub", object: "Contrato compartilhado entre as empresas", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Valor não informado", evidence: "Contrato comum já existente" },
   { id: "expense-legal", vendor: "Jurídico", object: "Estruturação societária e contratual", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Em contratação", evidence: "Contrato/comprovante a anexar" },
@@ -1144,6 +1203,7 @@ function render() {
   renderCompanies();
   renderDecisions();
   renderCommercialCatalog();
+  renderMarketComparison();
   renderExpenses();
   renderCutover();
   renderMigrationWaves();
@@ -1241,6 +1301,105 @@ function renderCommercialCatalog() {
     return `<article class="product-card product-theme-${(productIndex % 4) + 1}"><div class="product-card-top"><span class="product-status">${escapeHtml(product.status)}</span><span class="product-number">0${productIndex + 1}</span></div><p class="product-kicker">${labels[productIndex] || "Solução Acessa"}</p><h3>${escapeHtml(product.line)}</h3><strong class="product-market">${escapeHtml(product.market)}</strong><div class="plan-list">${offerMarkup}</div><div class="product-cta"><span>Escolha o plano ideal</span><button class="ghost-button" type="button" data-edit-id="${product.id}" aria-label="Editar ${escapeHtml(product.line)}">Editar</button></div></article>`;
   }).join("");
   bindSimpleActions("product", "#product-grid");
+}
+
+function marketSpeedLabel(rawValue) {
+  const raw = String(rawValue || "").trim();
+  const speed = raw.match(/(\d+(?:[.,]\d+)?)\s*(G|M)(?![a-z])/i);
+  if (speed) return `${speed[1].replace(",", ".")} ${speed[2].toUpperCase() === "G" ? "Gbps" : "Mbps"}`;
+  const number = raw.match(/\d+(?:[.,]\d+)?/);
+  return number ? `${number[0].replace(",", ".")} Mbps` : raw || "A definir";
+}
+
+function buildAcessaMarketPlans() {
+  return (state.products || []).flatMap((product) => String(product.offers || "").split("·").map((item) => item.trim()).filter(Boolean).map((offer) => {
+    const match = offer.match(/^(.*?)\s+R\$\s*([\d.,]+)$/i);
+    const description = match ? match[1].trim() : offer;
+    const price = match ? Number(match[2].replaceAll(".", "").replace(",", ".")) : null;
+    const symmetric = description.match(/(\d+(?:[.,]\d+)?)\s*(G|M)?\s*\/\s*(\d+(?:[.,]\d+)?)\s*(G|M)?/i);
+    const audience = String(product.market || "").toUpperCase().includes("B2B") ? "B2B" : "B2C";
+    const benefits = product.line.includes("Dedicado")
+      ? "Link simétrico; IP fixo e SLA a validar"
+      : product.line.includes("Empresas")
+        ? "Banda larga empresarial simétrica; benefícios a estruturar"
+        : "Fibra óptica; Wi-Fi, apps e benefícios em validação";
+    return {
+      company: "Acessa",
+      group: "Acessa",
+      audience,
+      plan: `${product.line} · ${description}`,
+      download: symmetric ? `${symmetric[1]} ${String(symmetric[2] || "M").toUpperCase() === "G" ? "Gbps" : "Mbps"}` : marketSpeedLabel(description),
+      upload: symmetric ? `${symmetric[3]} ${String(symmetric[4] || symmetric[2] || "M").toUpperCase() === "G" ? "Gbps" : "Mbps"}` : "A definir",
+      price,
+      benefits,
+      conditions: `${product.market}; sujeito à validação tributária, técnica, comercial e de margem`,
+      confirmation: product.status || "Proposta",
+      source: "Proposta interna",
+    };
+  }));
+}
+
+function marketSpeedValue(value) {
+  const number = Number(String(value).replace(",", ".").match(/[\d.]+/)?.[0] || 0);
+  return /Gbps/i.test(String(value)) ? number * 1000 : number;
+}
+
+function getMarketPlans() {
+  const order = ["Acessa", "PJMNET", "ISPTEC", "Linax", "PointNet", "Turbolink", "Megalink", "Claro", "Vivo", "Brisanet", "Proxxima", "Tely"];
+  return [...buildAcessaMarketPlans(), ...marketReferencePlans].sort((a, b) => {
+    const companyOrder = order.indexOf(a.company) - order.indexOf(b.company);
+    return companyOrder || a.audience.localeCompare(b.audience) || marketSpeedValue(a.download) - marketSpeedValue(b.download);
+  });
+}
+
+function getFilteredMarketPlans() {
+  const search = document.querySelector("#market-search").value.trim().toLocaleLowerCase("pt-BR");
+  const group = document.querySelector("#market-group-filter").value;
+  const audience = document.querySelector("#market-audience-filter").value;
+  const company = document.querySelector("#market-company-filter").value;
+  return getMarketPlans().filter((row) => {
+    const haystack = [row.company, row.group, row.audience, row.plan, row.download, row.upload, row.benefits, row.conditions, row.confirmation].join(" ").toLocaleLowerCase("pt-BR");
+    return (!search || haystack.includes(search)) && (!group || row.group === group) && (!audience || row.audience === audience) && (!company || row.company === company);
+  });
+}
+
+function renderMarketComparison() {
+  const allPlans = getMarketPlans();
+  const companyFilter = document.querySelector("#market-company-filter");
+  const currentCompany = companyFilter.value;
+  const companies = [...new Set(allPlans.map((row) => row.company))];
+  companyFilter.innerHTML = `<option value="">Todas as empresas</option>${companies.map((company) => `<option value="${escapeHtml(company)}">${escapeHtml(company)}</option>`).join("")}`;
+  companyFilter.value = companies.includes(currentCompany) ? currentCompany : "";
+  const rows = getFilteredMarketPlans();
+  const published = rows.filter((row) => !/validar|consultar/i.test(row.confirmation)).length;
+  const pricedRows = rows.filter((row) => Number.isFinite(row.price));
+  const lowestB2c = pricedRows.filter((row) => row.audience === "B2C").sort((a, b) => a.price - b.price)[0];
+  document.querySelector("#market-summary").innerHTML = `
+    <article><span>Empresas comparadas</span><strong>${new Set(rows.map((row) => row.company)).size}</strong><small>Acessa, fundadoras e concorrentes</small></article>
+    <article><span>Ofertas mapeadas</span><strong>${rows.length}</strong><small>residenciais e empresariais</small></article>
+    <article><span>Com referência pública</span><strong>${published}</strong><small>${rows.length - published} exigem validação adicional</small></article>
+    <article><span>Menor B2C exibido</span><strong>${lowestB2c ? lowestB2c.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}</strong><small>${lowestB2c ? `${escapeHtml(lowestB2c.company)} · ${escapeHtml(lowestB2c.download)}` : "sem preço no filtro"}</small></article>`;
+  document.querySelector("#market-comparison-body").innerHTML = rows.length ? rows.map((row) => {
+    const price = Number.isFinite(row.price) ? row.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "A validar";
+    const confirmationClass = /publicado/i.test(row.confirmation) ? "confirmed" : /validar|consultar/i.test(row.confirmation) ? "pending" : "reference";
+    const source = /^https?:/i.test(row.source)
+      ? `<a href="${escapeHtml(row.source)}" target="_blank" rel="noreferrer">Abrir fonte ↗</a>`
+      : `<span>${escapeHtml(row.source)}</span>`;
+    return `<tr class="${row.group === "Acessa" ? "acessa-market-row" : ""}"><td><strong>${escapeHtml(row.company)}</strong></td><td><span class="market-group-badge market-${row.group.toLowerCase()}">${escapeHtml(row.group)}</span></td><td>${escapeHtml(row.audience)}</td><td><strong>${escapeHtml(row.plan)}</strong></td><td class="market-speed">${escapeHtml(row.download)}</td><td>${escapeHtml(row.upload)}</td><td class="market-price">${escapeHtml(price)}</td><td>${escapeHtml(row.benefits)}</td><td>${escapeHtml(row.conditions)}</td><td><span class="market-confirmation ${confirmationClass}">${escapeHtml(row.confirmation)}</span></td><td class="market-source">${source}</td></tr>`;
+  }).join("") : `<tr><td colspan="11" class="market-empty">Nenhum plano corresponde aos filtros selecionados.</td></tr>`;
+}
+
+function exportMarketComparisonCsv() {
+  const headers = ["Empresa", "Grupo", "Público", "Plano", "Download", "Upload", "Mensalidade", "Benefícios", "Condições", "Confirmação", "Fonte"];
+  const csvCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const rows = getFilteredMarketPlans().map((row) => [row.company, row.group, row.audience, row.plan, row.download, row.upload, Number.isFinite(row.price) ? row.price.toFixed(2).replace(".", ",") : "A validar", row.benefits, row.conditions, row.confirmation, row.source]);
+  const content = `\uFEFF${[headers, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n")}`;
+  const url = URL.createObjectURL(new Blob([content], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "comparativo-planos-acessa-2026-07-13.csv";
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderExpenses() {
@@ -2579,6 +2738,16 @@ document.querySelector("#new-milestone").addEventListener("click", () => openSim
 document.querySelector("#new-company").addEventListener("click", () => openSimpleModal("company"));
 document.querySelector("#new-decision").addEventListener("click", () => openSimpleModal("decision"));
 document.querySelector("#new-product").addEventListener("click", () => openSimpleModal("product"));
+document.querySelector("#open-market-comparison").addEventListener("click", () => {
+  setView("market-comparison");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+document.querySelector("#back-to-commercial").addEventListener("click", () => {
+  setView("commercial");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+document.querySelectorAll("#market-search, #market-group-filter, #market-audience-filter, #market-company-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderMarketComparison));
+document.querySelector("#export-market-csv").addEventListener("click", exportMarketComparisonCsv);
 document.querySelector("#new-expense").addEventListener("click", () => openSimpleModal("expense"));
 document.querySelector("#new-cutover").addEventListener("click", () => openSimpleModal("cutover"));
 document.querySelector("#new-migration").addEventListener("click", () => openSimpleModal("migration"));

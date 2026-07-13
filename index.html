@@ -190,9 +190,24 @@
         </section>
 
         <section class="view commercial-showcase" id="commercial">
-          <div class="section-heading commercial-hero"><div><p class="eyebrow">Internet para cada momento</p><h2>Conecte-se ao que importa</h2><p class="commercial-lead">Planos Acessa pensados para sua casa, sua empresa e para o crescimento de cada região.</p><p class="data-disclaimer">Catálogo em construção. Valores sujeitos à validação tributária, técnica, comercial e de margem.</p></div><button class="primary-button" id="new-product">+ Novo produto</button></div>
+          <div class="section-heading commercial-hero"><div><p class="eyebrow">Internet para cada momento</p><h2>Conecte-se ao que importa</h2><p class="commercial-lead">Planos Acessa pensados para sua casa, sua empresa e para o crescimento de cada região.</p><p class="data-disclaimer">Catálogo em construção. Valores sujeitos à validação tributária, técnica, comercial e de margem.</p></div><div class="commercial-hero-actions"><button class="ghost-button market-button" id="open-market-comparison">Comparar mercado</button><button class="primary-button" id="new-product">+ Novo produto</button></div></div>
           <div class="product-grid" id="product-grid"></div>
           <div class="commercial-solutions"><div class="solutions-heading"><p class="eyebrow">Muito além da internet</p><h3>Soluções que completam a conexão</h3><p>Um portfólio completo para pessoas e negócios, a estruturar junto às áreas técnica e comercial.</p></div><div class="solutions-grid"><article><span>☎</span><strong>Comunicação</strong><p>Telefonia, PABX, SIP e 0800</p></article><article><span>▶</span><strong>Conteúdo e segurança</strong><p>PlayHub, streaming e câmeras</p></article><article><span>⌁</span><strong>Redes empresariais</strong><p>Wi-Fi corporativo, LAN-to-LAN, MPLS e VPN</p></article><article><span>☁</span><strong>Cloud e infraestrutura</strong><p>Cloud, VPS, servidores e colocation</p></article><article><span>↔</span><strong>Conectividade avançada</strong><p>CDN, peering, trânsito IP, EILD e DWDM</p></article><article><span>✦</span><strong>Projetos especiais</strong><p>Fibras compartilhadas e soluções sob medida</p></article></div></div>
+        </section>
+
+        <section class="view market-comparison-view" id="market-comparison">
+          <div class="market-page-header"><button class="ghost-button" id="back-to-commercial" type="button">← Voltar ao catálogo</button><span class="market-snapshot">Referência: 13/07/2026</span></div>
+          <div class="section-heading"><div><p class="eyebrow">Inteligência comercial</p><h2>Comparativo de planos e mercado</h2><p class="data-disclaimer">Consolidação das propostas Acessa, empresas fundadoras e ofertas públicas de concorrentes. Preços promocionais e disponibilidade devem ser confirmados por endereço antes de qualquer decisão.</p></div><button class="ghost-button" id="export-market-csv" type="button">Exportar CSV</button></div>
+          <div class="market-summary" id="market-summary"></div>
+          <div class="market-insight"><div><span class="eyebrow">Leitura estratégica</span><strong>Compare preço, velocidade, upload, benefícios e condições — não apenas o menor valor.</strong></div><p>Ofertas com streaming, telefonia, Wi-Fi 6, mesh, IP fixo ou preço promocional não são diretamente equivalentes. Use os filtros para aproximar produtos do mesmo público.</p></div>
+          <div class="market-toolbar">
+            <label>Pesquisar<input id="market-search" type="search" placeholder="Empresa, plano, benefício..." /></label>
+            <label>Grupo<select id="market-group-filter"><option value="">Todos</option><option value="Acessa">Acessa</option><option value="Fundadora">Fundadoras</option><option value="Concorrente">Concorrentes</option></select></label>
+            <label>Público<select id="market-audience-filter"><option value="">Todos</option><option value="B2C">Residencial (B2C)</option><option value="B2B">Empresarial (B2B)</option></select></label>
+            <label>Empresa<select id="market-company-filter"><option value="">Todas as empresas</option></select></label>
+          </div>
+          <div class="market-table-wrap"><table class="market-table"><thead><tr><th>Empresa</th><th>Grupo</th><th>Público</th><th>Plano</th><th>Download</th><th>Upload</th><th>Mensalidade</th><th>Benefícios</th><th>Condições e abrangência</th><th>Confirmação</th><th>Fonte</th></tr></thead><tbody id="market-comparison-body"></tbody></table></div>
+          <p class="market-footnote">“A validar” indica que o preço não estava publicado em texto acessível ou depende de consulta de CEP, viabilidade, cadastro ou canal comercial. A tabela é apoio à decisão e não substitui proposta comercial formal.</p>
         </section>
 
         <section class="view" id="cutover">
