@@ -499,8 +499,22 @@ const defaultLeaderInterviews = [
   { id: "people-mega", company: "Megalink", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
 ];
 
+const defaultDueDiligence = defaultCompanies.map((company) => ({
+  id: `dd-${company.id}`,
+  company: company.name,
+  customers: "Estimado",
+  financial: "Pendente",
+  people: "Pendente",
+  network: "Preliminar",
+  contracts: "Pendente",
+  systems: company.system === "SGP" ? "Mapeamento prioritário" : "Pendente",
+  owner: company.council,
+  deadline: "",
+  note: "Consolidar evidências e validar nas fontes oficiais.",
+}));
+
 const seed = {
-  businessModelVersion: 14,
+  businessModelVersion: 15,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -509,6 +523,7 @@ const seed = {
   cutoverChecklist: defaultCutoverChecklist,
   migrationWaves: defaultMigrationWaves,
   leaderInterviews: defaultLeaderInterviews,
+  dueDiligence: defaultDueDiligence,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -779,7 +794,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 14) return source;
+  if (Number(source.businessModelVersion || 0) >= 15) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -829,8 +844,9 @@ function migrateBusinessStructure(source) {
   const cutoverChecklist = Array.isArray(source.cutoverChecklist) && source.cutoverChecklist.length ? source.cutoverChecklist : defaultCutoverChecklist;
   const migrationWaves = Array.isArray(source.migrationWaves) && source.migrationWaves.length ? source.migrationWaves : defaultMigrationWaves;
   const leaderInterviews = Array.isArray(source.leaderInterviews) && source.leaderInterviews.length ? source.leaderInterviews : defaultLeaderInterviews;
+  const dueDiligence = Array.isArray(source.dueDiligence) && source.dueDiligence.length ? source.dueDiligence : defaultDueDiligence;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 14, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 15, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1106,6 +1122,7 @@ function render() {
   renderCutover();
   renderMigrationWaves();
   renderPeopleTransition();
+  renderDueDiligence();
   renderMetrics();
   renderDashboardLists();
   renderGovernance();
@@ -1200,6 +1217,17 @@ function renderPeopleTransition() {
   document.querySelector("#people-transition-summary").innerHTML = `<article><span>Empresas mapeadas</span><strong>${completed}/${interviews.length}</strong><small>entrevistas concluídas</small></article><article><span>Pessoas identificadas</span><strong>${mappedHeadcount}</strong><small>preenchimento progressivo</small></article><article><span>Regra de transição</span><strong>Gradual</strong><small>sem transferência automática</small></article>`;
   document.querySelector("#leader-interview-list").innerHTML = interviews.map((item) => `<article class="people-transition-card"><div class="company-top"><div><span>${escapeHtml(item.company)} · ${escapeHtml(item.area)}</span><h3>${escapeHtml(item.leader)}</h3></div><b class="hub-status">${escapeHtml(item.status)}</b></div><dl><div><dt>Equipe atual</dt><dd>${Number(item.headcount || 0)}</dd></div><div><dt>Reunião</dt><dd>${item.meetingDate ? formatDate(item.meetingDate) : "Agendar"}</dd></div></dl><p><strong>Competências:</strong> ${escapeHtml(item.strengths)}</p><p><strong>Destino possível:</strong> ${escapeHtml(item.destination)}</p><small>Próxima ação: ${escapeHtml(item.nextAction)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
   bindSimpleActions("leaderInterview", "#leader-interview-list");
+}
+
+function renderDueDiligence() {
+  const records = state.dueDiligence || [];
+  const dimensions = ["customers", "financial", "people", "network", "contracts", "systems"];
+  const total = records.length * dimensions.length;
+  const validated = records.reduce((sum, record) => sum + dimensions.filter((field) => record[field] === "Validado").length, 0);
+  document.querySelector("#diligence-summary").innerHTML = `<article><span>Dimensões validadas</span><strong>${validated}/${total}</strong><small>por empresa e fonte oficial</small></article><article><span>Empresas acompanhadas</span><strong>${records.length}</strong><small>grupos fundadores</small></article><article><span>Regra de confiança</span><strong>4 níveis</strong><small>estimado, preliminar, informado e validado</small></article>`;
+  const labels = { customers: "Clientes", financial: "Financeiro", people: "Pessoas", network: "Rede", contracts: "Contratos", systems: "Sistemas" };
+  document.querySelector("#diligence-grid").innerHTML = records.map((record) => `<article class="diligence-card"><div class="company-top"><div><span>Responsável: ${escapeHtml(record.owner)}</span><h3>${escapeHtml(record.company)}</h3></div><small>${record.deadline ? formatDate(record.deadline) : "Sem prazo"}</small></div><div class="diligence-dimensions">${dimensions.map((field) => `<div><span>${labels[field]}</span><b>${escapeHtml(record[field])}</b></div>`).join("")}</div><p>${escapeHtml(record.note)}</p><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${record.id}">Atualizar</button></div></article>`).join("");
+  bindSimpleActions("diligence", "#diligence-grid");
 }
 
 function renderMetrics() {
@@ -2075,6 +2103,10 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  diligence: {
+    title: "Novo controle de diligência", editTitle: "Atualizar diligência", collection: "dueDiligence",
+    fields: [["company", "Empresa", "text"], ["customers", "Clientes: Pendente, Estimado, Preliminar, Informado ou Validado", "text"], ["financial", "Financeiro", "text"], ["people", "Pessoas", "text"], ["network", "Rede", "text"], ["contracts", "Contratos", "text"], ["systems", "Sistemas", "text"], ["owner", "Responsável", "text"], ["deadline", "Prazo (opcional)", "date", false], ["note", "Pendência, fonte ou observação", "textarea"]],
+  },
   leaderInterview: {
     title: "Novo mapeamento de liderança", editTitle: "Editar mapeamento", collection: "leaderInterviews",
     fields: [["company", "Empresa de origem", "text"], ["leader", "Nome do líder", "text"], ["area", "Setor atual", "text"], ["meetingDate", "Data da reunião (opcional)", "date", false], ["headcount", "Quantidade de pessoas na equipe", "number"], ["strengths", "Competências e pontos fortes", "textarea"], ["destination", "Possível alocação na Acessa", "textarea"], ["status", "Status do mapeamento", "text"], ["nextAction", "Próxima ação", "textarea"]],
@@ -2430,6 +2462,7 @@ document.querySelector("#new-expense").addEventListener("click", () => openSimpl
 document.querySelector("#new-cutover").addEventListener("click", () => openSimpleModal("cutover"));
 document.querySelector("#new-migration").addEventListener("click", () => openSimpleModal("migration"));
 document.querySelector("#new-leader-interview").addEventListener("click", () => openSimpleModal("leaderInterview"));
+document.querySelector("#new-diligence").addEventListener("click", () => openSimpleModal("diligence"));
 document.querySelector("#export-backup").addEventListener("click", exportBackup);
 document.querySelector("#import-backup").addEventListener("click", () => {
   document.querySelector("#backup-file").click();

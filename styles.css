@@ -1894,6 +1894,15 @@ body.read-only [id^="new-"] { display: none !important; }
 .people-transition-card dt { color: var(--muted); font-size: 12px; }
 .people-transition-card dd { margin: 3px 0 0; font-weight: 700; }
 .people-transition-card p, .people-transition-card small { color: var(--muted); }
+.diligence-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.diligence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.diligence-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.diligence-card p { color: var(--muted); }
+.diligence-dimensions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.diligence-dimensions div { padding: 10px; border-radius: 10px; background: var(--surface); }
+.diligence-dimensions span, .diligence-dimensions b { display: block; }
+.diligence-dimensions span { color: var(--muted); font-size: 11px; }
+.diligence-dimensions b { margin-top: 4px; font-size: 12px; }
 
 @media (max-width: 1340px) {
   .metrics-grid.executive,
@@ -1934,6 +1943,7 @@ body.read-only [id^="new-"] { display: none !important; }
   .expense-list, .allocation-chips { grid-template-columns: 1fr; }
   .migration-list { grid-template-columns: 1fr; }
   .people-transition-list { grid-template-columns: 1fr; }
+  .diligence-grid, .diligence-dimensions { grid-template-columns: 1fr; }
   .cutover-gate { align-items: flex-start; flex-direction: column; }
   .hub-row { align-items: flex-start; flex-direction: column; }
   .app-shell {
