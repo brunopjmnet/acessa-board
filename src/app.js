@@ -2291,7 +2291,7 @@ async function openMeetingRoom(id) {
   disposeJaasMeeting();
   document.querySelector("#meeting-room-title").textContent = meeting.title;
   document.querySelector("#meeting-room-note").textContent = `Sala JaaS protegida · ${session.moderator ? "acesso de moderador" : "acesso de participante"} · token temporário`;
-  document.querySelector("#open-meeting-external").href = `https://8x8.vc/${session.roomName}?jwt=${encodeURIComponent(session.token)}`;
+  document.querySelector("#open-meeting-external").href = `https://8x8.vc/${session.roomName}?jwt=${encodeURIComponent(session.token)}#config.defaultLanguage=ptBR`;
   document.querySelector("#meeting-room-empty").hidden = true;
   setView("meeting-room");
   const container = document.querySelector("#jaas-meeting-container");
@@ -2303,6 +2303,7 @@ async function openMeetingRoom(id) {
     height: "100%",
     lang: "ptBR",
     configOverwrite: {
+      defaultLanguage: "ptBR",
       brandingRoomAlias: session.room,
       prejoinPageEnabled: true,
       disableDeepLinking: true,
