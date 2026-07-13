@@ -366,6 +366,27 @@ html[data-theme="dark"] :where(
 .ghost-button:hover { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
 .text-button { color: var(--primary); }
 
+/* Comparativo sem rolagem horizontal: colunas proporcionais e conteúdo quebrável. */
+.market-table-wrap { overflow-x: hidden !important; }
+.market-table { width: 100% !important; min-width: 0 !important; table-layout: fixed; font-size: clamp(10px,.76vw,12px); }
+.market-table :is(th,td) { min-width: 0 !important; max-width: none !important; padding: 10px 8px !important; overflow-wrap: anywhere; word-break: normal; }
+.market-table th { position: static; font-size: clamp(8px,.66vw,10px) !important; line-height: 1.25; white-space: normal; }
+.market-table :is(th,td):first-child { position: static; min-width: 0; box-shadow: none; }
+.market-table :is(th,td):nth-child(1) { width: 7%; }
+.market-table :is(th,td):nth-child(2) { width: 7%; }
+.market-table :is(th,td):nth-child(3) { width: 5%; }
+.market-table :is(th,td):nth-child(4) { width: 13%; }
+.market-table :is(th,td):nth-child(5) { width: 7%; }
+.market-table :is(th,td):nth-child(6) { width: 7%; }
+.market-table :is(th,td):nth-child(7) { width: 9%; }
+.market-table :is(th,td):nth-child(8) { width: 13%; }
+.market-table :is(th,td):nth-child(9) { width: 17%; }
+.market-table :is(th,td):nth-child(10) { width: 9%; }
+.market-table :is(th,td):nth-child(11) { width: 6%; }
+.market-table :is(.market-speed,.market-price) { font-size: inherit; white-space: normal; }
+.market-table :is(.market-group-badge,.market-confirmation) { width: 100%; max-width: 100%; justify-content: center; padding-inline: 4px; text-align: center; white-space: normal; }
+.market-table .market-source a { white-space: normal; }
+
 :is(input,select,textarea) { border-color: var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
 :is(input,select,textarea):focus { border-color: var(--primary); outline-color: rgba(79,70,229,.14); box-shadow: 0 0 0 1px var(--primary); }
 
@@ -435,4 +456,18 @@ html[data-theme="dark"] :where(
   .topbar { padding: 12px; }
   .section-heading { align-items: stretch; flex-direction: column; }
   .commercial-showcase .commercial-hero { min-height: 0 !important; padding: 24px 20px !important; }
+}
+
+@media (max-width: 860px) {
+  .market-table-wrap { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+  .market-table, .market-table tbody { display: block; width: 100%; }
+  .market-table thead { display: none; }
+  .market-table tbody { display: grid; gap: 12px; }
+  .market-table tr { display: block; overflow: hidden; padding: 8px 12px; border: 1px solid var(--line); border-top: 4px solid var(--primary); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-sm); }
+  .market-table td, .market-table td:first-child { width: 100% !important; display: grid; grid-template-columns: minmax(96px,32%) 1fr; gap: 10px; padding: 9px 0 !important; border-bottom: 1px solid var(--line) !important; background: transparent !important; }
+  .market-table td:last-child { border-bottom: 0 !important; }
+  .market-table td::before { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; content: attr(data-label); }
+  .market-table :is(.market-group-badge,.market-confirmation) { width: max-content; max-width: 100%; justify-content: flex-start; }
+  .market-table .market-empty { display: block; }
+  .market-table .market-empty::before { display: none; }
 }
