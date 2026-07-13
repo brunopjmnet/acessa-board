@@ -490,8 +490,17 @@ const defaultMigrationWaves = [
   { id: "wave-legacy", order: 4, name: "Consolidar bases IXC existentes", source: "PJM, ISPTEC, Linax e PointNet", destination: "IXC Acessa", owner: "TI e Sistemas", status: "Futuro", scope: "Migrar gradualmente após aprovação, sem impacto ao cliente", rollback: "Ondas pequenas e reconciliação por empresa" },
 ];
 
+const defaultLeaderInterviews = [
+  { id: "people-pjm", company: "PJMNET", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
+  { id: "people-isp", company: "ISPTEC", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
+  { id: "people-linax", company: "Linax", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
+  { id: "people-point", company: "PointNet", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
+  { id: "people-turbo", company: "Turbolink", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
+  { id: "people-mega", company: "Megalink", leader: "A informar", area: "Mapeamento geral", meetingDate: "", headcount: 0, strengths: "A levantar", destination: "A definir após entrevista", status: "Não iniciado", nextAction: "Agendar reunião com os líderes da empresa" },
+];
+
 const seed = {
-  businessModelVersion: 13,
+  businessModelVersion: 14,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -499,6 +508,7 @@ const seed = {
   expenses: defaultExpenses,
   cutoverChecklist: defaultCutoverChecklist,
   migrationWaves: defaultMigrationWaves,
+  leaderInterviews: defaultLeaderInterviews,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -769,7 +779,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 13) return source;
+  if (Number(source.businessModelVersion || 0) >= 14) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -818,8 +828,9 @@ function migrateBusinessStructure(source) {
   const expenses = Array.isArray(source.expenses) && source.expenses.length ? source.expenses : defaultExpenses;
   const cutoverChecklist = Array.isArray(source.cutoverChecklist) && source.cutoverChecklist.length ? source.cutoverChecklist : defaultCutoverChecklist;
   const migrationWaves = Array.isArray(source.migrationWaves) && source.migrationWaves.length ? source.migrationWaves : defaultMigrationWaves;
+  const leaderInterviews = Array.isArray(source.leaderInterviews) && source.leaderInterviews.length ? source.leaderInterviews : defaultLeaderInterviews;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 13, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 14, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1094,6 +1105,7 @@ function render() {
   renderExpenses();
   renderCutover();
   renderMigrationWaves();
+  renderPeopleTransition();
   renderMetrics();
   renderDashboardLists();
   renderGovernance();
@@ -1179,6 +1191,15 @@ function renderMigrationWaves() {
   const waves = [...(state.migrationWaves || [])].sort((a, b) => Number(a.order) - Number(b.order));
   document.querySelector("#migration-list").innerHTML = waves.map((wave) => `<article class="migration-card"><div class="company-top"><div><span>Onda ${escapeHtml(wave.order)}</span><h3>${escapeHtml(wave.name)}</h3></div><b class="hub-status">${escapeHtml(wave.status)}</b></div><p><strong>${escapeHtml(wave.source)}</strong> → <strong>${escapeHtml(wave.destination)}</strong></p><p>${escapeHtml(wave.scope)}</p><small>Responsável: ${escapeHtml(wave.owner)}</small><small>Retorno: ${escapeHtml(wave.rollback)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${wave.id}">Editar</button></div></article>`).join("");
   bindSimpleActions("migration", "#migration-list");
+}
+
+function renderPeopleTransition() {
+  const interviews = state.leaderInterviews || [];
+  const completed = interviews.filter((item) => item.status === "Concluído").length;
+  const mappedHeadcount = interviews.reduce((sum, item) => sum + Number(item.headcount || 0), 0);
+  document.querySelector("#people-transition-summary").innerHTML = `<article><span>Empresas mapeadas</span><strong>${completed}/${interviews.length}</strong><small>entrevistas concluídas</small></article><article><span>Pessoas identificadas</span><strong>${mappedHeadcount}</strong><small>preenchimento progressivo</small></article><article><span>Regra de transição</span><strong>Gradual</strong><small>sem transferência automática</small></article>`;
+  document.querySelector("#leader-interview-list").innerHTML = interviews.map((item) => `<article class="people-transition-card"><div class="company-top"><div><span>${escapeHtml(item.company)} · ${escapeHtml(item.area)}</span><h3>${escapeHtml(item.leader)}</h3></div><b class="hub-status">${escapeHtml(item.status)}</b></div><dl><div><dt>Equipe atual</dt><dd>${Number(item.headcount || 0)}</dd></div><div><dt>Reunião</dt><dd>${item.meetingDate ? formatDate(item.meetingDate) : "Agendar"}</dd></div></dl><p><strong>Competências:</strong> ${escapeHtml(item.strengths)}</p><p><strong>Destino possível:</strong> ${escapeHtml(item.destination)}</p><small>Próxima ação: ${escapeHtml(item.nextAction)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("leaderInterview", "#leader-interview-list");
 }
 
 function renderMetrics() {
@@ -2054,6 +2075,10 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  leaderInterview: {
+    title: "Novo mapeamento de liderança", editTitle: "Editar mapeamento", collection: "leaderInterviews",
+    fields: [["company", "Empresa de origem", "text"], ["leader", "Nome do líder", "text"], ["area", "Setor atual", "text"], ["meetingDate", "Data da reunião (opcional)", "date", false], ["headcount", "Quantidade de pessoas na equipe", "number"], ["strengths", "Competências e pontos fortes", "textarea"], ["destination", "Possível alocação na Acessa", "textarea"], ["status", "Status do mapeamento", "text"], ["nextAction", "Próxima ação", "textarea"]],
+  },
   cutover: {
     title: "Novo requisito da virada", editTitle: "Editar requisito", collection: "cutoverChecklist",
     fields: [["area", "Área", "text"], ["item", "Requisito", "textarea"], ["owner", "Responsável", "text"], ["mandatory", "Obrigatório: Sim ou Não", "text"], ["status", "Status: Pendente, Em andamento, Bloqueado ou Concluído", "text"], ["evidence", "Evidência necessária", "textarea"]],
@@ -2404,6 +2429,7 @@ document.querySelector("#new-product").addEventListener("click", () => openSimpl
 document.querySelector("#new-expense").addEventListener("click", () => openSimpleModal("expense"));
 document.querySelector("#new-cutover").addEventListener("click", () => openSimpleModal("cutover"));
 document.querySelector("#new-migration").addEventListener("click", () => openSimpleModal("migration"));
+document.querySelector("#new-leader-interview").addEventListener("click", () => openSimpleModal("leaderInterview"));
 document.querySelector("#export-backup").addEventListener("click", exportBackup);
 document.querySelector("#import-backup").addEventListener("click", () => {
   document.querySelector("#backup-file").click();
