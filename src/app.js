@@ -464,12 +464,20 @@ const defaultProducts = [
   { line: "Acessa Dedicado", market: "B2B dedicado", offers: "100/100 R$ 299 · 200/200 R$ 599 · 300/300 R$ 899", status: "Referência a validar" },
 ];
 
+const defaultExpenses = [
+  { id: "expense-playhub", vendor: "PlayHub", object: "Contrato compartilhado entre as empresas", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Valor não informado", evidence: "Contrato comum já existente" },
+  { id: "expense-legal", vendor: "Jurídico", object: "Estruturação societária e contratual", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Em contratação", evidence: "Contrato/comprovante a anexar" },
+  { id: "expense-accounting", vendor: "Contabilidade", object: "Constituição e estrutura contábil da Acessa", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Em contratação", evidence: "Contrato/comprovante a anexar" },
+  { id: "expense-network", vendor: "Consultoria de redes", object: "Arquitetura, consolidação e migração das bases", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Em contratação", evidence: "Contrato/comprovante a anexar" },
+];
+
 const seed = {
-  businessModelVersion: 11,
+  businessModelVersion: 12,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
   products: defaultProducts,
+  expenses: defaultExpenses,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -740,7 +748,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 11) return source;
+  if (Number(source.businessModelVersion || 0) >= 12) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -786,8 +794,9 @@ function migrateBusinessStructure(source) {
   const milestones = Array.isArray(source.milestones) && source.milestones.length ? source.milestones : defaultMilestones;
   const decisions = Array.isArray(source.decisions) && source.decisions.length ? source.decisions : defaultDecisions;
   const products = Array.isArray(source.products) && source.products.length ? source.products : defaultProducts;
+  const expenses = Array.isArray(source.expenses) && source.expenses.length ? source.expenses : defaultExpenses;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 11, companies, milestones, decisions, products, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 12, companies, milestones, decisions, products, expenses, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1059,6 +1068,7 @@ function render() {
   renderCompanies();
   renderDecisions();
   renderCommercialCatalog();
+  renderExpenses();
   renderMetrics();
   renderDashboardLists();
   renderGovernance();
@@ -1089,25 +1099,45 @@ function renderImplementationHub() {
     <article><span>Base estimada</span><strong>${totalCustomers.toLocaleString("pt-BR")}</strong><small>B2C e B2B; validar nas fontes</small></article>
     <article><span>Virada comercial</span><strong>01/01/27</strong><small>somente novas vendas</small></article>`;
   document.querySelector("#milestone-list").innerHTML = milestones.map((item) => `
-    <article class="hub-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small></div><b class="hub-status">${escapeHtml(item.status)}</b></article>`).join("");
+    <article class="hub-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status)}</b><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("milestone", "#milestone-list");
 }
 
 function renderCompanies() {
   document.querySelector("#company-grid").innerHTML = (state.companies || []).map((company) => `
     <article class="company-card"><div class="company-top"><div><span>${escapeHtml(company.system)}</span><h3>${escapeHtml(company.name)}</h3></div><strong>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</strong></div>
     <dl><div><dt>Conselho</dt><dd>${escapeHtml(company.council)}</dd></div><div><dt>Clientes</dt><dd>${Number(company.customers).toLocaleString("pt-BR")}</dd></div><div><dt>B2C</dt><dd>${Number(company.b2c).toLocaleString("pt-BR")}</dd></div><div><dt>B2B</dt><dd>${Number(company.b2b).toLocaleString("pt-BR")}</dd></div></dl>
-    <p>${escapeHtml(company.status)}</p><small class="confidence-tag">${escapeHtml(company.confidence)}</small></article>`).join("");
+    <p>${escapeHtml(company.status)}</p><div class="hub-actions"><small class="confidence-tag">${escapeHtml(company.confidence)}</small><button class="ghost-button" type="button" data-edit-id="${company.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("company", "#company-grid");
 }
 
 function renderDecisions() {
   document.querySelector("#decision-list").innerHTML = (state.decisions || []).map((decision) => `
-    <article class="decision-card"><div><span>${escapeHtml(decision.status)}</span><h3>${escapeHtml(decision.subject)}</h3><p>${escapeHtml(decision.rule)}</p><small>Evidência: ${escapeHtml(decision.evidence)}</small></div></article>`).join("");
+    <article class="decision-card"><div><span>${escapeHtml(decision.status)}</span><h3>${escapeHtml(decision.subject)}</h3><p>${escapeHtml(decision.rule)}</p><small>Evidência: ${escapeHtml(decision.evidence)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${decision.id}">Editar</button></div></div></article>`).join("");
   document.querySelector("#allocation-table").innerHTML = (state.companies || []).map((company) => `<tr><td>${escapeHtml(company.name)}</td><td>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</td><td>16,67%</td><td>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</td></tr>`).join("");
+  bindSimpleActions("decision", "#decision-list");
 }
 
 function renderCommercialCatalog() {
+  state.products.forEach((product) => { if (!product.id) product.id = crypto.randomUUID(); });
   document.querySelector("#product-grid").innerHTML = (state.products || []).map((product) => `
-    <article class="product-card"><span>${escapeHtml(product.status)}</span><h3>${escapeHtml(product.line)}</h3><strong>${escapeHtml(product.market)}</strong><p>${escapeHtml(product.offers)}</p></article>`).join("");
+    <article class="product-card"><span>${escapeHtml(product.status)}</span><h3>${escapeHtml(product.line)}</h3><strong>${escapeHtml(product.market)}</strong><p>${escapeHtml(product.offers)}</p><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${product.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("product", "#product-grid");
+}
+
+function renderExpenses() {
+  const expenses = state.expenses || [];
+  const knownTotal = expenses.reduce((sum, item) => sum + Number(item.total || 0), 0);
+  document.querySelector("#expense-summary").innerHTML = `<article><span>Despesas cadastradas</span><strong>${expenses.length}</strong><small>contratos e serviços compartilhados</small></article><article><span>Total conhecido</span><strong>${knownTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong><small>valores não informados ficam zerados</small></article>`;
+  document.querySelector("#expense-list").innerHTML = expenses.map((expense) => {
+    const isEqualSplit = String(expense.criterion || "").toLowerCase().includes("igual");
+    const allocations = (state.companies || []).map((company) => {
+      const percentage = isEqualSplit ? 100 / state.companies.length : Number(company.share);
+      return `<span>${escapeHtml(company.name)}: ${(Number(expense.total || 0) * percentage / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>`;
+    }).join("");
+    return `<article class="expense-card"><div class="company-top"><div><span>${escapeHtml(expense.competence)}</span><h3>${escapeHtml(expense.vendor)}</h3></div><strong>${Number(expense.total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></div><p>${escapeHtml(expense.object)}</p><small>Pago por: ${escapeHtml(expense.paidBy)} · ${escapeHtml(expense.status)}</small><div class="allocation-chips">${allocations}</div><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${expense.id}">Editar</button></div></article>`;
+  }).join("");
+  bindSimpleActions("expense", "#expense-list");
 }
 
 function renderMetrics() {
@@ -1975,7 +2005,7 @@ function archiveSimpleItem(mode, id) {
     window.alert("Esta pessoa possui subordinados ativos. Reatribua-os antes de arquivar.");
     return;
   }
-  if (!window.confirm(`Arquivar \"${item.title ?? item.name}\"?`)) return;
+  if (!window.confirm(`Arquivar \"${item.title ?? item.name ?? item.subject ?? item.line ?? item.vendor ?? "registro"}\"?`)) return;
   item.archivedAt = new Date().toISOString();
   logAudit("arquivado", config.collection, item);
   saveState();
@@ -1983,6 +2013,26 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  milestone: {
+    title: "Novo marco da implantação", editTitle: "Editar marco", collection: "milestones",
+    fields: [["name", "Marco", "text"], ["phase", "Fase", "text"], ["status", "Status", "text"], ["date", "Data prevista (opcional)", "date", false], ["owner", "Responsável", "text"]],
+  },
+  company: {
+    title: "Nova empresa fundadora", editTitle: "Editar empresa", collection: "companies",
+    fields: [["name", "Empresa", "text"], ["share", "Participação percentual", "number"], ["council", "Representante no Conselho", "text"], ["system", "Sistema atual", "text"], ["customers", "Clientes totais", "number"], ["b2c", "Clientes B2C", "number"], ["b2b", "Clientes B2B", "number"], ["status", "Situação da transição", "text"], ["confidence", "Qualidade do dado", "text"]],
+  },
+  decision: {
+    title: "Nova decisão", editTitle: "Editar decisão", collection: "decisions",
+    fields: [["subject", "Assunto", "text"], ["rule", "Regra ou decisão", "textarea"], ["status", "Situação", "text"], ["evidence", "Evidência ou documento", "textarea"]],
+  },
+  product: {
+    title: "Novo produto", editTitle: "Editar produto", collection: "products",
+    fields: [["line", "Linha de produto", "text"], ["market", "Mercado e aplicação", "text"], ["offers", "Planos, velocidades e preços", "textarea"], ["status", "Situação", "text"]],
+  },
+  expense: {
+    title: "Nova despesa compartilhada", editTitle: "Editar despesa", collection: "expenses",
+    fields: [["vendor", "Fornecedor", "text"], ["object", "Objeto da despesa", "textarea"], ["competence", "Competência (AAAA-MM)", "text"], ["total", "Valor total", "number"], ["paidBy", "Empresa pagadora", "text"], ["criterion", "Critério de rateio", "text"], ["status", "Situação do pagamento/reembolso", "text"], ["evidence", "Comprovante ou evidência", "textarea"]],
+  },
   meeting: {
     title: "Novo ritual",
     editTitle: "Editar ritual",
@@ -2188,10 +2238,11 @@ const simpleConfigs = {
   },
 };
 
-function renderField([name, label, type]) {
+function renderField([name, label, type, required = true]) {
+  const requiredAttribute = required ? " required" : "";
   const input = type === "textarea" || type === "list"
-    ? `<textarea name="${name}" required></textarea>`
-    : `<input name="${name}" type="${type}" required />`;
+    ? `<textarea name="${name}"${requiredAttribute}></textarea>`
+    : `<input name="${name}" type="${type}"${requiredAttribute} />`;
   return `<label>${label}${input}</label>`;
 }
 
@@ -2297,6 +2348,11 @@ document.querySelector("#governance-area-filter").addEventListener("change", ren
 document.querySelector("#governance-status-filter").addEventListener("change", renderGovernance);
 document.querySelector("#new-area").addEventListener("click", () => openSimpleModal("area"));
 document.querySelector("#new-career").addEventListener("click", () => openSimpleModal("career"));
+document.querySelector("#new-milestone").addEventListener("click", () => openSimpleModal("milestone"));
+document.querySelector("#new-company").addEventListener("click", () => openSimpleModal("company"));
+document.querySelector("#new-decision").addEventListener("click", () => openSimpleModal("decision"));
+document.querySelector("#new-product").addEventListener("click", () => openSimpleModal("product"));
+document.querySelector("#new-expense").addEventListener("click", () => openSimpleModal("expense"));
 document.querySelector("#export-backup").addEventListener("click", exportBackup);
 document.querySelector("#import-backup").addEventListener("click", () => {
   document.querySelector("#backup-file").click();
