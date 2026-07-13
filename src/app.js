@@ -471,13 +471,34 @@ const defaultExpenses = [
   { id: "expense-network", vendor: "Consultoria de redes", object: "Arquitetura, consolidação e migração das bases", competence: "2026-07", total: 0, paidBy: "A informar", criterion: "Percentuais do MOU", status: "Em contratação", evidence: "Contrato/comprovante a anexar" },
 ];
 
+const defaultCutoverChecklist = [
+  { id: "cut-cnpj", area: "Jurídico", item: "CNPJ da Acessa aberto e apto a operar", owner: "Jurídico e Contabilidade", mandatory: "Sim", status: "Pendente", evidence: "Cartão CNPJ e atos constitutivos" },
+  { id: "cut-tax", area: "Fiscal", item: "Regime tributário, emissão fiscal e inscrições validados", owner: "Contabilidade", mandatory: "Sim", status: "Pendente", evidence: "Parecer e testes de emissão" },
+  { id: "cut-bank", area: "Financeiro", item: "Conta bancária, Pix, cobrança e conciliação testados", owner: "Bruno", mandatory: "Sim", status: "Pendente", evidence: "Cobrança ponta a ponta" },
+  { id: "cut-contract", area: "Jurídico", item: "Contratos B2C e B2B aprovados", owner: "Jurídico", mandatory: "Sim", status: "Pendente", evidence: "Versões vigentes assinadas" },
+  { id: "cut-ixc", area: "Sistemas", item: "IXC da Acessa configurado e homologado", owner: "Felipe Melo", mandatory: "Sim", status: "Pendente", evidence: "Roteiro de homologação" },
+  { id: "cut-products", area: "Comercial", item: "Planos, preços, benefícios e códigos cadastrados", owner: "Rodrigo e Felipe Cassiano", mandatory: "Sim", status: "Pendente", evidence: "Catálogo aprovado" },
+  { id: "cut-network", area: "Técnica", item: "Viabilidade, estoque e capacidade de instalação definidos", owner: "Harley e Lailson Araujo", mandatory: "Sim", status: "Pendente", evidence: "Matriz de cobertura e capacidade" },
+  { id: "cut-training", area: "Pessoas", item: "Vendas, atendimento, financeiro e operação treinados", owner: "Diretorias", mandatory: "Sim", status: "Pendente", evidence: "Lista de presença e aceite" },
+  { id: "cut-comms", area: "Marca", item: "Canais, materiais e comunicação da Acessa preparados", owner: "Comercial B2C", mandatory: "Sim", status: "Pendente", evidence: "Kit de lançamento" },
+];
+
+const defaultMigrationWaves = [
+  { id: "wave-ixc", order: 1, name: "Criar IXC neutro da Acessa", source: "Nova instância", destination: "IXC Acessa", owner: "Felipe Melo", status: "Ideia", scope: "Cadastros, planos, contratos, financeiro, integrações e padrões", rollback: "Ambiente isolado até homologação" },
+  { id: "wave-mega", order: 2, name: "Piloto Megalink", source: "SGP Megalink", destination: "IXC Acessa", owner: "Felipe Melo + consultoria", status: "Ideia", scope: "Base mais organizada; saneamento, ensaio, migração e validação", rollback: "Preservar SGP e cópia íntegra até aceite" },
+  { id: "wave-turbo", order: 3, name: "Migrar Turbolink", source: "SGP Turbolink", destination: "IXC Acessa", owner: "Felipe Melo + consultoria", status: "Planejado", scope: "Aplicar aprendizado do piloto e padronizar a base", rollback: "Preservar SGP e plano de retorno" },
+  { id: "wave-legacy", order: 4, name: "Consolidar bases IXC existentes", source: "PJM, ISPTEC, Linax e PointNet", destination: "IXC Acessa", owner: "TI e Sistemas", status: "Futuro", scope: "Migrar gradualmente após aprovação, sem impacto ao cliente", rollback: "Ondas pequenas e reconciliação por empresa" },
+];
+
 const seed = {
-  businessModelVersion: 12,
+  businessModelVersion: 13,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
   products: defaultProducts,
   expenses: defaultExpenses,
+  cutoverChecklist: defaultCutoverChecklist,
+  migrationWaves: defaultMigrationWaves,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -748,7 +769,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 12) return source;
+  if (Number(source.businessModelVersion || 0) >= 13) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -795,8 +816,10 @@ function migrateBusinessStructure(source) {
   const decisions = Array.isArray(source.decisions) && source.decisions.length ? source.decisions : defaultDecisions;
   const products = Array.isArray(source.products) && source.products.length ? source.products : defaultProducts;
   const expenses = Array.isArray(source.expenses) && source.expenses.length ? source.expenses : defaultExpenses;
+  const cutoverChecklist = Array.isArray(source.cutoverChecklist) && source.cutoverChecklist.length ? source.cutoverChecklist : defaultCutoverChecklist;
+  const migrationWaves = Array.isArray(source.migrationWaves) && source.migrationWaves.length ? source.migrationWaves : defaultMigrationWaves;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 12, companies, milestones, decisions, products, expenses, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 13, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1069,6 +1092,8 @@ function render() {
   renderDecisions();
   renderCommercialCatalog();
   renderExpenses();
+  renderCutover();
+  renderMigrationWaves();
   renderMetrics();
   renderDashboardLists();
   renderGovernance();
@@ -1138,6 +1163,22 @@ function renderExpenses() {
     return `<article class="expense-card"><div class="company-top"><div><span>${escapeHtml(expense.competence)}</span><h3>${escapeHtml(expense.vendor)}</h3></div><strong>${Number(expense.total || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></div><p>${escapeHtml(expense.object)}</p><small>Pago por: ${escapeHtml(expense.paidBy)} · ${escapeHtml(expense.status)}</small><div class="allocation-chips">${allocations}</div><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${expense.id}">Editar</button></div></article>`;
   }).join("");
   bindSimpleActions("expense", "#expense-list");
+}
+
+function renderCutover() {
+  const checklist = state.cutoverChecklist || [];
+  const mandatory = checklist.filter((item) => item.mandatory === "Sim");
+  const ready = mandatory.filter((item) => item.status === "Concluído").length;
+  const released = mandatory.length > 0 && ready === mandatory.length;
+  document.querySelector("#cutover-gate").innerHTML = `<div><span>Gate de liberação</span><h3>${released ? "PRONTO PARA DELIBERAÇÃO" : "NÃO LIBERADO"}</h3><p>${ready} de ${mandatory.length} requisitos obrigatórios concluídos.</p></div><b class="hub-status">${released ? "Submeter ao Conselho" : "Pendências abertas"}</b>`;
+  document.querySelector("#cutover-list").innerHTML = checklist.map((item) => `<article class="hub-row cutover-row"><div><span>${escapeHtml(item.area)} · Obrigatório: ${escapeHtml(item.mandatory)}</span><h3>${escapeHtml(item.item)}</h3><small>${escapeHtml(item.owner)} · Evidência: ${escapeHtml(item.evidence)}</small></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status)}</b><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("cutover", "#cutover-list");
+}
+
+function renderMigrationWaves() {
+  const waves = [...(state.migrationWaves || [])].sort((a, b) => Number(a.order) - Number(b.order));
+  document.querySelector("#migration-list").innerHTML = waves.map((wave) => `<article class="migration-card"><div class="company-top"><div><span>Onda ${escapeHtml(wave.order)}</span><h3>${escapeHtml(wave.name)}</h3></div><b class="hub-status">${escapeHtml(wave.status)}</b></div><p><strong>${escapeHtml(wave.source)}</strong> → <strong>${escapeHtml(wave.destination)}</strong></p><p>${escapeHtml(wave.scope)}</p><small>Responsável: ${escapeHtml(wave.owner)}</small><small>Retorno: ${escapeHtml(wave.rollback)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${wave.id}">Editar</button></div></article>`).join("");
+  bindSimpleActions("migration", "#migration-list");
 }
 
 function renderMetrics() {
@@ -2013,6 +2054,14 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  cutover: {
+    title: "Novo requisito da virada", editTitle: "Editar requisito", collection: "cutoverChecklist",
+    fields: [["area", "Área", "text"], ["item", "Requisito", "textarea"], ["owner", "Responsável", "text"], ["mandatory", "Obrigatório: Sim ou Não", "text"], ["status", "Status: Pendente, Em andamento, Bloqueado ou Concluído", "text"], ["evidence", "Evidência necessária", "textarea"]],
+  },
+  migration: {
+    title: "Nova onda de migração", editTitle: "Editar onda", collection: "migrationWaves",
+    fields: [["order", "Ordem", "number"], ["name", "Nome da onda", "text"], ["source", "Origem", "text"], ["destination", "Destino", "text"], ["owner", "Responsável", "text"], ["status", "Status", "text"], ["scope", "Escopo e critérios", "textarea"], ["rollback", "Plano de retorno", "textarea"]],
+  },
   milestone: {
     title: "Novo marco da implantação", editTitle: "Editar marco", collection: "milestones",
     fields: [["name", "Marco", "text"], ["phase", "Fase", "text"], ["status", "Status", "text"], ["date", "Data prevista (opcional)", "date", false], ["owner", "Responsável", "text"]],
@@ -2353,6 +2402,8 @@ document.querySelector("#new-company").addEventListener("click", () => openSimpl
 document.querySelector("#new-decision").addEventListener("click", () => openSimpleModal("decision"));
 document.querySelector("#new-product").addEventListener("click", () => openSimpleModal("product"));
 document.querySelector("#new-expense").addEventListener("click", () => openSimpleModal("expense"));
+document.querySelector("#new-cutover").addEventListener("click", () => openSimpleModal("cutover"));
+document.querySelector("#new-migration").addEventListener("click", () => openSimpleModal("migration"));
 document.querySelector("#export-backup").addEventListener("click", exportBackup);
 document.querySelector("#import-backup").addEventListener("click", () => {
   document.querySelector("#backup-file").click();

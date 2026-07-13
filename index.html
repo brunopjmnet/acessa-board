@@ -30,6 +30,8 @@
           <button class="nav-item" data-view="companies">Empresas e holdings</button>
           <button class="nav-item" data-view="decisions">Decisões e rateios</button>
           <button class="nav-item" data-view="expenses">Despesas compartilhadas</button>
+          <button class="nav-item" data-view="cutover">Virada comercial</button>
+          <button class="nav-item" data-view="migration">Migração de sistemas</button>
           <button class="nav-item" data-view="commercial">Catálogo comercial</button>
           <button class="nav-item" data-view="governance">Governança</button>
           <button class="nav-item" data-view="areas">Diretorias</button>
@@ -185,6 +187,17 @@
           <div class="section-heading"><div><p class="eyebrow">Preparação da virada comercial</p><h2>Catálogo proposto da Acessa</h2><p class="data-disclaimer">Valores são propostas de trabalho e dependem de validação tributária, técnica, comercial e de margem.</p></div><button class="primary-button" id="new-product">Novo produto</button></div>
           <div class="product-grid" id="product-grid"></div>
           <div class="transition-rule"><strong>Portfólio complementar a estruturar</strong><p>Telefonia, PABX/SIP/0800, PlayHub e streaming, câmeras, Wi-Fi corporativo, LAN-to-LAN, MPLS, VPN, cloud, VPS, servidores, colocation, CDN, peering, trânsito IP, EILD, DWDM, fibras compartilhadas e projetos especiais.</p></div>
+        </section>
+
+        <section class="view" id="cutover">
+          <div class="section-heading"><div><p class="eyebrow">Controle de prontidão</p><h2>Central da virada comercial</h2><p class="data-disclaimer">O sistema não autoriza a virada: ele verifica requisitos e prepara a deliberação formal do Conselho.</p></div><button class="primary-button" id="new-cutover">Novo requisito</button></div>
+          <div class="transition-rule cutover-gate" id="cutover-gate"></div>
+          <div class="panel"><div class="panel-heading"><div><span class="eyebrow">Checklist obrigatório</span><h2>Condições para iniciar novas vendas</h2></div></div><div class="hub-list" id="cutover-list"></div></div>
+        </section>
+
+        <section class="view" id="migration">
+          <div class="section-heading"><div><p class="eyebrow">Sistemas e continuidade operacional</p><h2>Ondas de migração para o IXC Acessa</h2><p class="data-disclaimer">A sequência é uma proposta. Nenhuma base deve ser migrada sem diagnóstico, cópia, ensaio, reconciliação e plano de retorno aprovados.</p></div><button class="primary-button" id="new-migration">Nova onda</button></div>
+          <div class="migration-list" id="migration-list"></div>
         </section>
 
         <section class="view" id="governance">
