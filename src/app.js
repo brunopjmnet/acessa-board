@@ -464,8 +464,8 @@ const defaultDecisions = [
 ];
 
 const defaultProducts = [
-  { line: "Acessa Casa", market: "B2C grandes centros", offers: "300M R$ 69,90 · 500M R$ 79,90 · 700M R$ 99,90 · 1G R$ 129,90 · Gamer 1G R$ 149,90", status: "Proposta" },
-  { line: "Acessa Regional", market: "B2C áreas remotas", offers: "100M R$ 59,90 · 200M R$ 69,90 · 400M R$ 79,90 · 500M R$ 99,90 · 600M R$ 119,90", status: "Proposta" },
+  { line: "Acessa Mais", market: "B2C grandes centros", offers: "300M R$ 69,90 · 500M R$ 79,90 · 700M R$ 99,90 · 1G R$ 129,90 · Gamer 1G R$ 149,90", status: "Proposta" },
+  { line: "Acessa Essencial", market: "B2C áreas remotas", offers: "100M R$ 59,90 · 200M R$ 69,90 · 400M R$ 79,90 · 500M R$ 99,90 · 600M R$ 119,90", status: "Proposta" },
   { line: "Acessa Empresas", market: "B2B compartilhado", offers: "400/400 R$ 149,90 · 600/600 R$ 189,90 · 1G/1G R$ 249,90", status: "Proposta" },
   { line: "Acessa Dedicado", market: "B2B dedicado", offers: "100/100 R$ 299 · 200/200 R$ 599 · 300/300 R$ 899", status: "Referência a validar" },
 ];
@@ -530,7 +530,7 @@ const defaultConnectors = [
 ];
 
 const seed = {
-  businessModelVersion: 16,
+  businessModelVersion: 17,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -812,7 +812,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 16) return source;
+  if (Number(source.businessModelVersion || 0) >= 17) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -857,7 +857,11 @@ function migrateBusinessStructure(source) {
   const companies = Array.isArray(source.companies) && source.companies.length ? source.companies : defaultCompanies;
   const milestones = Array.isArray(source.milestones) && source.milestones.length ? source.milestones : defaultMilestones;
   const decisions = Array.isArray(source.decisions) && source.decisions.length ? source.decisions : defaultDecisions;
-  const products = Array.isArray(source.products) && source.products.length ? source.products : defaultProducts;
+  const products = (Array.isArray(source.products) && source.products.length ? source.products : defaultProducts).map((product) => {
+    if (product.line === "Acessa Casa") return { ...product, line: "Acessa Mais" };
+    if (product.line === "Acessa Regional") return { ...product, line: "Acessa Essencial" };
+    return product;
+  });
   const expenses = Array.isArray(source.expenses) && source.expenses.length ? source.expenses : defaultExpenses;
   const cutoverChecklist = Array.isArray(source.cutoverChecklist) && source.cutoverChecklist.length ? source.cutoverChecklist : defaultCutoverChecklist;
   const migrationWaves = Array.isArray(source.migrationWaves) && source.migrationWaves.length ? source.migrationWaves : defaultMigrationWaves;
@@ -866,7 +870,7 @@ function migrateBusinessStructure(source) {
   const supplierContracts = Array.isArray(source.supplierContracts) && source.supplierContracts.length ? source.supplierContracts : defaultSupplierContracts;
   const connectors = Array.isArray(source.connectors) && source.connectors.length ? source.connectors : defaultConnectors;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 16, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 17, companies, milestones, decisions, products, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
