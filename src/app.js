@@ -4,10 +4,15 @@ import {
   isUserInviteRedirect,
   inviteBoardUser,
   listBoardProfiles,
+  loadProtectedBusinessData,
   loadCloudContext,
   onAuthEvent,
   requestPasswordReset,
   saveCloudState,
+  saveProtectedCompensation,
+  saveProtectedConnection,
+  saveProtectedContract,
+  saveProtectedExpense,
   sanitizeSharedWorkspaceState,
   signIn,
   signOut,
@@ -921,6 +926,7 @@ async function initializeCloud() {
     } else if (cloudContext.canEdit) {
       await persistStateToCloud();
     }
+    await hydrateProtectedBusinessData();
     unsubscribeWorkspace();
     unsubscribeWorkspace = subscribeToWorkspace(cloudContext.workspaceId, (payload) => {
       const incomingVersion = Number(payload.new?.version ?? 0);
@@ -1173,6 +1179,33 @@ function renderImplementationHub() {
   document.querySelector("#milestone-list").innerHTML = milestones.map((item) => `
     <article class="hub-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status)}</b><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
   bindSimpleActions("milestone", "#milestone-list");
+}
+
+async function hydrateProtectedBusinessData() {
+  if (!cloudContext.connected || !cloudContext.workspaceId) return;
+  const protectedData = await loadProtectedBusinessData(cloudContext.workspaceId);
+  if (protectedData.contracts.length) state.supplierContracts = protectedData.contracts.map((row) => ({ id: row.id, company: row.company, category: row.category, supplier: row.supplier, object: row.object, monthlyValue: row.monthly_value, allocation: row.allocation_rule, startDate: row.start_date || "", endDate: row.end_date || "", noticeDays: row.notice_days, status: row.status, readjustment: "Registro protegido", evidence: row.document_id ? "Documento vinculado" : "Sem documento" }));
+  if (protectedData.expenses.length) state.expenses = protectedData.expenses.map((row) => ({ id: row.id, vendor: row.supplier, object: row.object, competence: String(row.competence || "").slice(0, 7), total: row.total, paidBy: row.paid_by, criterion: row.allocation_rule, status: row.status, evidence: row.document_id ? "Documento vinculado" : "Sem documento" }));
+  if (protectedData.connections.length) state.connectors = protectedData.connections.map((row) => ({ id: row.id, system: row.system, scope: row.authorized_scope, mode: "API / protegido", owner: "Administração", status: row.status, lastSync: row.last_sync_at ? String(row.last_sync_at).slice(0, 10) : "", note: "Configuração protegida no Supabase" }));
+  protectedData.compensation.forEach((row) => {
+    const person = state.people.find((item) => item.id === row.person_id);
+    if (person) { person.salary = Number(row.base_salary).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); person.compensationId = row.id; }
+  });
+}
+
+function parseMoney(value) {
+  const normalized = String(value || "0").replace(/[^0-9,.-]/g, "").replaceAll(".", "").replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+async function persistProtectedForm(mode, values, existing) {
+  if (!cloudContext.connected || !cloudContext.workspaceId) return null;
+  if (mode === "expense") return saveProtectedExpense(cloudContext.workspaceId, { supplier: values.vendor, object: values.object, competence: `${values.competence}-01`, total: Number(values.total || 0), paid_by: values.paidBy, allocation_rule: values.criterion, status: values.status }, existing?.id);
+  if (mode === "supplierContract") return saveProtectedContract(cloudContext.workspaceId, { company: values.company, category: values.category, supplier: values.supplier, object: values.object, monthly_value: Number(values.monthlyValue || 0), allocation_rule: values.allocation, start_date: values.startDate || null, end_date: values.endDate || null, notice_days: Number(values.noticeDays || 0), status: values.status }, existing?.id);
+  if (mode === "connector") return saveProtectedConnection(cloudContext.workspaceId, { system: values.system, authorized_scope: values.scope, status: values.status, last_sync_at: values.lastSync || null }, existing?.id);
+  if (mode === "person" && parseMoney(values.salary) > 0) return saveProtectedCompensation(cloudContext.workspaceId, { person_id: existing?.id, company: values.area, employment_type: values.type, base_salary: parseMoney(values.salary), variable_pay: 0, employer_cost: 0, effective_from: currentCivilDateIso(), effective_to: null }, existing?.compensationId);
+  return null;
 }
 
 function renderCompanies() {
@@ -2560,7 +2593,7 @@ taskForm.addEventListener("submit", (event) => {
   render();
 });
 
-simpleForm.addEventListener("submit", (event) => {
+simpleForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const config = simpleConfigs[simpleMode];
   const data = new FormData(simpleForm);
@@ -2655,6 +2688,16 @@ simpleForm.addEventListener("submit", (event) => {
     }
   }
 
+  let protectedRow = null;
+  if (["expense", "supplierContract", "connector"].includes(simpleMode) && cloudContext.connected) {
+    try {
+      protectedRow = await persistProtectedForm(simpleMode, values, existing);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Não foi possível salvar o registro protegido.");
+      return;
+    }
+  }
+
   const versioned = ["governance", "raci"].includes(simpleMode);
   let item;
   if (existing && versioned) {
@@ -2673,13 +2716,22 @@ simpleForm.addEventListener("submit", (event) => {
     };
   } else {
     item = existing ?? {
-      id: crypto.randomUUID(),
+      id: protectedRow?.id ?? crypto.randomUUID(),
       ...(versioned ? { baseId: null, version: 1, status: "Ativo", createdAt: new Date().toISOString() } : {}),
     };
     if (versioned && !item.baseId) item.baseId = item.id;
   }
 
   Object.assign(item, values);
+  if (simpleMode === "person" && cloudContext.connected && parseMoney(values.salary) > 0) {
+    try {
+      const compensation = await saveProtectedCompensation(cloudContext.workspaceId, { person_id: item.id, company: values.area, employment_type: values.type, base_salary: parseMoney(values.salary), variable_pay: 0, employer_cost: 0, effective_from: currentCivilDateIso(), effective_to: null }, existing?.compensationId);
+      item.compensationId = compensation.id;
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Não foi possível salvar a remuneração protegida.");
+      return;
+    }
+  }
   if (versioned) item.updatedAt = new Date().toISOString();
   if (!existing || versioned) state[config.collection].push(item);
   logAudit(existing ? (versioned ? "nova_versao" : "editado") : "criado", config.collection, item);

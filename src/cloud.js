@@ -119,6 +119,38 @@ export async function saveCloudState(workspaceId, state, expectedVersion) {
   return data;
 }
 
+export async function loadProtectedBusinessData(workspaceId) {
+  if (!supabase || !workspaceId) return { compensation: [], contracts: [], expenses: [], connections: [] };
+  const queries = await Promise.all([
+    supabase.from("board_employee_compensation").select("*").eq("workspace_id", workspaceId).is("effective_to", null),
+    supabase.from("board_supplier_contracts").select("*").eq("workspace_id", workspaceId).order("supplier"),
+    supabase.from("board_shared_expenses").select("*").eq("workspace_id", workspaceId).order("competence", { ascending: false }),
+    supabase.from("board_integration_connections").select("*").eq("workspace_id", workspaceId).order("system"),
+  ]);
+  const denied = (result) => result.error && ["42501", "PGRST301"].includes(result.error.code);
+  queries.forEach((result) => { if (result.error && !denied(result)) throw result.error; });
+  return {
+    compensation: queries[0].data || [], contracts: queries[1].data || [],
+    expenses: queries[2].data || [], connections: queries[3].data || [],
+  };
+}
+
+async function upsertProtected(table, workspaceId, values, id) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const session = await getCloudSession();
+  const payload = { ...values, workspace_id: workspaceId, updated_by: session?.user?.id, updated_at: new Date().toISOString() };
+  if (!id) payload.created_by = session?.user?.id;
+  const query = id ? supabase.from(table).update(payload).eq("id", id) : supabase.from(table).insert(payload);
+  const { data, error } = await query.select("*").single();
+  if (error) throw error;
+  return data;
+}
+
+export const saveProtectedExpense = (workspaceId, values, id) => upsertProtected("board_shared_expenses", workspaceId, values, id);
+export const saveProtectedContract = (workspaceId, values, id) => upsertProtected("board_supplier_contracts", workspaceId, values, id);
+export const saveProtectedConnection = (workspaceId, values, id) => upsertProtected("board_integration_connections", workspaceId, values, id);
+export const saveProtectedCompensation = (workspaceId, values, id) => upsertProtected("board_employee_compensation", workspaceId, values, id);
+
 export function sanitizeSharedWorkspaceState(state) {
   const safe = typeof structuredClone === "function"
     ? structuredClone(state || {})
