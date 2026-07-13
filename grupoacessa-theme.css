@@ -251,8 +251,8 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 /* O banner possui fundo e bordas próprios; não deve herdar o padding compacto dos cabeçalhos comuns. */
 .commercial-showcase .commercial-hero {
-  min-height: 230px;
-  padding: clamp(30px, 4vw, 54px);
+  min-height: 230px !important;
+  padding: clamp(30px, 4vw, 54px) !important;
 }
 
 .commercial-showcase .commercial-hero > div:first-child {
@@ -359,5 +359,5 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
   .topbar-copy .topbar-subtitle { display: none; }
   .topbar { padding: 12px; }
   .section-heading { align-items: stretch; flex-direction: column; }
-  .commercial-showcase .commercial-hero { min-height: 0; padding: 24px 20px; }
+  .commercial-showcase .commercial-hero { min-height: 0 !important; padding: 24px 20px !important; }
 }

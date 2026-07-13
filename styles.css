@@ -2176,6 +2176,19 @@ html[data-theme="dark"] tbody tr:hover td { background: #1b2031; }
   .metric-card { min-height: 128px; }
 }
 
+/* Proteção contra regressões: o banner comercial nunca pode encostar o texto nas bordas. */
+#commercial > .commercial-hero.section-heading {
+  min-height: 230px !important;
+  padding: clamp(30px, 4vw, 54px) !important;
+}
+
+@media (max-width: 620px) {
+  #commercial > .commercial-hero.section-heading {
+    min-height: 0 !important;
+    padding: 24px 20px !important;
+  }
+}
+
 /* Comparativo de mercado — subpágina exclusiva do catálogo */
 .commercial-hero-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
 .commercial-hero .market-button { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.09); color: #fff; backdrop-filter: blur(10px); }
