@@ -25,6 +25,11 @@
         <nav class="nav" aria-label="Navegação principal">
           <span class="nav-group-label">Visão executiva</span>
           <button class="nav-item active" data-view="dashboard">Centro de comando</button>
+          <span class="nav-group-label">Implantação Acessa</span>
+          <button class="nav-item" data-view="implementation">Jornada de implantação</button>
+          <button class="nav-item" data-view="companies">Empresas e holdings</button>
+          <button class="nav-item" data-view="decisions">Decisões e rateios</button>
+          <button class="nav-item" data-view="commercial">Catálogo comercial</button>
           <button class="nav-item" data-view="governance">Governança</button>
           <button class="nav-item" data-view="areas">Diretorias</button>
           <span class="nav-group-label">Gestão empresarial</span>
@@ -149,6 +154,30 @@
             </div>
             <div class="kpi-strip" id="dashboard-kpis"></div>
           </div>
+        </section>
+
+        <section class="view" id="implementation">
+          <div class="section-heading"><div><p class="eyebrow">Da assinatura à operação integrada</p><h2>Jornada de implantação da Acessa</h2><p class="data-disclaimer">Centro oficial de acompanhamento. Prazos sem aprovação permanecem “a definir”.</p></div></div>
+          <div class="hub-summary" id="implementation-summary"></div>
+          <div class="panel"><div class="panel-heading"><div><span class="eyebrow">Marcos de integração</span><h2>Sequência executiva</h2></div></div><div class="hub-list" id="milestone-list"></div></div>
+          <div class="transition-rule"><strong>Regra da virada</strong><p>Na data aprovada, somente as novas vendas e instalações correspondentes serão originadas pela Acessa. Carteiras antigas e instalações já vendidas continuam temporariamente nos CNPJs atuais até sua migração formal.</p></div>
+        </section>
+
+        <section class="view" id="companies">
+          <div class="section-heading"><div><p class="eyebrow">Seis grupos, uma nova companhia</p><h2>Empresas, holdings e participações</h2><p class="data-disclaimer">Participações seguem o MOU. Quantidades de clientes são estimativas até validação nos sistemas.</p></div></div>
+          <div class="company-grid" id="company-grid"></div>
+        </section>
+
+        <section class="view" id="decisions">
+          <div class="section-heading"><div><p class="eyebrow">Memória institucional</p><h2>Decisões, quóruns e rateios</h2><p class="data-disclaimer">Itens “informados” ou “diretriz” devem ser formalizados em ata ou instrumento jurídico quando aplicável.</p></div></div>
+          <div class="decision-list" id="decision-list"></div>
+          <section class="panel allocation-panel"><div class="panel-heading"><div><span class="eyebrow">Critério financeiro</span><h2>Rateio das despesas comuns</h2></div></div><div class="table-wrap"><table class="allocation-table"><thead><tr><th>Grupo</th><th>Participação MOU</th><th>Antes do MOU</th><th>Após o MOU</th></tr></thead><tbody id="allocation-table"></tbody></table></div><p class="data-disclaimer">Não há recálculo retroativo, salvo decisão expressa do Conselho.</p></section>
+        </section>
+
+        <section class="view" id="commercial">
+          <div class="section-heading"><div><p class="eyebrow">Preparação da virada comercial</p><h2>Catálogo proposto da Acessa</h2><p class="data-disclaimer">Valores são propostas de trabalho e dependem de validação tributária, técnica, comercial e de margem.</p></div></div>
+          <div class="product-grid" id="product-grid"></div>
+          <div class="transition-rule"><strong>Portfólio complementar a estruturar</strong><p>Telefonia, PABX/SIP/0800, PlayHub e streaming, câmeras, Wi-Fi corporativo, LAN-to-LAN, MPLS, VPN, cloud, VPS, servidores, colocation, CDN, peering, trânsito IP, EILD, DWDM, fibras compartilhadas e projetos especiais.</p></div>
         </section>
 
         <section class="view" id="governance">

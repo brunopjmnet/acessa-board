@@ -430,8 +430,46 @@ const phaseZeroDocument = {
   note: "Fonte operacional do POP-INT-001 v2.0: holding, valuation, due diligence, compatibilidade tributaria e Acordo de Socios.",
 };
 
+const defaultCompanies = [
+  { id: "pjm", name: "PJMNET", share: 24.14, council: "Bruno", system: "IXC", customers: 7840, b2c: 7540, b2b: 300, status: "Operando no CNPJ atual", confidence: "Estimado" },
+  { id: "isptec", name: "ISPTEC", share: 18.38, council: "Rodrigo", system: "IXC", customers: 1000, b2c: 300, b2b: 700, status: "Operando no CNPJ atual", confidence: "Estimado" },
+  { id: "linax", name: "Linax", share: 15.07, council: "Harley", system: "IXC", customers: 5500, b2c: 5300, b2b: 200, status: "Operando no CNPJ atual", confidence: "Estimado" },
+  { id: "point", name: "PointNet", share: 14.57, council: "Shisley", system: "IXC", customers: 5500, b2c: 5200, b2b: 300, status: "Operando no CNPJ atual", confidence: "Estimado" },
+  { id: "turbo", name: "Turbolink", share: 14.35, council: "Adson", system: "SGP", customers: 5000, b2c: 4800, b2b: 200, status: "Migração para IXC em estudo", confidence: "Estimado" },
+  { id: "mega", name: "Megalink", share: 13.49, council: "Filipe Cassiano", system: "SGP", customers: 5000, b2c: 4800, b2b: 200, status: "Piloto de migração sugerido", confidence: "Estimado" },
+];
+
+const defaultMilestones = [
+  { id: "mou", name: "MOU vinculante assinado", phase: "Fase 1", status: "Concluído", date: "2026-07-09", owner: "Conselho" },
+  { id: "holdings", name: "Constituir as seis holdings", phase: "Fase 2", status: "Em andamento", date: "", owner: "Jurídico e sócios" },
+  { id: "cnpj", name: "Abrir CNPJ da Acessa", phase: "Fase 3", status: "Planejado", date: "", owner: "Jurídico e Contabilidade" },
+  { id: "governance", name: "Formalizar governança e contratos", phase: "Fase 3", status: "Em andamento", date: "", owner: "Conselho e Jurídico" },
+  { id: "ixc", name: "Preparar IXC neutro da Acessa", phase: "Fase 4", status: "Ideia", date: "", owner: "Felipe Melo" },
+  { id: "commercial", name: "Liberar somente novas vendas na Acessa", phase: "Fase 6", status: "Planejado", date: "2027-01-01", owner: "Comercial" },
+  { id: "migration", name: "Migrar operações e bases gradualmente", phase: "Fases 4–6", status: "Planejado", date: "", owner: "Diretorias" },
+];
+
+const defaultDecisions = [
+  { id: "dec-share", subject: "Participações societárias", rule: "Conforme MOU assinado", status: "Aprovado", evidence: "MOU preliminar VF e anexo assinados" },
+  { id: "dec-vote", subject: "Decisões ordinárias", rule: "Voto proporcional; aprovação por 51%", status: "Informado", evidence: "Validar redação no acordo de sócios" },
+  { id: "dec-unanimity", subject: "Matérias de unanimidade", rule: "Dissolução, venda de controle, reorganizações, saída, lock-up e não concorrência", status: "Em validação jurídica", evidence: "MOU; detalhar no acordo de sócios" },
+  { id: "dec-cutover", subject: "Virada comercial", rule: "Somente novas vendas entram na Acessa; carteira e pendências permanecem temporariamente nas empresas", status: "Diretriz", evidence: "Decisão informada pelo Conselho" },
+  { id: "dec-cost", subject: "Rateio de despesas comuns", rule: "Antes do MOU: igualitário. Após o MOU: percentuais societários", status: "Aprovado", evidence: "Critério informado após assinatura" },
+];
+
+const defaultProducts = [
+  { line: "Acessa Casa", market: "B2C grandes centros", offers: "300M R$ 69,90 · 500M R$ 79,90 · 700M R$ 99,90 · 1G R$ 129,90 · Gamer 1G R$ 149,90", status: "Proposta" },
+  { line: "Acessa Regional", market: "B2C áreas remotas", offers: "100M R$ 59,90 · 200M R$ 69,90 · 400M R$ 79,90 · 500M R$ 99,90 · 600M R$ 119,90", status: "Proposta" },
+  { line: "Acessa Empresas", market: "B2B compartilhado", offers: "400/400 R$ 149,90 · 600/600 R$ 189,90 · 1G/1G R$ 249,90", status: "Proposta" },
+  { line: "Acessa Dedicado", market: "B2B dedicado", offers: "100/100 R$ 299 · 200/200 R$ 599 · 300/300 R$ 899", status: "Referência a validar" },
+];
+
 const seed = {
-  businessModelVersion: 10,
+  businessModelVersion: 11,
+  companies: defaultCompanies,
+  milestones: defaultMilestones,
+  decisions: defaultDecisions,
+  products: defaultProducts,
   auditLog: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
@@ -562,6 +600,7 @@ const seed = {
     { id: "lider-b2b", name: "Lider B2B", role: "Supervisor B2B", area: "Comercial B2B", level: "Lider", salary: "R$ 6.500", managerId: "dir-comercial", type: "Lider", responsibilities: "Carteira corporativa, metas B2B, propostas e previsao de vendas.", contact: "b2b@acessa.local" },
     { id: "lider-marketing", name: "Lider Marketing", role: "Coordenacao de marketing", area: "Comercial B2C", level: "Lider", salary: "R$ 5.800", managerId: "dir-comercial-b2c", type: "Lider", responsibilities: "Marketing integral da Acessa, campanhas, trafego, criativos, conteudo, marca e geracao de demanda.", contact: "marketing@acessa.local" },
     { id: "dir-admin", name: "Bruno", role: "Diretor Administrativo-Financeiro", area: "Administrativo-Financeira", level: "Diretor", salary: "R$ 18.000", managerId: "conselho", type: "Diretor", responsibilities: defaultAreas[2].purpose, contact: "bruno@acessa.local" },
+    { id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" },
     { id: "lider-rh", name: "Lider RH", role: "Coordenacao de RH/DP", area: "Administrativo-Financeira", level: "Lider", salary: "R$ 6.200", managerId: "dir-admin", type: "Lider", responsibilities: "Admissao, demissao, cargos, carreira, treinamento e desempenho.", contact: "rh@acessa.local" },
     { id: "lider-compras", name: "Lider Compras", role: "Analista lider de compras", area: "Administrativo-Financeira", level: "Lider", salary: "R$ 5.500", managerId: "dir-admin", type: "Lider", responsibilities: "Compras, cotacoes, estoque, equipamentos e controles de entrega.", contact: "compras@acessa.local" },
     { id: "dir-relacionamento", name: "Shisley", role: "Diretora de Relacionamento", area: "Relacionamento", level: "Diretor", salary: "R$ 15.000", managerId: "conselho", type: "Diretor", responsibilities: defaultAreas[3].purpose, contact: "shisley@acessa.local" },
@@ -701,7 +740,7 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
-  if (Number(source.businessModelVersion || 0) >= 10) return source;
+  if (Number(source.businessModelVersion || 0) >= 11) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -743,7 +782,12 @@ function migrateBusinessStructure(source) {
   });
   const documents = Array.isArray(source.documents) ? [...source.documents] : [];
   if (!documents.some((item) => item.id === phaseZeroDocument.id)) documents.push(phaseZeroDocument);
-  return { ...source, businessModelVersion: 10, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  const companies = Array.isArray(source.companies) && source.companies.length ? source.companies : defaultCompanies;
+  const milestones = Array.isArray(source.milestones) && source.milestones.length ? source.milestones : defaultMilestones;
+  const decisions = Array.isArray(source.decisions) && source.decisions.length ? source.decisions : defaultDecisions;
+  const products = Array.isArray(source.products) && source.products.length ? source.products : defaultProducts;
+  if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
+  return { ...source, businessModelVersion: 11, companies, milestones, decisions, products, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1011,6 +1055,10 @@ inviteUserForm.addEventListener("submit", async (event) => {
 });
 
 function render() {
+  renderImplementationHub();
+  renderCompanies();
+  renderDecisions();
+  renderCommercialCatalog();
   renderMetrics();
   renderDashboardLists();
   renderGovernance();
@@ -1028,6 +1076,38 @@ function render() {
   renderPeople();
   renderOrgChart();
   applyAccessMode();
+}
+
+function renderImplementationHub() {
+  const milestones = state.milestones || [];
+  const completed = milestones.filter((item) => item.status === "Concluído").length;
+  const progress = milestones.length ? Math.round((completed / milestones.length) * 100) : 0;
+  const totalCustomers = (state.companies || []).reduce((sum, company) => sum + Number(company.customers || 0), 0);
+  document.querySelector("#implementation-summary").innerHTML = `
+    <article><span>Avanço dos marcos</span><strong>${progress}%</strong><small>${completed} de ${milestones.length} concluídos</small></article>
+    <article><span>Empresas fundadoras</span><strong>${(state.companies || []).length}</strong><small>holdings serão sócias da Acessa</small></article>
+    <article><span>Base estimada</span><strong>${totalCustomers.toLocaleString("pt-BR")}</strong><small>B2C e B2B; validar nas fontes</small></article>
+    <article><span>Virada comercial</span><strong>01/01/27</strong><small>somente novas vendas</small></article>`;
+  document.querySelector("#milestone-list").innerHTML = milestones.map((item) => `
+    <article class="hub-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small></div><b class="hub-status">${escapeHtml(item.status)}</b></article>`).join("");
+}
+
+function renderCompanies() {
+  document.querySelector("#company-grid").innerHTML = (state.companies || []).map((company) => `
+    <article class="company-card"><div class="company-top"><div><span>${escapeHtml(company.system)}</span><h3>${escapeHtml(company.name)}</h3></div><strong>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</strong></div>
+    <dl><div><dt>Conselho</dt><dd>${escapeHtml(company.council)}</dd></div><div><dt>Clientes</dt><dd>${Number(company.customers).toLocaleString("pt-BR")}</dd></div><div><dt>B2C</dt><dd>${Number(company.b2c).toLocaleString("pt-BR")}</dd></div><div><dt>B2B</dt><dd>${Number(company.b2b).toLocaleString("pt-BR")}</dd></div></dl>
+    <p>${escapeHtml(company.status)}</p><small class="confidence-tag">${escapeHtml(company.confidence)}</small></article>`).join("");
+}
+
+function renderDecisions() {
+  document.querySelector("#decision-list").innerHTML = (state.decisions || []).map((decision) => `
+    <article class="decision-card"><div><span>${escapeHtml(decision.status)}</span><h3>${escapeHtml(decision.subject)}</h3><p>${escapeHtml(decision.rule)}</p><small>Evidência: ${escapeHtml(decision.evidence)}</small></div></article>`).join("");
+  document.querySelector("#allocation-table").innerHTML = (state.companies || []).map((company) => `<tr><td>${escapeHtml(company.name)}</td><td>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</td><td>16,67%</td><td>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</td></tr>`).join("");
+}
+
+function renderCommercialCatalog() {
+  document.querySelector("#product-grid").innerHTML = (state.products || []).map((product) => `
+    <article class="product-card"><span>${escapeHtml(product.status)}</span><h3>${escapeHtml(product.line)}</h3><strong>${escapeHtml(product.market)}</strong><p>${escapeHtml(product.offers)}</p></article>`).join("");
 }
 
 function renderMetrics() {

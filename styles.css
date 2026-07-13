@@ -1852,6 +1852,30 @@ body.read-only [id^="new-"] { display: none !important; }
   .career-benefit-tier-grid { grid-template-columns: 1fr; }
 }
 
+.hub-summary, .company-grid, .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.hub-summary article, .company-card, .product-card, .decision-card, .transition-rule { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.hub-summary article span, .company-top span, .product-card > span, .decision-card span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.hub-summary article strong { display: block; margin: 8px 0 4px; font-size: 28px; }
+.hub-list, .decision-list { display: grid; gap: 10px; }
+.hub-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.hub-row:last-child { border-bottom: 0; }
+.hub-row h3, .company-card h3, .product-card h3, .decision-card h3 { margin: 5px 0; }
+.hub-status, .confidence-tag { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; white-space: nowrap; }
+.transition-rule { margin-top: 18px; border-left: 4px solid var(--accent); }
+.transition-rule p { margin-bottom: 0; color: var(--muted); }
+.company-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.company-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.company-top strong { color: var(--accent); font-size: 22px; }
+.company-card dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
+.company-card dt { color: var(--muted); font-size: 12px; }
+.company-card dd { margin: 3px 0 0; font-weight: 700; }
+.decision-list { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 20px; }
+.decision-card p, .decision-card small, .product-card p { color: var(--muted); }
+.allocation-table { width: 100%; border-collapse: collapse; }
+.allocation-table th, .allocation-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.allocation-table th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+.product-card strong { display: block; margin: 10px 0; }
+
 @media (max-width: 1340px) {
   .metrics-grid.executive,
   .kpi-strip,
@@ -1861,6 +1885,7 @@ body.read-only [id^="new-"] { display: none !important; }
 }
 
 @media (max-width: 1120px) {
+  .hub-summary, .company-grid, .product-grid, .decision-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metrics-grid,
   .metrics-grid.executive,
   .meeting-board,
@@ -1886,6 +1911,8 @@ body.read-only [id^="new-"] { display: none !important; }
 }
 
 @media (max-width: 820px) {
+  .hub-summary, .company-grid, .product-grid, .decision-list { grid-template-columns: 1fr; }
+  .hub-row { align-items: flex-start; flex-direction: column; }
   .app-shell {
     grid-template-columns: 1fr;
   }
