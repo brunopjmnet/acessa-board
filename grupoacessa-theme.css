@@ -249,6 +249,21 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 .section-heading h2 { color: var(--ink); font-family: "Sora",sans-serif; font-weight: 700; }
 .section-heading .eyebrow, .panel-heading .eyebrow, .eyebrow { color: var(--primary); }
 
+/* O banner possui fundo e bordas próprios; não deve herdar o padding compacto dos cabeçalhos comuns. */
+.commercial-showcase .commercial-hero {
+  min-height: 230px;
+  padding: clamp(30px, 4vw, 54px);
+}
+
+.commercial-showcase .commercial-hero > div:first-child {
+  padding-inline: 2px;
+}
+
+.commercial-showcase .commercial-hero h2 {
+  margin-block: 8px 12px;
+  line-height: 1.08;
+}
+
 :is(.panel,.wide-panel,.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.transition-rule,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,.product-card) {
   border-color: var(--line);
   border-radius: var(--radius-md);
@@ -344,4 +359,5 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
   .topbar-copy .topbar-subtitle { display: none; }
   .topbar { padding: 12px; }
   .section-heading { align-items: stretch; flex-direction: column; }
+  .commercial-showcase .commercial-hero { min-height: 0; padding: 24px 20px; }
 }
