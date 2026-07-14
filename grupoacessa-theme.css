@@ -268,7 +268,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
   line-height: 1.08;
 }
 
-:is(.panel,.wide-panel,.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.transition-rule,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,.product-card) {
+:is(.panel,.wide-panel,.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.transition-rule,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,.product-card) {
   border-color: var(--line);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -278,7 +278,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 /* Sistema cromático das caixas — inspirado nos cards do catálogo comercial. */
 :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -294,7 +294,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -303,7 +303,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -312,7 +312,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -321,7 +321,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -330,7 +330,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -339,7 +339,7 @@ html[data-theme="dark"] .topbar { background: rgba(21,26,46,.9); }
 
 html[data-theme="dark"] :where(
   .metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,
-  .career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,
+  .career-card,.learning-card,.kpi-card,.meeting-card,.document-card,
   .audit-card,.person-card,.company-card,.decision-card,.transition-rule,
   .expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card,
   .hub-summary-card,.meeting-summary > article,.market-summary > article,
@@ -350,11 +350,11 @@ html[data-theme="dark"] :where(
     var(--surface) !important;
 }
 
-:is(.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card) {
+:is(.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card) {
   transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
 
-:is(.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card):hover {
+:is(.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card):hover {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--box-accent, var(--primary)) 48%, var(--line));
   box-shadow: 0 16px 38px color-mix(in srgb, var(--box-accent, var(--primary)) 16%, transparent), var(--shadow-sm);

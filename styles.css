@@ -285,7 +285,7 @@ a {
 }
 
 .metrics-grid.executive {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .metric-card,
@@ -296,7 +296,6 @@ a {
 .person-card,
 .area-card,
 .kpi-card,
-.risk-card,
 .audit-card,
 .governance-card,
 .modal-card,
@@ -342,7 +341,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
 
 .metric-card span,
 .kpi-card span,
-.risk-card span,
 .audit-card span,
 .governance-card span {
   display: block;
@@ -420,7 +418,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
 .career-grid,
 .learning-grid,
 .kpi-grid,
-.risk-grid,
 .audit-grid,
 .governance-grid {
   display: grid;
@@ -436,7 +433,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
 .process-manual-grid,
 .career-grid,
 .learning-grid,
-.risk-grid,
 .audit-grid,
 .governance-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -674,7 +670,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
 .career-card,
 .learning-card,
 .kpi-card,
-.risk-card,
 .audit-card,
 .governance-card {
   display: grid;
@@ -761,7 +756,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
 
 .area-card p,
 .manual-card p,
-.risk-card p,
 .governance-card p {
   margin: 0;
   color: #475467;
@@ -852,23 +846,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
   font-weight: 800;
 }
 
-.risk-scale {
-  display: flex;
-  gap: 5px;
-}
-
-.risk-scale i {
-  width: 28px;
-  height: 8px;
-  border-radius: 999px;
-  background: #e5e7eb;
-}
-
-.risk-scale i.on {
-  background: linear-gradient(90deg, var(--brand), var(--brand-2));
-}
-
-.risk-card small,
 .governance-card small {
   color: var(--brand-dark);
   font-weight: 850;
@@ -1057,7 +1034,6 @@ button.metric-card:hover::before { transform: translateX(4px); }
 .document-card h3,
 .person-card h3,
 .kpi-card h3,
-.risk-card h3,
 .audit-card h3,
 .governance-card h3 {
   margin: 0;
@@ -1733,7 +1709,6 @@ textarea:focus-visible {
 .career-card,
 .learning-card,
 .kpi-card,
-.risk-card,
 .meeting-card,
 .document-card,
 .audit-card,
@@ -1751,7 +1726,6 @@ textarea:focus-visible {
 .career-card:hover,
 .learning-card:hover,
 .kpi-card:hover,
-.risk-card:hover,
 .meeting-card:hover,
 .document-card:hover,
 .audit-card:hover,
@@ -1883,7 +1857,7 @@ small { font-size: 13px; line-height: 1.55; }
 .board-toolbar label { font-size: 12px; }
 .board-toolbar :is(input,select),.task-card select { font-size: 14px; }
 .kpi-details :is(dt,dd),.governance-details :is(dt,dd) { font-size: 13px; line-height: 1.45; }
-.document-card p,.person-card p,.risk-card p,.manual-card p,.learning-card li { font-size: 14px; line-height: 1.6; }
+.document-card p,.person-card p,.manual-card p,.learning-card li { font-size: 14px; line-height: 1.6; }
 .allocation-table :is(th,td),.raci-table :is(th,td),.access-table :is(th,td) { font-size: 13px; }
 
 html[data-theme="dark"] {
@@ -2111,8 +2085,8 @@ body { font-size: 16px; line-height: 1.6; letter-spacing: -.006em; }
 .ghost-button:hover { border-color: #a59bff; background: #f5f3ff; color: var(--brand-dark); }
 .text-button { color: var(--brand-dark); }
 
-:is(.metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.transition-rule,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card) { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-sm); }
-:is(.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.risk-card,.meeting-card,.document-card,.audit-card,.person-card):hover { transform: translateY(-2px); border-color: #bcb4ff; box-shadow: var(--shadow-md); }
+:is(.metric-card,.panel,.wide-panel,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.meeting-card,.document-card,.audit-card,.person-card,.company-card,.decision-card,.transition-rule,.expense-card,.supplier-card,.connector-card,.migration-card,.diligence-card) { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-sm); }
+:is(.metric-card,.governance-card,.area-card,.manual-card,.career-card,.learning-card,.kpi-card,.meeting-card,.document-card,.audit-card,.person-card):hover { transform: translateY(-2px); border-color: #bcb4ff; box-shadow: var(--shadow-md); }
 .panel, .wide-panel { padding: clamp(19px, 1.8vw, 28px); }
 .metrics-grid { gap: 14px; }
 .metric-card { position: relative; overflow: hidden; min-height: 148px; padding: 22px; }
@@ -2370,7 +2344,6 @@ th { font-size: 12px !important; }
   .mission-band,
   .split-grid,
   .area-grid,
-  .risk-grid,
   .audit-grid,
   .governance-grid {
     grid-template-columns: 1fr;

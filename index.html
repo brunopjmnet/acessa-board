@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#12152D" />
     <meta
       name="description"
-      content="Centro de comando executivo e operacional para governança, diretorias, indicadores, riscos e rotinas da Acessa."
+      content="Centro de comando executivo e operacional para governança, diretorias, indicadores e rotinas da Acessa."
     />
     <script>
       try {
@@ -44,7 +44,6 @@
           <button class="nav-item" data-view="decisions" data-nav-section="Governança corporativa">Decisões e rateios</button>
           <button class="nav-item" data-view="areas" data-nav-section="Governança corporativa">Diretorias</button>
           <button class="nav-item" data-view="kpis" data-nav-section="Desempenho e controle">Indicadores</button>
-          <button class="nav-item" data-view="risks" data-nav-section="Desempenho e controle">Riscos</button>
           <span class="nav-group-label">Operação</span>
           <button class="nav-item" data-view="board" data-nav-section="Rotina operacional">Execução</button>
           <button class="nav-item" data-view="meetings" data-nav-section="Rotina operacional">Reuniões</button>
@@ -107,11 +106,6 @@
               <span>Ações abertas</span>
               <strong id="metric-open">0</strong>
               <small>fora de concluído/arquivo</small>
-            </button>
-            <button class="metric-card" type="button" data-view-jump="risks" aria-label="Abrir Riscos">
-              <span>Risco médio</span>
-              <strong id="metric-risk">0</strong>
-              <small>severidade ponderada</small>
             </button>
             <button class="metric-card" type="button" data-view-jump="meetings" aria-label="Abrir Reuniões">
               <span>Próxima reunião</span>
@@ -364,17 +358,6 @@
             <button class="primary-button" id="new-kpi">Novo indicador</button>
           </div>
           <div class="kpi-grid" id="kpi-grid"></div>
-        </section>
-
-        <section class="view" id="risks">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Controle e mitigação</p>
-              <h2>Mapa de riscos corporativos</h2>
-            </div>
-            <button class="primary-button" id="new-risk">Novo risco</button>
-          </div>
-          <div class="risk-grid" id="risk-grid"></div>
         </section>
 
         <section class="view" id="board">

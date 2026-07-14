@@ -120,19 +120,10 @@ const defaultKpis = [
   { id: "kpi-disponibilidade", area: "Tecnica de Infraestrutura e NOC", name: "Disponibilidade de rede", value: "99.3%", target: "99.7%", trend: "0.0%", status: "watch" },
 ];
 
-const defaultRisks = [
-  { id: "risco-processos-manuais", title: "Dependencia de processos manuais", area: "Administrativo-Financeira", probability: 4, impact: 4, owner: "Bruno", mitigation: "Automatizar aprovacao, compras, contratos e fechamento mensal.", status: "Em tratamento" },
-  { id: "risco-sla-tecnico", title: "Disponibilidade e resposta a incidentes abaixo da meta", area: "Tecnica de Infraestrutura e NOC", probability: 4, impact: 5, owner: "Lailson Araujo", mitigation: "Fortalecer monitoramento, capacidade, escalonamento e gestao de incidentes do NOC.", status: "Em tratamento" },
-  { id: "risco-churn", title: "Churn e retencao sem causa raiz consolidada", area: "Relacionamento", probability: 4, impact: 4, owner: "Shisley", mitigation: "Classificar motivos, cruzar NPS e acionar plano de recuperacao.", status: "Aberto" },
-  { id: "risco-capacidade", title: "Crescimento comercial sem governanca de capacidade", area: "Comercial", probability: 3, impact: 4, owner: "Rodrigo", mitigation: "Conectar metas comerciais com capacidade tecnica e estoque.", status: "Aberto" },
-  { id: "risco-indicadores", title: "Indicadores dispersos entre diretorias", area: "Conselho de Socios", probability: 4, impact: 4, owner: "Conselho", mitigation: "Definir pacote executivo semanal com dono, meta, tendencia e acao.", status: "Em tratamento" },
-];
-
 const defaultGovernance = [
   { id: "forum-conselho", code: "GOV-01", forum: "Conselho de Socios", type: "Estrategico", cadence: "Mensal", mandate: "Capital, estrategia, riscos, investimentos e aprovacoes de alto impacto.", owner: "Conselho de Socios", secretary: "Bruno", quorum: "Maioria dos socios", evidence: "Ata assinada e registro das decisoes", decisionAuthority: "Estrategia, capital, endividamento, M&A e investimentos fora do orcamento", reviewDate: "2026-12-15", version: 1, status: "Ativo" },
   { id: "forum-executivo", code: "GOV-02", forum: "Comite Executivo", type: "Executivo", cadence: "Semanal", mandate: "Prioridades, metas, travas entre diretorias e acompanhamento dos indicadores.", owner: "Adson", secretary: "PMO Acessa", quorum: "Diretor Regional e maioria das diretorias", evidence: "Pauta, ata, decisoes e plano de acao", decisionAuthority: "Prioridades e remanejamentos dentro do orcamento aprovado", reviewDate: "2026-10-01", version: 1, status: "Ativo" },
   { id: "forum-war-room", code: "GOV-03", forum: "War room operacional", type: "Operacional", cadence: "Semanal", mandate: "SLA de campo, capacidade, NOC, atendimento, estoque e incidentes operacionais.", owner: "Harley e Lailson Araujo", secretary: "PMO Acessa", quorum: "Operacoes, Infraestrutura/NOC e Relacionamento", evidence: "Painel de indicadores, incidentes e plano de recuperacao", decisionAuthority: "Contingencia operacional e priorizacao de filas", reviewDate: "2026-10-01", version: 1, status: "Ativo" },
-  { id: "forum-riscos", code: "GOV-04", forum: "Comite de Riscos e Auditoria", type: "Controle", cadence: "Mensal", mandate: "Riscos corporativos, controles, evidencias, nao conformidades e planos corretivos.", owner: "Bruno", secretary: "Controladoria", quorum: "Administrativo-Financeira e donos dos riscos", evidence: "Mapa de riscos, testes de controle e atas", decisionAuthority: "Planos corretivos e escalonamento ao Conselho", reviewDate: "2026-10-15", version: 1, status: "Ativo" },
   { id: "forum-comercial", code: "GOV-05", forum: "Comite Comercial e Capacidade", type: "Tatico", cadence: "Semanal", mandate: "Integrar demanda B2B/B2C, marketing, capacidade de instalacao, estoque e metas de crescimento.", owner: "Rodrigo e Felipe Cassiano", secretary: "Backoffice Comercial", quorum: "B2B, B2C, Marketing, Operacoes e Financeiro", evidence: "Forecast, funil, capacidade e decisoes registradas", decisionAuthority: "Campanhas e priorizacao comercial dentro das metas aprovadas", reviewDate: "2026-10-01", version: 1, status: "Ativo" },
 ];
 
@@ -373,7 +364,6 @@ const audits = [
   { control: "Dono por processo critico", owner: "Diretorias", cadence: "Mensal", evidence: "Mapa de diretorias e rotinas", status: "Em implantacao" },
   { control: "Ata e decisoes do Conselho", owner: "Conselho de Socios", cadence: "Mensal", evidence: "Reunião do Conselho de Socios", status: "Ativo" },
   { control: "Indicador com meta e tendencia", owner: "Controladoria", cadence: "Semanal", evidence: "Painel de KPIs", status: "Em implantacao" },
-  { control: "Risco com mitigacao e responsavel", owner: "Diretoria responsavel", cadence: "Quinzenal", evidence: "Mapa de riscos", status: "Ativo" },
   { control: "Rastreio de acoes criticas", owner: "PMO Acessa", cadence: "Semanal", evidence: "Quadro operacional", status: "Ativo" },
 ];
 
@@ -609,7 +599,6 @@ const seed = {
   careerTracks: defaultCareerTracks,
   kpis: defaultKpis,
   processManuals: defaultProcessManuals,
-  risks: defaultRisks,
   governance: defaultGovernance,
   raci: defaultRaci,
   tasks: [
@@ -673,7 +662,7 @@ const seed = {
       participants: "Bruno, Harley, Shirley, Adson, Filipe, Rodrigo",
       objective: "Deliberar prioridades, riscos e decisões estruturantes da implantação.",
       agenda: "Indicadores gerais, riscos, investimentos, prioridades e aprovacoes.",
-      materials: "Indicadores por diretoria, mapa de riscos e decisões pendentes.",
+      materials: "Indicadores por diretoria, pendências críticas e decisões pendentes.",
       decisions: "Validar metas e responsaveis por diretoria.",
       minutes: "Ata pendente após a realização.",
       actionItems: "Registrar responsáveis e prazos das deliberações aprovadas.",
@@ -971,6 +960,13 @@ async function persistStateToCloud() {
 }
 
 function migrateBusinessStructure(source) {
+  const { risks: removedRiskModule, ...sourceWithoutRiskModule } = source;
+  source = {
+    ...sourceWithoutRiskModule,
+    governance: Array.isArray(sourceWithoutRiskModule.governance)
+      ? sourceWithoutRiskModule.governance.filter((item) => item.id !== "forum-riscos")
+      : sourceWithoutRiskModule.governance,
+  };
   if (Number(source.businessModelVersion || 0) >= 18) return source;
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
@@ -999,7 +995,6 @@ function migrateBusinessStructure(source) {
   if (!people.some((person) => person.id === "dir-tecnica-operacoes")) {
     people.push({ id: "dir-tecnica-operacoes", name: "Harley", role: "Diretor Tecnico de Operacoes", area: "Tecnica de Operacoes", level: "Diretor", salary: "A definir", managerId: "conselho", type: "Diretor", responsibilities: defaultAreas[4].purpose, contact: "harley@acessa.local" });
   }
-  const risks = (source.risks || []).map((risk) => risk.id === "risco-sla-tecnico" ? { ...risk, title: "Disponibilidade e resposta a incidentes abaixo da meta", area: "Tecnica de Infraestrutura e NOC", owner: "Lailson Araujo", mitigation: "Fortalecer monitoramento, capacidade, escalonamento e gestao de incidentes do NOC." } : risk);
   const raci = (source.raci || []).map((item) => item.id === "raci-sla" ? { ...item, process: "Disponibilidade, NOC e incidentes criticos", responsible: "Tecnica de Infraestrutura e NOC", approver: "Lailson Araujo", consulted: "Operacoes e Relacionamento" } : item);
   const processManuals = (source.processManuals || []).map((manual) => manual.id === "processo-instalacao-fibra" ? { ...manual, area: "Tecnica de Operacoes", owner: "Harley" } : manual.id === "processo-incidente-rede" ? { ...manual, area: "Tecnica de Infraestrutura e NOC", owner: "Lailson Araujo" } : manual);
   const kpis = (source.kpis || []).map((kpi) => kpi.id === "kpi-sla" ? { ...kpi, area: "Tecnica de Operacoes", name: "SLA de campo" } : kpi.id === "kpi-disponibilidade" ? { ...kpi, area: "Tecnica de Infraestrutura e NOC" } : kpi);
@@ -1043,7 +1038,7 @@ function migrateBusinessStructure(source) {
   const supplierContracts = Array.isArray(source.supplierContracts) && source.supplierContracts.length ? source.supplierContracts : defaultSupplierContracts;
   const connectors = Array.isArray(source.connectors) && source.connectors.length ? source.connectors : defaultConnectors;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 18, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, risks, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 18, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
 }
 
 function mergeCloudState(remoteState) {
@@ -1054,7 +1049,6 @@ function mergeCloudState(remoteState) {
     businessModelVersion: remoteState.businessModelVersion ?? 0,
     kpis: Array.isArray(remoteState.kpis) ? remoteState.kpis : seed.kpis,
     processManuals: Array.isArray(remoteState.processManuals) ? remoteState.processManuals : seed.processManuals,
-    risks: Array.isArray(remoteState.risks) ? remoteState.risks : seed.risks,
     governance: Array.isArray(remoteState.governance) ? remoteState.governance : seed.governance,
     raci: Array.isArray(remoteState.raci) ? remoteState.raci : seed.raci,
     areas: Array.isArray(remoteState.areas) ? remoteState.areas : seed.areas,
@@ -1145,7 +1139,6 @@ function loadState() {
       businessModelVersion: parsed.businessModelVersion ?? 0,
       kpis: Array.isArray(parsed.kpis) ? parsed.kpis : seed.kpis,
       processManuals: Array.isArray(parsed.processManuals) ? parsed.processManuals : seed.processManuals,
-      risks: Array.isArray(parsed.risks) ? parsed.risks : seed.risks,
       governance: Array.isArray(parsed.governance) ? parsed.governance : seed.governance,
       raci: Array.isArray(parsed.raci) ? parsed.raci : seed.raci,
       areas: Array.isArray(parsed.areas) ? parsed.areas : seed.areas,
@@ -1221,7 +1214,6 @@ async function restoreBackup(file) {
     ...payload.state,
     kpis: Array.isArray(payload.state.kpis) ? payload.state.kpis : seed.kpis,
     processManuals: Array.isArray(payload.state.processManuals) ? payload.state.processManuals : seed.processManuals,
-    risks: Array.isArray(payload.state.risks) ? payload.state.risks : seed.risks,
     governance: Array.isArray(payload.state.governance) ? payload.state.governance : seed.governance,
     raci: Array.isArray(payload.state.raci) ? payload.state.raci : seed.raci,
     areas: Array.isArray(payload.state.areas) ? payload.state.areas : seed.areas,
@@ -1437,7 +1429,6 @@ function render() {
   renderCareer();
   renderLearning();
   renderKpis();
-  renderRisks();
   renderKanban();
   renderMeetings();
   renderDocuments();
@@ -1691,14 +1682,9 @@ function renderMetrics() {
     .sort((a, b) => a.date.localeCompare(b.date))[0];
   const activeAreas = state.areas.filter((area) => !area.archivedAt);
   const processCount = activeAreas.reduce((total, area) => total + area.processes.length, 0);
-  const activeRisks = state.risks.filter((risk) => !risk.archivedAt);
-  const riskAverage = activeRisks.length
-    ? (activeRisks.reduce((total, risk) => total + riskLevel(risk), 0) / activeRisks.length).toFixed(1)
-    : "0.0";
   document.querySelector("#metric-areas").textContent = activeAreas.length;
   document.querySelector("#metric-processes").textContent = processCount;
   document.querySelector("#metric-open").textContent = open;
-  document.querySelector("#metric-risk").textContent = riskAverage;
   document.querySelector("#metric-next").textContent = next ? formatDate(next.date) : "-";
 }
 
@@ -2075,46 +2061,6 @@ function renderKpiMini(kpi) {
 
 function kpiStatus(status) {
   return ["good", "watch", "risk"].includes(status) ? status : "watch";
-}
-
-function renderRisks() {
-  document.querySelector("#risk-grid").innerHTML = state.risks.filter((risk) => !risk.archivedAt).map((risk) => `
-    <article class="risk-card severity-${riskLevel(risk)}">
-      <div>
-        <span>${escapeHtml(risk.area)}</span>
-        <h3>${escapeHtml(risk.title)}</h3>
-      </div>
-      <div class="risk-scale" aria-label="Nível ${riskLevel(risk)} de 5">
-        ${Array.from({ length: 5 }, (_, index) => `<i class="${index < riskLevel(risk) ? "on" : ""}"></i>`).join("")}
-      </div>
-      <p>${escapeHtml(risk.mitigation)}</p>
-      <dl class="kpi-details">
-        <div><dt>Probabilidade</dt><dd>${riskProbability(risk)}/5</dd></div>
-        <div><dt>Impacto</dt><dd>${riskImpact(risk)}/5</dd></div>
-        <div><dt>Score</dt><dd>${riskProbability(risk) * riskImpact(risk)}/25</dd></div>
-        <div><dt>Status</dt><dd>${escapeHtml(risk.status || "Aberto")}</dd></div>
-        <div><dt>Responsável</dt><dd>${escapeHtml(risk.owner)}</dd></div>
-        <div><dt>Prazo</dt><dd>${risk.due ? formatDate(risk.due) : "Não definido"}</dd></div>
-      </dl>
-      <div class="card-actions">
-        <button class="ghost-button" type="button" data-edit-id="${risk.id}">Editar</button>
-        <button class="text-button" type="button" data-archive-id="${risk.id}">Arquivar</button>
-      </div>
-    </article>
-  `).join("");
-  bindSimpleActions("risk", "#risk-grid");
-}
-
-function riskProbability(risk) {
-  return Math.min(5, Math.max(1, Number(risk.probability ?? risk.severity ?? 1)));
-}
-
-function riskImpact(risk) {
-  return Math.min(5, Math.max(1, Number(risk.impact ?? risk.severity ?? 1)));
-}
-
-function riskLevel(risk) {
-  return Math.max(1, Math.ceil((riskProbability(risk) * riskImpact(risk)) / 5));
 }
 
 function renderKanban() {
@@ -2509,11 +2455,6 @@ function renderArchive() {
       items: state.processManuals.filter((item) => item.archivedAt),
     },
     {
-      label: "Riscos",
-      collection: "risks",
-      items: state.risks.filter((item) => item.archivedAt),
-    },
-    {
       label: "Fóruns de governança",
       collection: "governance",
       items: state.governance.filter((item) => item.archivedAt),
@@ -2892,21 +2833,6 @@ const simpleConfigs = {
       ["reviewDate", "Próxima revisão", "date"],
     ],
   },
-  risk: {
-    title: "Novo risco",
-    editTitle: "Editar risco",
-    collection: "risks",
-    fields: [
-      ["title", "Risco", "text"],
-      ["area", "Área", "text"],
-      ["probability", "Probabilidade de 1 a 5", "number"],
-      ["impact", "Impacto de 1 a 5", "number"],
-      ["owner", "Responsável", "text"],
-      ["mitigation", "Plano de mitigação", "textarea"],
-      ["due", "Prazo", "date"],
-      ["status", "Status: Aberto, Em tratamento, Monitorado ou Encerrado", "text"],
-    ],
-  },
   governance: {
     title: "Novo fórum",
     editTitle: "Nova versão do fórum",
@@ -3160,7 +3086,6 @@ document.querySelector("#new-document").addEventListener("click", () => openSimp
 document.querySelector("#new-person").addEventListener("click", () => openSimpleModal("person"));
 document.querySelector("#new-kpi").addEventListener("click", () => openSimpleModal("kpi"));
 document.querySelector("#new-process").addEventListener("click", () => openSimpleModal("process"));
-document.querySelector("#new-risk").addEventListener("click", () => openSimpleModal("risk"));
 document.querySelector("#new-governance").addEventListener("click", () => openSimpleModal("governance"));
 document.querySelector("#new-raci").addEventListener("click", () => openSimpleModal("raci"));
 document.querySelector("#governance-search").addEventListener("input", renderGovernance);
@@ -3212,7 +3137,6 @@ document.querySelector("#email-summary").addEventListener("click", () => {
     `Diretorias: ${state.areas.filter((area) => !area.archivedAt).length}\n` +
     `Processos mapeados: ${state.areas.filter((area) => !area.archivedAt).reduce((total, area) => total + area.processes.length, 0)}\n` +
     `Acoes abertas: ${open}\n` +
-    `Riscos mapeados: ${state.risks.filter((risk) => !risk.archivedAt).length}\n` +
     `Reuniões marcadas: ${state.meetings.length}`,
   );
   location.href = `mailto:?subject=${subject}&body=${body}`;
