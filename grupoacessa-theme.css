@@ -37,7 +37,7 @@
 }
 
 html[data-theme="dark"] {
-  --app-bg: #0b0e1b;
+  --app-bg: #11172a;
   --bg: var(--app-bg);
   --card: #151a2e;
   --surface: var(--card);
