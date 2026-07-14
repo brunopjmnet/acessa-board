@@ -790,6 +790,7 @@ function buildTopNavigation() {
   if (!navigation || navigation.querySelector(".nav-menu")) return;
   const children = [...navigation.children];
   let currentPanel = null;
+  let currentSubgroup = null;
   children.forEach((element) => {
     if (element.classList.contains("nav-group-label")) {
       const label = element.textContent.trim();
@@ -809,9 +810,23 @@ function buildTopNavigation() {
       menu.append(summary, panel);
       panel.append(element);
       currentPanel = panel;
+      currentSubgroup = null;
       return;
     }
-    if (currentPanel) currentPanel.append(element);
+    if (currentPanel) {
+      const sectionLabel = element.dataset.navSection;
+      if (sectionLabel && currentSubgroup?.dataset.navSection !== sectionLabel) {
+        currentSubgroup = document.createElement("section");
+        currentSubgroup.className = "nav-subgroup";
+        currentSubgroup.dataset.navSection = sectionLabel;
+        const sectionTitle = document.createElement("span");
+        sectionTitle.className = "nav-subgroup-title";
+        sectionTitle.textContent = sectionLabel;
+        currentSubgroup.append(sectionTitle);
+        currentPanel.append(currentSubgroup);
+      }
+      (currentSubgroup || currentPanel).append(element);
+    }
   });
 }
 
@@ -1076,8 +1091,8 @@ async function initializeCloud() {
     cloudContext.canEdit = ["admin", "socio", "diretor", "gestor", "rh"].includes(context.profile.role);
     const canManageUsers = ["admin", "socio", "rh"].includes(context.profile.role);
     usersNav.hidden = !canManageUsers;
-    adminNavLabel.hidden = !canManageUsers;
-    if (adminNavGroup) adminNavGroup.hidden = !canManageUsers;
+    adminNavLabel.hidden = false;
+    if (adminNavGroup) adminNavGroup.hidden = false;
     if (passwordRecoveryPending) showAuthPanel("new-password");
     else authGate.hidden = true;
     accountButton.textContent = context.profile.display_name || context.session.user.email;
