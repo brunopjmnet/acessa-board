@@ -364,7 +364,7 @@ const audits = [
   { control: "Dono por processo critico", owner: "Diretorias", cadence: "Mensal", evidence: "Mapa de diretorias e rotinas", status: "Em implantacao" },
   { control: "Ata e decisoes do Conselho", owner: "Conselho de Socios", cadence: "Mensal", evidence: "Reunião do Conselho de Socios", status: "Ativo" },
   { control: "Indicador com meta e tendencia", owner: "Controladoria", cadence: "Semanal", evidence: "Painel de KPIs", status: "Em implantacao" },
-  { control: "Rastreio de acoes criticas", owner: "PMO Acessa", cadence: "Semanal", evidence: "Quadro operacional", status: "Ativo" },
+  { control: "Rastreio de tarefas criticas", owner: "PMO Acessa", cadence: "Semanal", evidence: "Quadro operacional", status: "Ativo" },
 ];
 
 const phaseZeroTasks = [
@@ -727,7 +727,7 @@ const seed = {
       type: "Indicadores",
       owner: "Controladoria",
       link: "#",
-      note: "Metas, realizado, tendencia, risco e acao por diretoria.",
+      note: "Metas, realizado, tendencia e tarefas por diretoria.",
     },
     {
       id: crypto.randomUUID(),
@@ -1024,7 +1024,7 @@ function migrateBusinessStructure(source) {
     objective: meeting.objective || "Objetivo a definir antes da reunião.",
     materials: meeting.materials || "Materiais prévios a anexar ou vincular.",
     minutes: meeting.minutes || "Ata pendente.",
-    actionItems: meeting.actionItems || "Ações e responsáveis a registrar.",
+    actionItems: meeting.actionItems || "Tarefas e responsáveis a registrar.",
     minutesLink: meeting.minutesLink || "",
     roomUrl: meeting.roomUrl || "",
     confidentiality: meeting.confidentiality || "Interno",
@@ -1647,7 +1647,7 @@ function renderPeopleTransition() {
   const completed = interviews.filter((item) => item.status === "Concluído").length;
   const mappedHeadcount = interviews.reduce((sum, item) => sum + Number(item.headcount || 0), 0);
   document.querySelector("#people-transition-summary").innerHTML = `<article><span>Empresas mapeadas</span><strong>${completed}/${interviews.length}</strong><small>entrevistas concluídas</small></article><article><span>Pessoas identificadas</span><strong>${mappedHeadcount}</strong><small>preenchimento progressivo</small></article><article><span>Regra de transição</span><strong>Gradual</strong><small>sem transferência automática</small></article>`;
-  document.querySelector("#leader-interview-list").innerHTML = interviews.map((item) => `<article class="people-transition-card"><div class="company-top"><div><span>${escapeHtml(item.company)} · ${escapeHtml(item.area)}</span><h3>${escapeHtml(item.leader)}</h3></div><b class="hub-status">${escapeHtml(item.status)}</b></div><dl><div><dt>Equipe atual</dt><dd>${Number(item.headcount || 0)}</dd></div><div><dt>Reunião</dt><dd>${item.meetingDate ? formatDate(item.meetingDate) : "Agendar"}</dd></div></dl><p><strong>Competências:</strong> ${escapeHtml(item.strengths)}</p><p><strong>Destino possível:</strong> ${escapeHtml(item.destination)}</p><small>Próxima ação: ${escapeHtml(item.nextAction)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
+  document.querySelector("#leader-interview-list").innerHTML = interviews.map((item) => `<article class="people-transition-card"><div class="company-top"><div><span>${escapeHtml(item.company)} · ${escapeHtml(item.area)}</span><h3>${escapeHtml(item.leader)}</h3></div><b class="hub-status">${escapeHtml(item.status)}</b></div><dl><div><dt>Equipe atual</dt><dd>${Number(item.headcount || 0)}</dd></div><div><dt>Reunião</dt><dd>${item.meetingDate ? formatDate(item.meetingDate) : "Agendar"}</dd></div></dl><p><strong>Competências:</strong> ${escapeHtml(item.strengths)}</p><p><strong>Destino possível:</strong> ${escapeHtml(item.destination)}</p><small>Próxima tarefa: ${escapeHtml(item.nextAction)}</small><div class="hub-actions"><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
   bindSimpleActions("leaderInterview", "#leader-interview-list");
 }
 
@@ -2133,10 +2133,10 @@ function renderTaskCard(task) {
       <ul class="checklist">
         ${task.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
       </ul>
-      <select data-task-status="${task.id}" aria-label="Status da acao">
+      <select data-task-status="${task.id}" aria-label="Status da tarefa">
         ${statuses.map((status) => `<option value="${status.id}" ${task.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}
       </select>
-      <div class="task-actions"><button class="text-button" type="button" data-task-email="${task.id}">Avisar</button><button class="ghost-button" type="button" data-task-edit="${task.id}">Editar ação</button></div>
+      <div class="task-actions"><button class="text-button" type="button" data-task-email="${task.id}">Avisar</button><button class="ghost-button" type="button" data-task-edit="${task.id}">Editar tarefa</button></div>
     </article>
   `;
 }
@@ -2230,7 +2230,7 @@ function renderMeetingCard(meeting) {
         <div><span>Participantes</span><p>${escapeHtml(meeting.participants || "A definir")}</p></div>
       </div>
       <div class="meeting-agenda"><span>Pauta</span><p>${escapeHtml(meeting.agenda || "Pauta pendente")}</p></div>
-      <details class="meeting-details"><summary>Ver preparação, decisões, ata e ações</summary><div class="meeting-detail-grid"><section><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></section><section><span>Decisões</span><p>${escapeHtml(meeting.decisions || "Decisões ainda não registradas.")}</p></section><section><span>Ata / resumo</span><p>${escapeHtml(meeting.minutes || "Ata pendente.")}</p></section><section><span>Ações decorrentes</span><p>${escapeHtml(meeting.actionItems || "Ações ainda não registradas.")}</p></section></div></details>
+      <details class="meeting-details"><summary>Ver preparação, decisões, ata e tarefas</summary><div class="meeting-detail-grid"><section><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></section><section><span>Decisões</span><p>${escapeHtml(meeting.decisions || "Decisões ainda não registradas.")}</p></section><section><span>Ata / resumo</span><p>${escapeHtml(meeting.minutes || "Ata pendente.")}</p></section><section><span>Tarefas decorrentes</span><p>${escapeHtml(meeting.actionItems || "Tarefas ainda não registradas.")}</p></section></div></details>
       <div class="card-actions">
         <button class="primary-button" type="button" data-room-id="${meeting.id}">Entrar na sala JaaS</button>
         <button class="ghost-button" type="button" data-calendar-id="${meeting.id}">Calendário</button>
@@ -2425,7 +2425,7 @@ function renderAudits() {
 function renderArchive() {
   const groups = [
     {
-      label: "Ações",
+      label: "Tarefas",
       collection: "tasks",
       items: state.tasks.filter((item) => item.status === "archived"),
     },
@@ -2487,7 +2487,7 @@ function renderArchive() {
           <article class="document-card">
             <div>
               <h3>${escapeHtml(item.title ?? item.name ?? item.forum ?? item.process ?? "Registro")}</h3>
-              <p class="muted">${item.archivedAt ? `Arquivado em ${formatDateTime(item.archivedAt)}` : "Arquivado pelo status da ação"}</p>
+              <p class="muted">${item.archivedAt ? `Arquivado em ${formatDateTime(item.archivedAt)}` : "Arquivado pelo status da tarefa"}</p>
             </div>
             <button class="ghost-button" type="button" data-restore-collection="${group.collection}" data-restore-id="${item.id}">Restaurar</button>
           </article>
@@ -2593,7 +2593,7 @@ function managerName(managerId) {
 function openTaskModal(id = null) {
   taskEditId = id;
   taskForm.reset();
-  taskModalTitle.textContent = id ? "Editar ação" : "Nova ação";
+  taskModalTitle.textContent = id ? "Editar tarefa" : "Nova tarefa";
   const task = id ? state.tasks.find((item) => item.id === id) : null;
   if (task) {
     taskForm.elements.namedItem("title").value = task.title ?? "";
@@ -2707,7 +2707,7 @@ const simpleConfigs = {
   },
   leaderInterview: {
     title: "Novo mapeamento de liderança", editTitle: "Editar mapeamento", collection: "leaderInterviews",
-    fields: [["company", "Empresa de origem", "text"], ["leader", "Nome do líder", "text"], ["area", "Setor atual", "text"], ["meetingDate", "Data da reunião (opcional)", "date", false], ["headcount", "Quantidade de pessoas na equipe", "number"], ["strengths", "Competências e pontos fortes", "textarea"], ["destination", "Possível alocação na Acessa", "textarea"], ["status", "Status do mapeamento", "text"], ["nextAction", "Próxima ação", "textarea"]],
+    fields: [["company", "Empresa de origem", "text"], ["leader", "Nome do líder", "text"], ["area", "Setor atual", "text"], ["meetingDate", "Data da reunião (opcional)", "date", false], ["headcount", "Quantidade de pessoas na equipe", "number"], ["strengths", "Competências e pontos fortes", "textarea"], ["destination", "Possível alocação na Acessa", "textarea"], ["status", "Status do mapeamento", "text"], ["nextAction", "Próxima tarefa", "textarea"]],
   },
   cutover: {
     title: "Novo requisito da virada", editTitle: "Editar requisito", collection: "cutoverChecklist",
@@ -2757,7 +2757,7 @@ const simpleConfigs = {
       ["roomUrl", "Link externo alternativo (opcional)", "text", false],
       ["decisions", "Decisões e deliberações", "textarea", false],
       ["minutes", "Ata ou resumo oficial", "textarea", false],
-      ["actionItems", "Ações, responsáveis e prazos", "textarea", false],
+      ["actionItems", "Tarefas, responsáveis e prazos", "textarea", false],
       ["minutesLink", "Link seguro da ata assinada", "text", false],
       ["nextDate", "Próxima reunião (opcional)", "date", false],
     ],
@@ -3136,7 +3136,7 @@ document.querySelector("#email-summary").addEventListener("click", () => {
   const body = encodeURIComponent(
     `Diretorias: ${state.areas.filter((area) => !area.archivedAt).length}\n` +
     `Processos mapeados: ${state.areas.filter((area) => !area.archivedAt).reduce((total, area) => total + area.processes.length, 0)}\n` +
-    `Acoes abertas: ${open}\n` +
+    `Tarefas abertas: ${open}\n` +
     `Reuniões marcadas: ${state.meetings.length}`,
   );
   location.href = `mailto:?subject=${subject}&body=${body}`;
@@ -3174,7 +3174,7 @@ taskForm.addEventListener("submit", (event) => {
 
 function prepareTaskEmail(task) {
   if (!task) return;
-  const subject = encodeURIComponent(`[Acessa] Ação ${task.due && task.due < currentCivilDateIso() ? "atrasada" : "pendente"}: ${task.title}`);
+  const subject = encodeURIComponent(`[Acessa] Tarefa ${task.due && task.due < currentCivilDateIso() ? "atrasada" : "pendente"}: ${task.title}`);
   const body = encodeURIComponent(`Responsável: ${task.owner}\nFase: ${task.phase || "Não informada"}\nEmpresa: ${task.company || "Todas / não informada"}\nPrazo: ${task.due ? formatDate(task.due) : "Não definido"}\nPrioridade: ${task.priority}\nStatus: ${statuses.find((status) => status.id === task.status)?.label || task.status}\n\nPróxima atualização solicitada: informar avanço, bloqueios e nova previsão.`);
   location.href = `mailto:?subject=${subject}&body=${body}`;
 }
@@ -3185,7 +3185,7 @@ function prepareBoardEmail() {
   const overdue = open.filter((task) => task.due && task.due < today);
   const critical = open.filter((task) => task.priority === "Critica");
   const lines = open.sort((a, b) => priorityValue(b.priority) - priorityValue(a.priority)).slice(0, 15).map((task) => `- ${task.title} | ${task.owner} | ${task.due ? formatDate(task.due) : "sem prazo"} | ${task.priority}`);
-  location.href = `mailto:?subject=${encodeURIComponent("[Acessa] Resumo do quadro operacional")}&body=${encodeURIComponent(`Ações abertas: ${open.length}\nAtrasadas: ${overdue.length}\nCríticas: ${critical.length}\n\nPrioridades:\n${lines.join("\n")}\n\nEste e-mail foi preparado pelo Acessa Board.`)}`;
+  location.href = `mailto:?subject=${encodeURIComponent("[Acessa] Resumo do quadro operacional")}&body=${encodeURIComponent(`Tarefas abertas: ${open.length}\nAtrasadas: ${overdue.length}\nCríticas: ${critical.length}\n\nPrioridades:\n${lines.join("\n")}\n\nEste e-mail foi preparado pelo Acessa Board.`)}`;
 }
 
 simpleForm.addEventListener("submit", async (event) => {

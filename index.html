@@ -86,7 +86,7 @@
             <button class="ghost-button" id="email-summary">Resumo</button>
             <button class="ghost-button theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Ativar tema escuro">◐ <span>Tema escuro</span></button>
             <button class="ghost-button" id="account-button" type="button" hidden>Entrar</button>
-            <button class="primary-button" id="new-task">Nova ação</button>
+            <button class="primary-button" id="new-task">Nova tarefa</button>
           </div>
         </header>
 
@@ -102,8 +102,8 @@
               <strong id="metric-processes">0</strong>
               <small>rotinas críticas mapeadas</small>
             </button>
-            <button class="metric-card" type="button" data-view-jump="board" aria-label="Abrir Ações em execução">
-              <span>Ações abertas</span>
+            <button class="metric-card" type="button" data-view-jump="board" aria-label="Abrir tarefas em execução">
+              <span>Tarefas abertas</span>
               <strong id="metric-open">0</strong>
               <small>fora de concluído/arquivo</small>
             </button>
@@ -134,7 +134,7 @@
               <div class="panel-heading">
                 <div>
                   <span class="eyebrow">Prioridade executiva</span>
-                  <h2>Ações que precisam de tração</h2>
+                  <h2>Tarefas que precisam de tração</h2>
                 </div>
                 <button class="text-button" data-view-jump="board">Ver execução</button>
               </div>
@@ -367,11 +367,11 @@
               <h2>Quadro operacional da implantação</h2>
               <p class="section-description">Prioridades, responsáveis, fases, empresas e alertas em uma única visão.</p>
             </div>
-            <div class="top-actions"><button class="ghost-button" id="board-email-summary" type="button">Preparar e-mail</button><button class="primary-button" id="new-task-board">Adicionar ação</button></div>
+            <div class="top-actions"><button class="ghost-button" id="board-email-summary" type="button">Preparar e-mail</button><button class="primary-button" id="new-task-board">Adicionar tarefa</button></div>
           </div>
           <div class="board-health" id="board-health"></div>
           <div class="board-toolbar">
-            <label>Buscar<input id="board-search" type="search" placeholder="Ação, responsável ou empresa" /></label>
+            <label>Buscar<input id="board-search" type="search" placeholder="Tarefa, responsável ou empresa" /></label>
             <label>Prioridade<select id="board-priority-filter"><option value="">Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></label>
             <label>Fase<select id="board-phase-filter"><option value="">Todas as fases</option></select></label>
             <label>Prazo<select id="board-due-filter"><option value="">Todos</option><option value="overdue">Atrasados</option><option value="week">Próximos 7 dias</option><option value="nodate">Sem prazo</option></select></label>
@@ -384,7 +384,7 @@
             <div>
               <p class="eyebrow">Agenda, preparação, deliberação e acompanhamento</p>
               <h2>Central de Reuniões</h2>
-              <p class="data-disclaimer">Fonte única para agendamentos, pautas, participantes, materiais prévios, decisões, atas e ações decorrentes das reuniões do grupo.</p>
+              <p class="data-disclaimer">Fonte única para agendamentos, pautas, participantes, materiais prévios, decisões, atas e tarefas decorrentes das reuniões do grupo.</p>
             </div>
             <button class="primary-button" id="new-meeting">Nova reunião</button>
           </div>
@@ -507,7 +507,7 @@
     <dialog class="modal" id="task-modal">
       <form method="dialog" class="modal-card" id="task-form">
         <div class="modal-heading">
-          <h2 id="task-modal-title">Nova ação</h2>
+          <h2 id="task-modal-title">Nova tarefa</h2>
           <button class="icon-button" type="button" data-dialog-close="task-modal" aria-label="Fechar sem salvar" title="Fechar sem salvar">×</button>
         </div>
         <label>Título <input name="title" required placeholder="Ex.: revisar SLA de manutenção" /></label>
@@ -525,7 +525,7 @@
           </select>
         </label>
         <label>Checklist <textarea name="checklist" placeholder="Uma etapa por linha"></textarea></label>
-        <button class="primary-button" type="submit">Salvar ação</button>
+        <button class="primary-button" type="submit">Salvar tarefa</button>
       </form>
     </dialog>
 
