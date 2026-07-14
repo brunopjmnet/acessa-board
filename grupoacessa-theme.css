@@ -372,6 +372,26 @@ html[data-theme="dark"] :where(
 .ghost-button { border-color: var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
 .ghost-button:hover { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
 .text-button { color: var(--primary); }
+.modal-heading .icon-button {
+  position: relative;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: transparent;
+  font-size: 0;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.modal-heading .icon-button::before { content: "\00D7"; color: var(--ink); font-family: Arial,sans-serif; font-size: 28px; font-weight: 500; line-height: 1; }
+.modal-heading .icon-button:hover { transform: scale(1.04); border-color: #ef4444; background: color-mix(in srgb,#ef4444 12%,var(--surface)); }
+.modal-heading .icon-button:hover::before { color: #ef4444; }
+.modal-heading .icon-button:focus-visible { outline: 3px solid color-mix(in srgb,var(--primary) 28%,transparent); outline-offset: 2px; }
 
 /* Comparativo sem rolagem horizontal: colunas proporcionais e conteúdo quebrável. */
 .market-table-wrap { overflow-x: hidden !important; }
