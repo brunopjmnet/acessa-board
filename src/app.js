@@ -1707,6 +1707,110 @@ function renderConnectors() {
   bindSimpleActions("connector", "#connector-grid");
 }
 
+const AI_HUB_URL = localStorage.getItem("acessa-ai-hub-url") || "http://127.0.0.1:8787";
+let aiHubHealth = null;
+
+async function checkAiHubConnection() {
+  const status = document.querySelector("#ai-hub-status");
+  const workspace = document.querySelector("#ai-hub-workspace");
+  const light = document.querySelector("#ai-hub-light");
+  const agents = document.querySelector("#ai-agent-statuses");
+  const refresh = document.querySelector("#ai-hub-refresh");
+  if (!status || !agents) return;
+
+  status.textContent = "Verificando o serviço local...";
+  light.className = "ai-hub-light checking";
+  refresh.disabled = true;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(`${AI_HUB_URL}/health`, { signal: controller.signal });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.message || "Serviço indisponível.");
+    aiHubHealth = result;
+    status.textContent = "AI Hub conectado";
+    workspace.textContent = `Workspace ativo: ${result.workspace || "serviço legado"}`;
+    light.className = "ai-hub-light online";
+    agents.innerHTML = (result.agents || []).map((agent) => {
+      const healthy = agent.enabled && agent.status !== "error";
+      const label = !agent.enabled ? "Sem chave" : agent.status === "error" ? agent.error : agent.status === "available" ? "Conectado" : "Configurado";
+      return `<article class="ai-agent-status ${healthy ? "enabled" : "disabled"}"><span>${escapeHtml(agent.name)}</span><strong>${escapeHtml(label || "Indisponível")}</strong><small>${escapeHtml(agent.model || "modelo não definido")}</small></article>`;
+    }).join("");
+  } catch (error) {
+    aiHubHealth = null;
+    status.textContent = "AI Hub local desconectado";
+    workspace.textContent = "Inicie com: npm.cmd run ai-hub";
+    light.className = "ai-hub-light offline";
+    agents.innerHTML = `<p class="ai-hub-offline-help">O painel continua disponível, mas nenhuma IA será consultada até o serviço local ser iniciado na porta 8787.</p>`;
+  } finally {
+    window.clearTimeout(timeout);
+    refresh.disabled = false;
+  }
+}
+
+function renderAiHubResponses(task) {
+  const container = document.querySelector("#ai-hub-results");
+  const labels = { openai: "OpenAI", anthropic: "Claude", gemini: "Gemini" };
+  container.innerHTML = (task.responses || []).map((response) => {
+    const completed = response.status === "completed";
+    const content = response.output || response.message || "O provedor não retornou conteúdo.";
+    return `<article class="ai-response-card ${completed ? "completed" : "failed"}">
+      <div class="ai-response-head"><div><span>${escapeHtml(response.model || "")}</span><h3>${escapeHtml(labels[response.agent] || response.agent)}</h3></div><b>${completed ? "Concluído" : "Falhou"}</b></div>
+      <pre>${escapeHtml(content)}</pre>
+      <small>${Number(response.durationMs || 0).toLocaleString("pt-BR")} ms</small>
+    </article>`;
+  }).join("") || `<div class="ai-hub-empty"><strong>Nenhuma resposta recebida</strong><p>Verifique os agentes selecionados e tente novamente.</p></div>`;
+}
+
+async function submitAiHubTask(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const message = document.querySelector("#ai-hub-message");
+  const button = document.querySelector("#ai-hub-submit");
+  const agents = [...form.querySelectorAll('input[name="agents"]:checked')].map((input) => input.value);
+  message.classList.remove("auth-success");
+
+  if (!agents.length) {
+    message.textContent = "Selecione pelo menos um agente.";
+    return;
+  }
+
+  if (!aiHubHealth) await checkAiHubConnection();
+  if (!aiHubHealth) {
+    message.textContent = "O AI Hub está desconectado. Inicie o serviço local e verifique a conexão.";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Consultando agentes...";
+  message.textContent = "A tarefa foi enviada. Aguarde as respostas da equipe de IAs.";
+
+  try {
+    const response = await fetch(`${AI_HUB_URL}/api/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: String(form.elements.title.value || "Consulta Acessa Board").trim(),
+        prompt: String(form.elements.prompt.value || "").trim(),
+        context: String(form.elements.context.value || "").trim(),
+        agents,
+      }),
+    });
+    const task = await response.json();
+    if (!response.ok) throw new Error(task.message || "Não foi possível concluir a consulta.");
+    renderAiHubResponses(task);
+    const completed = (task.responses || []).filter((item) => item.status === "completed").length;
+    message.textContent = `${completed} de ${task.responses?.length || 0} agentes responderam com sucesso.`;
+    message.classList.add("auth-success");
+  } catch (error) {
+    message.textContent = error instanceof Error ? error.message : "Falha ao consultar o AI Hub.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Consultar equipe de IAs";
+  }
+}
+
 function renderMetrics() {
   const open = state.tasks.filter((task) => !["done", "archived"].includes(task.status)).length;
   const next = state.meetings
@@ -3242,6 +3346,7 @@ document.addEventListener("keydown", (event) => {
 
 navButtons.forEach((button) => button.addEventListener("click", () => {
   setView(button.dataset.view);
+  if (button.dataset.view === "ai-hub") checkAiHubConnection();
   closeTopNavigation();
 }));
 document.addEventListener("click", (event) => {
@@ -3302,6 +3407,8 @@ document.querySelector("#new-leader-interview").addEventListener("click", () => 
 document.querySelector("#new-diligence").addEventListener("click", () => openSimpleModal("diligence"));
 document.querySelector("#new-supplier-contract").addEventListener("click", () => openSimpleModal("supplierContract"));
 document.querySelector("#new-connector").addEventListener("click", () => openSimpleModal("connector"));
+document.querySelector("#ai-hub-refresh")?.addEventListener("click", checkAiHubConnection);
+document.querySelector("#ai-hub-form")?.addEventListener("submit", submitAiHubTask);
 document.querySelector("#export-backup").addEventListener("click", exportBackup);
 document.querySelector("#import-backup").addEventListener("click", () => {
   document.querySelector("#backup-file").click();

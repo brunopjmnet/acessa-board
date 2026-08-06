@@ -56,6 +56,7 @@
           <button class="nav-item" data-view="career" data-nav-section="Pessoas e estrutura">Cargos e carreira</button>
           <button class="nav-item" data-view="org" data-nav-section="Pessoas e estrutura">Organograma</button>
           <button class="nav-item" data-view="connectors" data-nav-section="Sistemas e segurança">Integrações</button>
+          <button class="nav-item" data-view="ai-hub" data-nav-section="Sistemas e segurança">AI Hub</button>
           <button class="nav-item" id="users-nav" data-view="users" data-nav-section="Sistemas e segurança" hidden>Usuários e acessos</button>
           <button class="nav-item" data-view="documents" data-nav-section="Controle e conformidade">Documentos</button>
           <button class="nav-item" data-view="audit" data-nav-section="Controle e conformidade">Auditoria</button>
@@ -465,6 +466,56 @@
           <div class="org-chart" id="org-chart"></div>
           <div class="org-grid" id="org-grid"></div>
         </section>
+        <section class="view ai-hub-view" id="ai-hub">
+          <div class="section-heading ai-hub-heading">
+            <div>
+              <p class="eyebrow">Colaboração supervisionada entre IAs</p>
+              <h2>AI Hub</h2>
+              <p>Consulte OpenAI, Claude e Gemini em uma única tarefa. As respostas são comparadas antes de qualquer alteração no projeto.</p>
+            </div>
+            <button class="ghost-button" id="ai-hub-refresh" type="button">Verificar conexão</button>
+          </div>
+
+          <div class="ai-hub-status-panel">
+            <div class="ai-hub-connection">
+              <span class="ai-hub-light" id="ai-hub-light" aria-hidden="true"></span>
+              <div><strong id="ai-hub-status">Verificando o serviço local...</strong><small id="ai-hub-workspace">Workspace esperado: acessa-board</small></div>
+            </div>
+            <div class="ai-agent-statuses" id="ai-agent-statuses"></div>
+          </div>
+
+          <div class="ai-hub-layout">
+            <form class="panel ai-hub-form" id="ai-hub-form">
+              <div class="panel-heading"><div><span class="eyebrow">Nova consulta</span><h3>Enviar para a equipe de IAs</h3></div></div>
+              <label>Título<input name="title" required placeholder="Ex.: revisar fluxo de aprovação comercial" /></label>
+              <label>Tarefa<textarea name="prompt" rows="7" required placeholder="Descreva o resultado esperado, as restrições e o que deve ser verificado."></textarea></label>
+              <label>Contexto do Acessa Board<textarea name="context" rows="4" placeholder="Inclua dados, decisões ou limitações que as IAs precisam considerar."></textarea></label>
+              <fieldset class="ai-agent-picker">
+                <legend>Agentes consultados</legend>
+                <label><input type="checkbox" name="agents" value="openai" checked /><span><b>OpenAI</b><small>Executor rápido</small></span></label>
+                <label><input type="checkbox" name="agents" value="anthropic" checked /><span><b>Claude</b><small>Planejador principal</small></span></label>
+                <label><input type="checkbox" name="agents" value="gemini" checked /><span><b>Gemini</b><small>Revisor e comparador</small></span></label>
+              </fieldset>
+              <p class="auth-error" id="ai-hub-message" role="status"></p>
+              <button class="primary-button" id="ai-hub-submit" type="submit">Consultar equipe de IAs</button>
+            </form>
+
+            <section class="ai-hub-results" aria-live="polite">
+              <div class="ai-hub-role-strip">
+                <article><span>Planejamento</span><strong>Claude</strong></article>
+                <article><span>Execução simples</span><strong>OpenAI</strong></article>
+                <article><span>Revisão</span><strong>Gemini</strong></article>
+                <article><span>Supervisão final</span><strong>Codex</strong></article>
+              </div>
+              <div class="ai-response-grid" id="ai-hub-results">
+                <div class="ai-hub-empty"><strong>Nenhuma consulta realizada</strong><p>Envie uma tarefa para comparar as respostas dos agentes conectados.</p></div>
+              </div>
+            </section>
+          </div>
+
+          <p class="data-disclaimer ai-hub-security">As chaves permanecem somente no serviço local. O navegador nunca recebe nem armazena credenciais das IAs. Planos de alteração devem ser revisados e confirmados pelo Codex.</p>
+        </section>
+
         <section class="view" id="users">
           <div class="section-heading">
             <div>
