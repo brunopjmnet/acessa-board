@@ -32,6 +32,13 @@ const statuses = [
   { id: "archived", label: "Arquivo" },
 ];
 
+const weeklyStatuses = [
+  { id: "not-started", label: "Não iniciada" },
+  { id: "doing", label: "Em execução" },
+  { id: "blocked", label: "Bloqueada" },
+  { id: "done", label: "Concluída" },
+];
+
 const storageKey = "acessa-board-state-v4";
 const backupVersion = 1;
 const stateCollections = ["tasks", "meetings", "documents", "people"];
@@ -582,7 +589,7 @@ const defaultConnectors = [
 ];
 
 const seed = {
-  businessModelVersion: 18,
+  businessModelVersion: 19,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -595,6 +602,7 @@ const seed = {
   supplierContracts: defaultSupplierContracts,
   connectors: defaultConnectors,
   auditLog: [],
+  weeklyPlan: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
   kpis: defaultKpis,
@@ -937,6 +945,7 @@ function applyAccessMode() {
   const readOnly = cloudContext.configured && (!cloudContext.connected || !cloudContext.canEdit);
   document.body.classList.toggle("read-only", readOnly);
   document.querySelectorAll("[data-task-status]").forEach((control) => { control.disabled = readOnly; });
+  document.querySelectorAll("[data-weekly-status]").forEach((control) => { control.disabled = readOnly; });
 }
 
 function scheduleCloudSave() {
@@ -967,7 +976,19 @@ function migrateBusinessStructure(source) {
       ? sourceWithoutRiskModule.governance.filter((item) => item.id !== "forum-riscos")
       : sourceWithoutRiskModule.governance,
   };
-  if (Number(source.businessModelVersion || 0) >= 18) return source;
+  if (Number(source.businessModelVersion || 0) >= 18) {
+    return {
+      ...source,
+      businessModelVersion: 19,
+      weeklyPlan: (Array.isArray(source.weeklyPlan) ? source.weeklyPlan : []).slice(0, 3).map((item) => ({ status: "not-started", blocker: "", decisionNeeded: "", evidence: "", ...item })),
+      meetings: (Array.isArray(source.meetings) ? source.meetings : []).map((meeting) => ({
+        taskPlan: meeting.taskPlan || "",
+        deferredTopics: meeting.deferredTopics || "",
+        meetingTaskIds: Array.isArray(meeting.meetingTaskIds) ? meeting.meetingTaskIds : [],
+        ...meeting,
+      })),
+    };
+  }
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
   if (!areas.some((area) => area.id === "comercial-b2c")) areas.splice(1, 0, defaultAreas.find((area) => area.id === "comercial-b2c"));
@@ -1006,6 +1027,13 @@ function migrateBusinessStructure(source) {
   phaseZeroTasks.forEach((task) => {
     if (!tasks.some((item) => item.id === task.id)) tasks.push(task);
   });
+  const weeklyPlan = (Array.isArray(source.weeklyPlan) ? source.weeklyPlan : []).slice(0, 3).map((item) => ({
+    status: "not-started",
+    blocker: "",
+    decisionNeeded: "",
+    evidence: "",
+    ...item,
+  }));
   const documents = Array.isArray(source.documents) ? [...source.documents] : [];
   if (!documents.some((item) => item.id === phaseZeroDocument.id)) documents.push(phaseZeroDocument);
   const companies = Array.isArray(source.companies) && source.companies.length ? source.companies : defaultCompanies;
@@ -1025,6 +1053,9 @@ function migrateBusinessStructure(source) {
     materials: meeting.materials || "Materiais prévios a anexar ou vincular.",
     minutes: meeting.minutes || "Ata pendente.",
     actionItems: meeting.actionItems || "Tarefas e responsáveis a registrar.",
+    taskPlan: meeting.taskPlan || "",
+    deferredTopics: meeting.deferredTopics || "",
+    meetingTaskIds: Array.isArray(meeting.meetingTaskIds) ? meeting.meetingTaskIds : [],
     minutesLink: meeting.minutesLink || "",
     roomUrl: meeting.roomUrl || "",
     confidentiality: meeting.confidentiality || "Interno",
@@ -1038,7 +1069,7 @@ function migrateBusinessStructure(source) {
   const supplierContracts = Array.isArray(source.supplierContracts) && source.supplierContracts.length ? source.supplierContracts : defaultSupplierContracts;
   const connectors = Array.isArray(source.connectors) && source.connectors.length ? source.connectors : defaultConnectors;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 18, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents };
+  return { ...source, businessModelVersion: 19, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents, weeklyPlan };
 }
 
 function mergeCloudState(remoteState) {
@@ -1422,6 +1453,7 @@ function render() {
   renderSupplierContracts();
   renderConnectors();
   renderMetrics();
+  renderWeeklyPlan();
   renderDashboardLists();
   renderGovernance();
   renderAreas();
@@ -1686,6 +1718,45 @@ function renderMetrics() {
   document.querySelector("#metric-processes").textContent = processCount;
   document.querySelector("#metric-open").textContent = open;
   document.querySelector("#metric-next").textContent = next ? formatDate(next.date) : "-";
+}
+
+function renderWeeklyPlan() {
+  const container = document.querySelector("#weekly-plan-grid");
+  const priorities = (state.weeklyPlan || []).filter((item) => !item.archivedAt).slice(0, 3);
+  const statusLabel = (value) => weeklyStatuses.find((status) => status.id === value)?.label || "Não iniciada";
+  container.innerHTML = priorities.length ? priorities.map((item, index) => {
+    const evidenceIsLink = /^https?:\/\//i.test(item.evidence || "");
+    return `<article class="weekly-priority-card status-${escapeHtml(item.status || "not-started")}">
+      <div class="weekly-priority-head"><span>Prioridade ${index + 1}</span><b>${escapeHtml(statusLabel(item.status))}</b></div>
+      <h3>${escapeHtml(item.priority)}</h3>
+      <div class="weekly-priority-meta"><span><small>Responsável</small>${escapeHtml(item.owner)}</span><span><small>Prazo</small>${formatDate(item.due)}</span></div>
+      <label class="weekly-status-control">Situação<select data-weekly-status="${item.id}">${weeklyStatuses.map((status) => `<option value="${status.id}" ${item.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}</select></label>
+      <dl class="weekly-priority-details">
+        <div><dt>Bloqueio</dt><dd>${escapeHtml(item.blocker || "Nenhum bloqueio informado.")}</dd></div>
+        <div><dt>Decisão necessária</dt><dd>${escapeHtml(item.decisionNeeded || "Nenhuma decisão pendente dos sócios.")}</dd></div>
+        <div><dt>Evidência</dt><dd>${evidenceIsLink ? `<a href="${escapeHtml(item.evidence)}" target="_blank" rel="noreferrer">Abrir evidência</a>` : escapeHtml(item.evidence || "Evidência ainda não anexada.")}</dd></div>
+      </dl>
+      <div class="weekly-priority-actions"><button class="ghost-button" type="button" data-weekly-edit="${item.id}">Editar</button><button class="text-button" type="button" data-weekly-remove="${item.id}">Remover</button></div>
+    </article>`;
+  }).join("") : `<div class="weekly-plan-empty"><strong>Defina as três prioridades da semana</strong><p>Comece pelo que precisa avançar e atribua uma pessoa e um prazo objetivo.</p></div>`;
+  document.querySelector("#new-weekly-priority").disabled = priorities.length >= 3;
+  container.querySelectorAll("[data-weekly-status]").forEach((select) => select.addEventListener("change", () => {
+    const item = state.weeklyPlan.find((priority) => priority.id === select.dataset.weeklyStatus);
+    if (!item) return;
+    item.status = select.value;
+    logAudit("status_alterado", "weeklyPlan", item, statusLabel(item.status));
+    saveState();
+    render();
+  }));
+  container.querySelectorAll("[data-weekly-edit]").forEach((button) => button.addEventListener("click", () => openSimpleModal("weeklyPriority", button.dataset.weeklyEdit)));
+  container.querySelectorAll("[data-weekly-remove]").forEach((button) => button.addEventListener("click", () => {
+    const index = state.weeklyPlan.findIndex((item) => item.id === button.dataset.weeklyRemove);
+    if (index < 0 || !window.confirm("Remover esta prioridade do Plano da Semana?")) return;
+    const [removed] = state.weeklyPlan.splice(index, 1);
+    logAudit("removido", "weeklyPlan", removed);
+    saveState();
+    render();
+  }));
 }
 
 function renderDashboardLists() {
@@ -2154,6 +2225,43 @@ function renderActionItem(task) {
   `;
 }
 
+function meetingTasks(meeting) {
+  return state.tasks.filter((task) => task.meetingId === meeting.id && task.status !== "archived" && !task.archivedAt);
+}
+
+function meetingProgress(meeting) {
+  const tasks = meetingTasks(meeting);
+  if (!tasks.length) return 0;
+  return Math.round(tasks.filter((task) => task.status === "done").length / tasks.length * 100);
+}
+
+function previousMeetingPending(meeting) {
+  const key = `${meeting.date || "9999-12-31"}T${meeting.time || "23:59"}`;
+  const previous = state.meetings.filter((candidate) => candidate.id !== meeting.id && !candidate.archivedAt && candidate.forum === meeting.forum && `${candidate.date || "0000-00-00"}T${candidate.time || "00:00"}` < key)
+    .sort((a, b) => `${b.date || ""}T${b.time || ""}`.localeCompare(`${a.date || ""}T${a.time || ""}`))[0];
+  return previous ? meetingTasks(previous).filter((task) => task.status !== "done") : [];
+}
+
+function listFromText(value, emptyMessage) {
+  const items = String(value || "").split("\n").map((item) => item.trim()).filter(Boolean);
+  return items.length ? `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : `<p>${escapeHtml(emptyMessage)}</p>`;
+}
+
+function renderMeetingControl(meeting) {
+  const tasks = meetingTasks(meeting);
+  const pending = previousMeetingPending(meeting);
+  const progress = meetingProgress(meeting);
+  const taskRows = tasks.length ? tasks.map((task) => `<tr><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.owner)}</td><td>${formatDate(task.due)}</td><td>${escapeHtml(statuses.find((status) => status.id === task.status)?.label || task.status)}</td></tr>`).join("") : `<tr><td colspan="4">Nenhuma tarefa estruturada nesta reunião.</td></tr>`;
+  return `<div class="meeting-control-grid">
+    <section><span>Decisões tomadas</span>${listFromText(meeting.decisions, "Nenhuma decisão registrada.")}</section>
+    <section><span>Pendências da reunião anterior</span>${pending.length ? `<ul>${pending.map((task) => `<li>${escapeHtml(task.title)} — ${escapeHtml(task.owner)} — ${formatDate(task.due)}</li>`).join("")}</ul>` : `<p>Nenhuma pendência automática do encontro anterior.</p>`}</section>
+    <section><span>Assuntos adiados</span>${listFromText(meeting.deferredTopics, "Nenhum assunto adiado.")}</section>
+    <section class="meeting-progress-section"><span>Concluído até a reunião seguinte</span><strong>${progress}%</strong><div class="meeting-progress-track"><i style="width:${progress}%"></i></div><small>${tasks.filter((task) => task.status === "done").length} de ${tasks.length} tarefas concluídas</small></section>
+    <section class="meeting-minutes-section"><span>Ata</span><p>${escapeHtml(meeting.minutes || "Ata pendente.")}</p></section>
+    <section class="meeting-task-section"><span>Tarefas criadas automaticamente</span><div class="table-wrap"><table><thead><tr><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Situação</th></tr></thead><tbody>${taskRows}</tbody></table></div></section>
+  </div>`;
+}
+
 function renderMeetings() {
   const today = new Date().toISOString().slice(0, 10);
   const weekLimit = new Date();
@@ -2170,7 +2278,7 @@ function renderMeetings() {
   const period = document.querySelector("#meeting-period-filter").value;
   const forum = forumFilter.value;
   const meetings = activeMeetings.filter((meeting) => {
-    const haystack = [meeting.title, meeting.forum, meeting.organizer, meeting.participants, meeting.objective, meeting.agenda, meeting.decisions, meeting.minutes, meeting.actionItems].join(" ").toLocaleLowerCase("pt-BR");
+    const haystack = [meeting.title, meeting.forum, meeting.organizer, meeting.participants, meeting.objective, meeting.agenda, meeting.decisions, meeting.minutes, meeting.actionItems, meeting.deferredTopics, ...meetingTasks(meeting).flatMap((task) => [task.title, task.owner])].join(" ").toLocaleLowerCase("pt-BR");
     const periodMatch = !period
       || (period === "upcoming" && meeting.date >= today)
       || (period === "week" && meeting.date >= today && meeting.date <= weekDate)
@@ -2182,11 +2290,13 @@ function renderMeetings() {
   const nextSevenDays = upcoming.filter((meeting) => meeting.date <= weekDate).length;
   const minutesPending = activeMeetings.filter((meeting) => (meeting.status === "Realizada" || meeting.date < today) && (!meeting.minutes || /pendente/i.test(meeting.minutes))).length;
   const withoutSchedule = activeMeetings.filter((meeting) => meeting.status !== "Cancelada" && (!meeting.date || !meeting.time)).length;
+  const trackedTasks = activeMeetings.flatMap(meetingTasks);
+  const overallProgress = trackedTasks.length ? Math.round(trackedTasks.filter((task) => task.status === "done").length / trackedTasks.length * 100) : 0;
   document.querySelector("#meeting-summary").innerHTML = `
     <article><span>Próximas reuniões</span><strong>${upcoming.length}</strong><small>${nextSevenDays} nos próximos 7 dias</small></article>
     <article><span>Atas pendentes</span><strong>${minutesPending}</strong><small>reuniões realizadas sem ata final</small></article>
     <article><span>Sem horário definido</span><strong>${withoutSchedule}</strong><small>agendamentos que precisam ser concluídos</small></article>
-    <article><span>Fóruns ativos</span><strong>${forums.length}</strong><small>grupos com agenda cadastrada</small></article>`;
+    <article><span>Tarefas concluídas</span><strong>${overallProgress}%</strong><small>${trackedTasks.filter((task) => task.status === "done").length} de ${trackedTasks.length} geradas em reuniões</small></article>`;
   const nextMeeting = [...upcoming].sort((a, b) => `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`))[0];
   document.querySelector("#meeting-next").innerHTML = nextMeeting ? `
     <div><span class="eyebrow">Próximo compromisso</span><h3>${escapeHtml(nextMeeting.title)}</h3><p>${formatDate(nextMeeting.date)} às ${escapeHtml(nextMeeting.time || "a definir")} · ${Number(nextMeeting.duration || 60)} min · ${escapeHtml(nextMeeting.forum || "Gestão integrada")}</p></div>
@@ -2230,7 +2340,7 @@ function renderMeetingCard(meeting) {
         <div><span>Participantes</span><p>${escapeHtml(meeting.participants || "A definir")}</p></div>
       </div>
       <div class="meeting-agenda"><span>Pauta</span><p>${escapeHtml(meeting.agenda || "Pauta pendente")}</p></div>
-      <details class="meeting-details"><summary>Ver preparação, decisões, ata e tarefas</summary><div class="meeting-detail-grid"><section><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></section><section><span>Decisões</span><p>${escapeHtml(meeting.decisions || "Decisões ainda não registradas.")}</p></section><section><span>Ata / resumo</span><p>${escapeHtml(meeting.minutes || "Ata pendente.")}</p></section><section><span>Tarefas decorrentes</span><p>${escapeHtml(meeting.actionItems || "Tarefas ainda não registradas.")}</p></section></div></details>
+      <details class="meeting-details"><summary>Abrir controle: decisões, tarefas, pendências, assuntos adiados e ata</summary><div class="meeting-materials"><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></div>${renderMeetingControl(meeting)}</details>
       <div class="card-actions">
         <button class="primary-button" type="button" data-room-id="${meeting.id}">Entrar na sala JaaS</button>
         <button class="ghost-button" type="button" data-calendar-id="${meeting.id}">Calendário</button>
@@ -2693,6 +2803,18 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  weeklyPriority: {
+    title: "Nova prioridade da semana", editTitle: "Editar prioridade da semana", collection: "weeklyPlan",
+    fields: [
+      ["priority", "Prioridade — o que precisa avançar nesta semana", "text"],
+      ["owner", "Responsável — informe uma pessoa", "text"],
+      ["due", "Prazo objetivo", "date"],
+      ["status", "Situação", "weeklyStatus"],
+      ["blocker", "Bloqueio", "textarea", false],
+      ["decisionNeeded", "Decisão necessária dos sócios", "textarea", false],
+      ["evidence", "Evidência — documento, foto, contrato ou entrega", "textarea", false],
+    ],
+  },
   supplierContract: {
     title: "Novo contrato de fornecedor ou link", editTitle: "Editar contrato", collection: "supplierContracts",
     fields: [["company", "Empresa ou compartilhado", "text"], ["category", "Categoria", "text"], ["supplier", "Fornecedor", "text"], ["object", "Objeto contratado", "textarea"], ["monthlyValue", "Valor mensal", "number"], ["startDate", "Início (opcional)", "date", false], ["endDate", "Término (opcional)", "date", false], ["readjustment", "Reajuste e índice", "text"], ["noticeDays", "Aviso prévio em dias", "number"], ["allocation", "Critério de rateio", "text"], ["status", "Status", "text"], ["evidence", "Documento ou evidência", "textarea"]],
@@ -2755,9 +2877,10 @@ const simpleConfigs = {
       ["agenda", "Pauta detalhada", "textarea"],
       ["materials", "Materiais prévios e links", "textarea", false],
       ["roomUrl", "Link externo alternativo (opcional)", "text", false],
-      ["decisions", "Decisões e deliberações", "textarea", false],
+      ["decisions", "Decisões tomadas — uma por linha", "textarea", false],
+      ["taskPlan", "Tarefas criadas — uma por linha: Tarefa | Responsável | AAAA-MM-DD", "textarea", false],
+      ["deferredTopics", "Assuntos adiados — um por linha", "textarea", false],
       ["minutes", "Ata ou resumo oficial", "textarea", false],
-      ["actionItems", "Tarefas, responsáveis e prazos", "textarea", false],
       ["minutesLink", "Link seguro da ata assinada", "text", false],
       ["nextDate", "Próxima reunião (opcional)", "date", false],
     ],
@@ -2941,7 +3064,9 @@ const simpleConfigs = {
 
 function renderField([name, label, type, required = true]) {
   const requiredAttribute = required ? " required" : "";
-  const input = type === "textarea" || type === "list"
+  const input = type === "weeklyStatus"
+    ? `<select name="${name}"${requiredAttribute}>${weeklyStatuses.map((status) => `<option value="${status.id}">${status.label}</option>`).join("")}</select>`
+    : type === "textarea" || type === "list"
     ? `<textarea name="${name}"${requiredAttribute}></textarea>`
     : `<input name="${name}" type="${type}"${requiredAttribute} />`;
   return `<label>${label}${input}</label>`;
@@ -2949,6 +3074,64 @@ function renderField([name, label, type, required = true]) {
 
 function priorityValue(priority) {
   return { Critica: 4, Alta: 3, Media: 2, Baixa: 1 }[priority] ?? 0;
+}
+
+function parseMeetingTaskPlan(value) {
+  return String(value || "").split("\n").map((line) => line.trim()).filter(Boolean).map((line, index) => {
+    const [title, owner, due, ...extra] = line.split("|").map((part) => part.trim());
+    const parsedDue = new Date(`${due}T12:00:00`);
+    const validDue = /^\d{4}-\d{2}-\d{2}$/.test(due || "") && !Number.isNaN(parsedDue.getTime()) && parsedDue.toISOString().slice(0, 10) === due;
+    if (!title || !owner || /[,;\n]/.test(owner) || /^(diretoria|conselho|comit[eê]|equipe|[aá]rea)\b/i.test(owner) || !validDue || extra.length) {
+      throw new Error(`Tarefa ${index + 1}: use o formato Tarefa | Responsável | AAAA-MM-DD.`);
+    }
+    return { title, owner, due };
+  });
+}
+
+function synchronizeMeetingTasks(meeting, taskPlan) {
+  const rows = parseMeetingTaskPlan(taskPlan);
+  const linked = state.tasks.filter((task) => task.meetingId === meeting.id).sort((a, b) => Number(a.meetingTaskIndex || 0) - Number(b.meetingTaskIndex || 0));
+  const taskIds = [];
+  rows.forEach((row, index) => {
+    const task = linked.find((entry) => Number(entry.meetingTaskIndex || 0) === index) || {
+      id: crypto.randomUUID(), status: "todo", checklist: [], priority: "Alta",
+    };
+    Object.assign(task, row, {
+      phase: `Reunião: ${meeting.forum || meeting.title}`,
+      category: "Reuniões",
+      company: "",
+      meetingId: meeting.id,
+      meetingTaskIndex: index,
+    });
+    if (task.status === "archived") task.status = "todo";
+    delete task.archivedAt;
+    if (!state.tasks.some((entry) => entry.id === task.id)) state.tasks.push(task);
+    taskIds.push(task.id);
+  });
+  linked.filter((task) => !taskIds.includes(task.id)).forEach((task) => {
+    task.status = "archived";
+    task.archivedAt = task.archivedAt || new Date().toISOString();
+  });
+  meeting.meetingTaskIds = taskIds;
+  meeting.actionItems = rows.length
+    ? rows.map((row) => `${row.title} — ${row.owner} — ${formatDate(row.due)}`).join("\n")
+    : "Nenhuma tarefa criada nesta reunião.";
+}
+
+function generateMeetingMinutes(meeting) {
+  const decisions = String(meeting.decisions || "").split("\n").map((item) => item.trim()).filter(Boolean);
+  const deferred = String(meeting.deferredTopics || "").split("\n").map((item) => item.trim()).filter(Boolean);
+  const tasks = meetingTasks(meeting);
+  return [
+    `MINUTA DE ATA — ${meeting.title}`,
+    `Data e hora: ${formatDate(meeting.date)} às ${meeting.time || "a definir"}`,
+    `Participantes: ${meeting.participants || "A definir"}`,
+    `Objetivo: ${meeting.objective || "A definir"}`,
+    `Decisões tomadas: ${decisions.length ? decisions.join("; ") : "Nenhuma decisão registrada"}`,
+    `Tarefas criadas: ${tasks.length ? tasks.map((task) => `${task.title} (${task.owner}, ${formatDate(task.due)})`).join("; ") : "Nenhuma tarefa criada"}`,
+    `Assuntos adiados: ${deferred.length ? deferred.join("; ") : "Nenhum"}`,
+    `Próxima reunião: ${meeting.nextDate ? formatDate(meeting.nextDate) : "A definir"}`,
+  ].join("\n");
 }
 
 function formatDate(date) {
@@ -3072,6 +3255,11 @@ document.addEventListener("click", (event) => {
 
 document.querySelector("#new-task").addEventListener("click", openTaskModal);
 document.querySelector("#new-task-board").addEventListener("click", openTaskModal);
+document.querySelector("#new-weekly-priority").addEventListener("click", () => {
+  const count = (state.weeklyPlan || []).filter((item) => !item.archivedAt).length;
+  if (count >= 3) return window.alert("O Plano da Semana aceita no máximo três prioridades.");
+  openSimpleModal("weeklyPriority");
+});
 document.querySelectorAll("#board-search, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
 document.querySelector("#board-email-summary").addEventListener("click", () => prepareBoardEmail());
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
@@ -3246,9 +3434,30 @@ simpleForm.addEventListener("submit", async (event) => {
       : value;
   });
 
+  if (simpleMode === "meeting") {
+    try {
+      parseMeetingTaskPlan(values.taskPlan);
+    } catch (error) {
+      window.alert(error.message);
+      return;
+    }
+  }
+
   if (values.validFrom && values.validTo && values.validTo < values.validFrom) {
     window.alert("O fim da vigência não pode ser anterior ao início.");
     return;
+  }
+  if (simpleMode === "weeklyPriority") {
+    const owner = String(values.owner || "").trim();
+    const activePriorities = (state.weeklyPlan || []).filter((entry) => !entry.archivedAt);
+    if (!existing && activePriorities.length >= 3) {
+      window.alert("O Plano da Semana aceita no máximo três prioridades.");
+      return;
+    }
+    if (!owner || /[,;\n]/.test(owner) || /^(diretoria|conselho|comit[eê]|equipe|[aá]rea)\b/i.test(owner)) {
+      window.alert("Informe uma única pessoa como responsável, e não apenas uma diretoria, conselho ou equipe.");
+      return;
+    }
   }
   if (simpleMode === "raci" && (!String(values.responsible).trim() || !String(values.approver).trim())) {
     window.alert("O RACI exige pelo menos um responsável e exatamente um aprovador.");
@@ -3318,6 +3527,10 @@ simpleForm.addEventListener("submit", async (event) => {
   }
 
   Object.assign(item, values);
+  if (simpleMode === "meeting") {
+    synchronizeMeetingTasks(item, values.taskPlan);
+    if (!String(item.minutes || "").trim()) item.minutes = generateMeetingMinutes(item);
+  }
   if (simpleMode === "person" && cloudContext.connected && parseMoney(values.salary) > 0) {
     try {
       const compensation = await saveProtectedCompensation(cloudContext.workspaceId, { person_id: item.id, company: values.area, employment_type: values.type, base_salary: parseMoney(values.salary), variable_pay: 0, employer_cost: 0, effective_from: currentCivilDateIso(), effective_to: null }, existing?.compensationId);

@@ -46,7 +46,7 @@
           <button class="nav-item" data-view="kpis" data-nav-section="Desempenho e controle">Indicadores</button>
           <span class="nav-group-label">Operação</span>
           <button class="nav-item" data-view="board" data-nav-section="Rotina operacional">Execução</button>
-          <button class="nav-item" data-view="meetings" data-nav-section="Rotina operacional">Reuniões</button>
+          <button class="nav-item" data-view="meetings" data-nav-section="Rotina operacional">Controle das Reuniões</button>
           <button class="nav-item" data-view="processes" data-nav-section="Rotina operacional">Processos</button>
           <button class="nav-item" data-view="commercial" data-nav-section="Comercial e conhecimento">Catálogo comercial</button>
           <button class="nav-item" data-view="learning" data-nav-section="Comercial e conhecimento">Manual de aprendizado</button>
@@ -91,6 +91,18 @@
         </header>
 
         <section class="view active" id="dashboard">
+          <section class="weekly-plan" aria-labelledby="weekly-plan-title">
+            <div class="weekly-plan-heading">
+              <div>
+                <p class="eyebrow">Foco executivo da semana</p>
+                <h2 id="weekly-plan-title">Plano da Semana</h2>
+                <p>Até três prioridades objetivas, cada uma com um responsável individual, prazo, bloqueios, decisões e evidências.</p>
+              </div>
+              <button class="primary-button" id="new-weekly-priority" type="button">Adicionar prioridade</button>
+            </div>
+            <div class="weekly-plan-grid" id="weekly-plan-grid"></div>
+          </section>
+
           <div class="metrics-grid executive">
             <button class="metric-card" type="button" data-view-jump="areas" aria-label="Abrir Diretorias">
               <span>Diretorias</span>
@@ -383,8 +395,8 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Agenda, preparação, deliberação e acompanhamento</p>
-              <h2>Central de Reuniões</h2>
-              <p class="data-disclaimer">Fonte única para agendamentos, pautas, participantes, materiais prévios, decisões, atas e tarefas decorrentes das reuniões do grupo.</p>
+              <h2>Controle das Reuniões</h2>
+              <p class="data-disclaimer">Cada reunião consolida ata, decisões, assuntos adiados e tarefas com responsável e prazo. O avanço até o encontro seguinte é calculado automaticamente pelo status das tarefas geradas.</p>
             </div>
             <button class="primary-button" id="new-meeting">Nova reunião</button>
           </div>
