@@ -1488,6 +1488,12 @@ html.js-loading #simple-navigation { display: grid !important; }
 .loading-state p { margin: 0; }
 .loading-state.compact { min-height: 36px; }
 .loading-state::before { content: ""; width: 34px; height: 4px; border-radius: 99px; background: linear-gradient(90deg,var(--accent),#2dc6b5); animation: loading-pulse 1.2s ease-in-out infinite alternate; }
+.load-failure { color: var(--muted); }
+.load-failure strong { color: var(--red); }
+.load-failure p { line-height: 1.6; }
+.bootstrap-warning { position: fixed; z-index: 9999; inset: 12px 12px auto; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 18px; border: 1px solid rgba(180,35,24,.35); border-radius: 12px; background: #fff3f1; color: #7a271a; box-shadow: 0 12px 40px rgba(30,35,60,.18); }
+.bootstrap-warning span { color: #8a3b30; }
+.bootstrap-warning a { color: #5b4ee8; font-weight: 800; }
 @keyframes loading-pulse { to { width: 78px; opacity: .55; } }
 .overview-lead-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-bottom: 18px; }
 .overview-status-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin: 18px 0; }

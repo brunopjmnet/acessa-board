@@ -53,6 +53,18 @@ const storageKey = "acessa-board-state-v4";
 const backupVersion = 1;
 const stateCollections = ["tasks", "meetings", "documents", "people"];
 
+function storageGet(key) {
+  try { return window.localStorage.getItem(key); } catch { return null; }
+}
+
+function storageSet(key, value) {
+  try { window.localStorage.setItem(key, value); return true; } catch { return false; }
+}
+
+function storageRemove(key) {
+  try { window.localStorage.removeItem(key); } catch { /* O navegador pode bloquear armazenamento local. */ }
+}
+
 const defaultAreas = [
   {
     id: "comercial-b2b",
@@ -901,7 +913,7 @@ let cloudSaveTimer = null;
 let unsubscribeWorkspace = () => {};
 let passwordTargetUserId = null;
 let passwordRecoveryPending = isPasswordRecoveryRedirect || isUserInviteRedirect;
-let navigationMode = localStorage.getItem("acessa-board-navigation") || "simple";
+let navigationMode = storageGet("acessa-board-navigation") || "simple";
 let onboardingStep = 0;
 const cloudContext = {
   configured: cloudConfigured,
@@ -926,7 +938,7 @@ function canUseFullNavigation() {
 
 function applyNavigationMode(requested = navigationMode) {
   navigationMode = requested === "full" && canUseFullNavigation() ? "full" : "simple";
-  localStorage.setItem("acessa-board-navigation", navigationMode);
+  storageSet("acessa-board-navigation", navigationMode);
   if (simpleNavigation) simpleNavigation.hidden = navigationMode !== "simple";
   document.querySelectorAll("#main-navigation > .nav-menu, #main-navigation > .nav-item").forEach((item) => { item.hidden = navigationMode !== "full"; });
   if (navigationModeToggle) {
@@ -944,9 +956,9 @@ function renderOnboardingStep() {
 }
 
 function showOnboarding(force = false) {
-  if (!force && localStorage.getItem("acessa-board-onboarding-hidden") === "true") return;
+  if (!force && storageGet("acessa-board-onboarding-hidden") === "true") return;
   onboardingStep = 0;
-  onboardingHide.checked = localStorage.getItem("acessa-board-onboarding-hidden") === "true";
+  onboardingHide.checked = storageGet("acessa-board-onboarding-hidden") === "true";
   renderOnboardingStep();
   if (!onboardingModal.open) onboardingModal.showModal();
 }
@@ -996,11 +1008,11 @@ onboardingNext?.addEventListener("click", () => {
     renderOnboardingStep();
     return;
   }
-  localStorage.setItem("acessa-board-onboarding-hidden", String(onboardingHide.checked));
+  storageSet("acessa-board-onboarding-hidden", String(onboardingHide.checked));
   onboardingModal.close();
 });
 document.querySelector("#onboarding-pause")?.addEventListener("click", () => {
-  localStorage.setItem("acessa-board-onboarding-hidden", String(onboardingHide.checked));
+  storageSet("acessa-board-onboarding-hidden", String(onboardingHide.checked));
   onboardingModal.close();
 });
 document.querySelector("#replay-onboarding")?.addEventListener("click", () => showOnboarding(true));
@@ -1013,10 +1025,10 @@ function applyTheme(theme) {
   themeToggle.innerHTML = dark ? "☀ <span>Tema claro</span>" : "◐ <span>Tema escuro</span>";
 }
 
-applyTheme(localStorage.getItem("acessa-board-theme") === "dark" ? "dark" : "light");
+applyTheme(storageGet("acessa-board-theme") === "dark" ? "dark" : "light");
 themeToggle.addEventListener("click", () => {
   const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  localStorage.setItem("acessa-board-theme", nextTheme);
+  storageSet("acessa-board-theme", nextTheme);
   applyTheme(nextTheme);
 });
 
@@ -1046,7 +1058,7 @@ async function persistStateToCloud() {
   try {
     const result = await saveCloudState(cloudContext.workspaceId, state, cloudContext.version);
     cloudContext.version = Number(result.version);
-    localStorage.removeItem(storageKey);
+    storageRemove(storageKey);
     setCloudStatus("Sincronizado", "connected");
   } catch (error) {
     setCloudStatus("Conflito ao salvar", "error");
@@ -1256,7 +1268,7 @@ async function initializeCloud() {
     const remoteState = context.workspace.state;
     if (remoteState && Object.keys(remoteState).length) {
       state = mergeCloudState(remoteState);
-      localStorage.removeItem(storageKey);
+      storageRemove(storageKey);
     } else if (cloudContext.canEdit) {
       await persistStateToCloud();
     }
@@ -1267,7 +1279,7 @@ async function initializeCloud() {
       if (incomingVersion <= Number(cloudContext.version)) return;
       cloudContext.version = incomingVersion;
       state = mergeCloudState(payload.new.state || {});
-      localStorage.removeItem(storageKey);
+      storageRemove(storageKey);
       render();
       setCloudStatus("Atualizado", "connected");
     });
@@ -1285,7 +1297,7 @@ async function initializeCloud() {
 }
 
 function loadState() {
-  const saved = localStorage.getItem(storageKey);
+  const saved = storageGet(storageKey);
   if (!saved) return seed;
   try {
     const parsed = JSON.parse(saved);
@@ -1314,7 +1326,7 @@ function loadState() {
 }
 
 function saveState() {
-  if (!cloudConfigured) localStorage.setItem(storageKey, JSON.stringify(state));
+  if (!cloudConfigured) storageSet(storageKey, JSON.stringify(state));
   scheduleCloudSave();
 }
 
@@ -1840,7 +1852,7 @@ function renderConnectors() {
   bindSimpleActions("connector", "#connector-grid");
 }
 
-const AI_HUB_URL = localStorage.getItem("acessa-ai-hub-url") || "http://127.0.0.1:8787";
+const AI_HUB_URL = storageGet("acessa-ai-hub-url") || "http://127.0.0.1:8787";
 let aiHubHealth = null;
 
 async function checkAiHubConnection() {
@@ -4082,6 +4094,26 @@ accountButton.addEventListener("click", async () => {
   window.location.reload();
 });
 
-render();
-document.documentElement.classList.remove("js-loading");
-initializeCloud();
+async function bootstrapApplication() {
+  let rendered = false;
+  try {
+    render();
+    rendered = true;
+  } catch (error) {
+    console.error("Falha ao renderizar os dados locais; iniciando com uma cópia segura.", error);
+    try {
+      state = migrateBusinessStructure(JSON.parse(JSON.stringify(seed)));
+      render();
+      rendered = true;
+    } catch (fallbackError) {
+      console.error("Falha ao iniciar a interface de contingência.", fallbackError);
+      document.querySelector("#dashboard-current-phase").innerHTML = `<div class="load-failure"><strong>Não foi possível concluir o carregamento.</strong><p>Atualize a página. Se persistir, abra o endereço publicado em uma nova janela.</p></div>`;
+      document.querySelector("#next-step-card").innerHTML = `<div class="load-failure"><strong>Dados preservados</strong><p>Nenhuma informação foi apagada. A conexão será tentada novamente.</p></div>`;
+    }
+  }
+  if (rendered) document.documentElement.classList.remove("js-loading");
+  await initializeCloud();
+  if (rendered) document.documentElement.classList.remove("js-loading");
+}
+
+bootstrapApplication();

@@ -14,6 +14,19 @@
         document.documentElement.classList.add("js-loading");
         if (localStorage.getItem("acessa-board-theme") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
+      window.addEventListener("DOMContentLoaded", () => {
+        window.setTimeout(() => {
+          if (!document.documentElement.classList.contains("js-loading")) return;
+          const warning = document.createElement("aside");
+          warning.className = "bootstrap-warning";
+          if (location.protocol === "file:") {
+            warning.innerHTML = '<strong>Este arquivo não funciona aberto diretamente.</strong><span>Use o endereço oficial:</span><a href="https://acessa-board.pages.dev/">Abrir Acessa Board</a>';
+          } else {
+            warning.innerHTML = '<strong>O carregamento foi interrompido pelo navegador.</strong><span>Pressione Ctrl + F5 ou abra o Acessa Board em uma nova janela.</span>';
+          }
+          document.body.prepend(warning);
+        }, 8000);
+      });
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
