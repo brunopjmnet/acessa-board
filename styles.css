@@ -1478,6 +1478,92 @@ button.metric-card:hover::before { transform: translateX(4px); }
   .career-playbook summary > small { display: none; }
 }
 
+/* Programa de integração e navegação orientada a ação */
+.simple-navigation { display: grid; gap: 6px; }
+#main-navigation > [hidden],.simple-navigation[hidden] { display: none !important; }
+.overview-lead-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-bottom: 18px; }
+.overview-status-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin: 18px 0; }
+.program-phase-card,.next-step-card { min-height: 220px; display: flex; flex-direction: column; align-items: flex-start; }
+.program-phase-card .text-button,.next-step-card .primary-button { margin-top: auto; }
+.phase-card-title { display: flex; justify-content: space-between; gap: 20px; width: 100%; }
+.phase-card-title h2,.next-step-card h2 { margin: 8px 0; }
+.phase-card-title p,.next-step-card p { color: var(--muted); }
+.phase-card-title > strong { color: var(--accent); font: 800 30px/1 Sora,sans-serif; }
+.progress-track { width: 100%; height: 8px; overflow: hidden; border-radius: 999px; background: var(--surface); margin: 12px 0 18px; }
+.progress-track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--accent),#877cf6); }
+.compact-record { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.compact-record:last-child { border-bottom: 0; }
+.compact-record p,.compact-record small { display: block; color: var(--muted); margin: 5px 0 0; }
+.empty-state { color: var(--muted); padding: 18px; border: 1px dashed var(--line); border-radius: 12px; }
+.empty-state p { margin: 5px 0 0; }
+.phase-progress-list { display: grid; gap: 10px; }
+.phase-progress-list button { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px 10px; border: 0; color: var(--text); background: transparent; text-align: left; cursor: pointer; }
+.phase-progress-list i { grid-column: 1 / -1; height: 5px; border-radius: 99px; background: var(--surface); overflow: hidden; }
+.phase-progress-list em { display: block; height: 100%; background: var(--accent); }
+.weekly-front { color: var(--accent); font-size: 12px; font-weight: 700; }
+.help-box { margin-bottom: 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.help-box summary { cursor: pointer; font-weight: 800; }
+.help-box p,.help-box li { color: var(--muted); line-height: 1.65; }
+.journey-grid { display: grid; gap: 14px; }
+.journey-phase { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); padding: 0 18px; }
+.journey-phase > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; padding: 18px 0; }
+.journey-phase > summary span,.journey-phase > summary small,.journey-phase > summary strong { display: block; }
+.journey-phase > summary small,.journey-phase > p { color: var(--muted); }
+.journey-phase > summary b { color: var(--accent); font-size: 20px; }
+.phase-checklist { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; padding-bottom: 18px; }
+.phase-item,.control-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 12px; background: var(--surface); }
+.phase-item input,.control-row input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
+.phase-item span,.phase-item strong,.phase-item small,.control-row span,.control-row strong,.control-row small { display: block; }
+.phase-item small,.control-row small { color: var(--muted); margin-top: 4px; line-height: 1.45; }
+.program-front-grid,.glossary-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin: 18px 0; }
+.program-front-card,.glossary-card { padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.program-front-card > span { color: var(--accent); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.program-front-card h3,.glossary-card h3 { margin: 8px 0; }
+.program-front-card p,.program-front-card small,.glossary-card p { color: var(--muted); }
+.program-front-card .text-button { display: block; margin-top: 14px; }
+.control-checklist { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.ixc-stage-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.ixc-stage-card { position: relative; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.ixc-stage-card > span { color: var(--accent); font-size: 12px; font-weight: 800; }
+.ixc-stage-card h3 { min-height: 42px; margin: 8px 0 14px; }
+.ixc-stage-card label,.ixc-stage-card small { display: block; color: var(--muted); }
+.ixc-stage-card select { margin-top: 5px; width: 100%; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th,.data-table td { padding: 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.expansion-pipeline { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; }
+.pipeline-stage { flex: 0 0 250px; min-height: 190px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.pipeline-stage h3 { margin: 5px 0 14px; }
+.pipeline-stage > small { color: var(--muted); }
+.pipeline-stage article { margin-top: 8px; padding: 12px; border-radius: 10px; background: var(--panel); }
+.pipeline-stage article p,.pipeline-stage article small { color: var(--muted); }
+.expansion-presentation { margin-top: 18px; }
+#expansion-slides { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.expansion-slide { min-height: 160px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; }
+.expansion-slide > span { color: var(--accent); font-weight: 800; }
+.expansion-slide p { color: var(--muted); }
+.onboarding-card { max-width: 620px; }
+.onboarding-progress { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin: 8px 0 24px; }
+.onboarding-progress span { height: 5px; border-radius: 99px; background: var(--line); }
+.onboarding-progress span.active { background: var(--accent); }
+.onboarding-content { min-height: 150px; }
+.onboarding-content h3 { font-size: 24px; margin: 10px 0; }
+.onboarding-content p { color: var(--muted); line-height: 1.65; }
+.onboarding-step-label { color: var(--accent); font-size: 12px; font-weight: 800; }
+.check-row { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+@media (max-width:1120px) { .overview-status-grid,.program-front-grid,.glossary-grid,.ixc-stage-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width:760px) { .simple-navigation { display:flex; gap:6px; } .overview-lead-grid,.overview-status-grid,.program-front-grid,.glossary-grid,.ixc-stage-grid,.phase-checklist,.control-checklist,#expansion-slides { grid-template-columns:1fr; } .data-table { min-width:760px; } }
+@media print {
+  body.printing-expansion .sidebar,body.printing-expansion .topbar,body.printing-expansion .view:not(#expansion),body.printing-expansion #expansion > :not(.expansion-presentation) { display:none !important; }
+  body.printing-expansion .app-shell { display:block; }
+  body.printing-expansion .main { padding:0; }
+  body.printing-expansion #expansion { display:block !important; }
+  body.printing-expansion .expansion-presentation { border:0; box-shadow:none; }
+  body.printing-expansion #expansion-slides { display:block; }
+  body.printing-expansion .expansion-slide { min-height:240mm; page-break-after:always; border:0; padding:20mm; }
+}
+
 .learning-card {
   background:
     linear-gradient(180deg, rgba(67, 56, 255, 0.06), transparent),
@@ -1988,6 +2074,7 @@ body.read-only [data-task-edit],
 body.read-only [data-task-status],
 body.read-only [data-weekly-edit],
 body.read-only [data-weekly-remove],
+body.read-only [data-phase-edit],
 body.read-only #import-backup,
 body.read-only [id^="new-"] { display: none !important; }
 

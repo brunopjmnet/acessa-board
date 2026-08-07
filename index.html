@@ -30,14 +30,26 @@
 
         <button class="nav-toggle" id="nav-toggle" type="button" aria-controls="main-navigation" aria-expanded="false"><span aria-hidden="true">☰</span><span>Menu</span></button>
         <nav class="nav" id="main-navigation" aria-label="Navegação principal">
+          <div class="simple-navigation" id="simple-navigation">
+            <span class="nav-group-label">Navegação essencial</span>
+            <button class="nav-item active" data-view="dashboard">Início</button>
+            <button class="nav-item" data-view="start">Começar a Acessa</button>
+            <button class="nav-item" data-view="board">Minhas tarefas</button>
+            <button class="nav-item" data-view="meetings">Reuniões</button>
+            <button class="nav-item" data-view="documents">Documentos</button>
+            <button class="nav-item" data-view="help">Ajuda</button>
+          </div>
           <span class="nav-group-label">Visão executiva</span>
-          <button class="nav-item active" data-view="dashboard">Centro de comando</button>
-          <span class="nav-group-label">Implantação Acessa</span>
+          <button class="nav-item full-nav-item active" data-view="dashboard">Visão geral</button>
+          <button class="nav-item" data-view="start" data-nav-section="Orientação">Começar a Acessa</button>
+          <button class="nav-item" data-view="program" data-nav-section="Orientação">Painel do programa</button>
+          <button class="nav-item" data-view="continuity" data-nav-section="Orientação">Impacto zero ao cliente</button>
+          <span class="nav-group-label">Integração</span>
           <button class="nav-item" data-view="implementation" data-nav-section="Planejamento">Jornada de implantação</button>
           <button class="nav-item" data-view="cutover" data-nav-section="Planejamento">Virada comercial</button>
           <button class="nav-item" data-view="companies" data-nav-section="Estrutura societária">Empresas e holdings</button>
           <button class="nav-item" data-view="diligence" data-nav-section="Estrutura societária">Dados e diligência</button>
-          <button class="nav-item" data-view="migration" data-nav-section="Transição operacional">Migração de sistemas</button>
+          <button class="nav-item" data-view="migration" data-nav-section="Transição operacional">Migração para o IXC</button>
           <button class="nav-item" data-view="people-transition" data-nav-section="Transição operacional">Pessoas e alocação</button>
           <span class="nav-group-label">Governança</span>
           <button class="nav-item" data-view="governance" data-nav-section="Governança corporativa">Governança</button>
@@ -50,6 +62,8 @@
           <button class="nav-item" data-view="processes" data-nav-section="Rotina operacional">Processos</button>
           <button class="nav-item" data-view="commercial" data-nav-section="Comercial e conhecimento">Catálogo comercial</button>
           <button class="nav-item" data-view="learning" data-nav-section="Comercial e conhecimento">Manual de aprendizado</button>
+          <button class="nav-item" data-view="synergies" data-nav-section="Comercial e conhecimento">Sinergias e economias</button>
+          <button class="nav-item" data-view="expansion" data-nav-section="Comercial e conhecimento">Expansão</button>
           <span class="nav-group-label" id="admin-nav-label">Administração</span>
           <button class="nav-item" data-view="expenses" data-nav-section="Financeiro e contratos">Despesas compartilhadas</button>
           <button class="nav-item" data-view="supplier-contracts" data-nav-section="Financeiro e contratos">Contratos e custos</button>
@@ -61,6 +75,7 @@
           <button class="nav-item" data-view="documents" data-nav-section="Controle e conformidade">Documentos</button>
           <button class="nav-item" data-view="audit" data-nav-section="Controle e conformidade">Auditoria</button>
           <button class="nav-item" data-view="archive" data-nav-section="Controle e conformidade">Arquivo</button>
+          <button class="nav-item" data-view="help" data-nav-section="Controle e conformidade">Ajuda e glossário</button>
         </nav>
 
         <div class="sidebar-note">
@@ -74,13 +89,14 @@
           <div class="topbar-identity">
             <div class="topbar-monogram" aria-hidden="true">A</div>
             <div class="topbar-copy">
-              <p class="eyebrow">Acessa Command Center</p>
-              <h1>Governança, integração e execução</h1>
-              <p class="topbar-subtitle">Visão unificada da implantação da Acessa</p>
+              <p class="eyebrow">Acessa Board</p>
+              <h1>Visão geral da Acessa</h1>
+              <p class="topbar-subtitle">O que precisa avançar agora, sem perder o controle da integração.</p>
             </div>
           </div>
           <div class="top-actions">
             <span class="cloud-status local" id="cloud-status" title="Os dados estão armazenados somente neste navegador">● Local</span>
+            <button class="ghost-button" id="navigation-mode-toggle" type="button">Modo completo</button>
             <button class="ghost-button" id="export-backup" title="Exportar backup completo">Exportar</button>
             <button class="ghost-button" id="import-backup" title="Restaurar um backup">Restaurar</button>
             <input id="backup-file" type="file" accept="application/json,.json" hidden />
@@ -92,6 +108,10 @@
         </header>
 
         <section class="view active" id="dashboard">
+          <div class="overview-lead-grid">
+            <section class="panel program-phase-card" id="dashboard-current-phase"></section>
+            <section class="panel next-step-card" id="next-step-card"></section>
+          </div>
           <section class="weekly-plan" aria-labelledby="weekly-plan-title">
             <div class="weekly-plan-heading">
               <div>
@@ -103,6 +123,12 @@
             </div>
             <div class="weekly-plan-grid" id="weekly-plan-grid"></div>
           </section>
+
+          <div class="overview-status-grid">
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Atenção imediata</span><h2>Bloqueios</h2></div></div><div class="action-list" id="dashboard-blockers"></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Continuidade</span><h2>Riscos ao cliente</h2></div><button class="text-button" data-view-jump="continuity">Abrir controle</button></div><div class="action-list" id="dashboard-client-risks"></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Jornada</span><h2>Avanço por fase</h2></div><button class="text-button" data-view-jump="start">Ver jornada</button></div><div class="phase-progress-list" id="dashboard-phase-progress"></div></section>
+          </div>
 
           <div class="metrics-grid executive">
             <button class="metric-card" type="button" data-view-jump="areas" aria-label="Abrir Diretorias">
@@ -147,7 +173,7 @@
               <div class="panel-heading">
                 <div>
                   <span class="eyebrow">Prioridade executiva</span>
-                  <h2>Tarefas que precisam de tração</h2>
+                  <h2>Minhas tarefas</h2>
                 </div>
                 <button class="text-button" data-view-jump="board">Ver execução</button>
               </div>
@@ -170,12 +196,33 @@
             <div class="panel-heading">
               <div>
                 <span class="eyebrow">Saúde operacional</span>
-                <h2>Indicadores por diretoria</h2>
+                <h2>Indicadores validados</h2>
               </div>
               <button class="text-button" data-view-jump="kpis">Abrir indicadores</button>
             </div>
             <div class="kpi-strip" id="dashboard-kpis"></div>
           </div>
+          <div class="panel wide-panel"><div class="panel-heading"><div><span class="eyebrow">Governança</span><h2>Decisões aguardando aprovação</h2></div><button class="text-button" data-view-jump="decisions">Abrir decisões</button></div><div class="action-list" id="dashboard-decisions"></div></div>
+        </section>
+
+        <section class="view" id="start">
+          <div class="section-heading"><div><p class="eyebrow">Guia prático</p><h2>Começar a Acessa</h2><p class="section-description">Percorra as oito fases, marque entregas concluídas e mantenha responsáveis, prazos e evidências visíveis.</p></div><button class="ghost-button" data-view-jump="program">Abrir painel do programa</button></div>
+          <details class="help-box"><summary>Como usar esta jornada</summary><p>Abra uma fase, confira o objetivo e marque somente entregas comprovadas. Itens sem responsável, prazo ou evidência continuam sinalizados como incompletos.</p></details>
+          <div class="journey-grid" id="start-journey"></div>
+        </section>
+
+        <section class="view" id="program">
+          <div class="section-heading"><div><p class="eyebrow">Execução da integração</p><h2>Painel do programa</h2><p class="section-description">Frentes, entregas, pendências e evidências em uma visão orientada a ação.</p></div><button class="primary-button" id="new-program-record">Nova entrega</button></div>
+          <div class="hub-summary" id="program-dashboard"></div>
+          <div class="program-front-grid" id="program-fronts"></div>
+          <div class="panel"><div class="panel-heading"><div><span class="eyebrow">Registros operacionais</span><h2>Entregas e pendências</h2></div></div><div class="hub-list" id="program-records"></div></div>
+        </section>
+
+        <section class="view" id="continuity">
+          <div class="section-heading"><div><p class="eyebrow">Regra inegociável</p><h2>Impacto zero ao cliente</h2><p class="section-description">Nenhuma virada ou migração deve avançar sem os controles mínimos de continuidade.</p></div><div class="top-actions"><button class="ghost-button" id="new-incident">Registrar incidente</button><button class="primary-button" id="new-client-risk">Novo risco</button></div></div>
+          <div class="hub-summary" id="zero-impact-summary"></div>
+          <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Gate obrigatório</span><h2>Controles antes da virada</h2></div></div><div class="control-checklist" id="zero-impact-gate"></div></section>
+          <div class="split-grid"><section class="panel"><div class="panel-heading"><div><span class="eyebrow">Prevenção</span><h2>Riscos ativos</h2></div></div><div class="hub-list" id="client-risk-list"></div></section><section class="panel"><div class="panel-heading"><div><span class="eyebrow">Resposta</span><h2>Incidentes</h2></div></div><div class="hub-list" id="incident-list"></div></section></div>
         </section>
 
         <section class="view" id="implementation">
@@ -231,6 +278,7 @@
 
         <section class="view" id="migration">
           <div class="section-heading"><div><p class="eyebrow">Sistemas e continuidade operacional</p><h2>Ondas de migração para o IXC Acessa</h2><p class="data-disclaimer">A sequência é uma proposta. Nenhuma base deve ser migrada sem diagnóstico, cópia, ensaio, reconciliação e plano de retorno aprovados.</p></div><button class="primary-button" id="new-migration">Nova onda</button></div>
+          <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Método controlado</span><h2>Etapas obrigatórias da migração</h2></div></div><div class="ixc-stage-grid" id="ixc-stage-tracker"></div></section>
           <div class="migration-list" id="migration-list"></div>
         </section>
 
@@ -244,6 +292,7 @@
         <section class="view" id="diligence">
           <div class="section-heading"><div><p class="eyebrow">Qualidade da informação</p><h2>Dados, evidências e diligência por empresa</h2><p class="data-disclaimer">A evolução do status depende de fonte identificada. “Validado” deve significar conferência documental ou extração do sistema oficial.</p></div><button class="primary-button" id="new-diligence">Novo controle</button></div>
           <div class="hub-summary diligence-summary" id="diligence-summary"></div>
+          <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Receita mensal informada</span><h2>Diagnóstico preliminar por empresa</h2></div></div><div class="table-wrap" id="revenue-diagnostics"></div><p class="data-disclaimer">Valores do briefing são aproximações e não representam números contábeis validados.</p></section>
           <div class="diligence-grid" id="diligence-grid"></div>
         </section>
 
@@ -405,7 +454,7 @@
           <div class="meeting-next" id="meeting-next"></div>
           <div class="meeting-toolbar">
             <label>Pesquisar<input id="meeting-search" type="search" placeholder="Reunião, pauta, participante..." /></label>
-            <label>Status<select id="meeting-status-filter"><option value="">Todos</option><option>Agendada</option><option>Em preparação</option><option>Realizada</option><option>Cancelada</option></select></label>
+            <label>Status<select id="meeting-status-filter"><option value="">Todos</option><option>Agendada</option><option>Em preparação</option><option>Aguardando atualização</option><option>Realizada</option><option>Cancelada</option></select></label>
             <label>Período<select id="meeting-period-filter"><option value="">Todas as datas</option><option value="upcoming">Próximas</option><option value="week">Próximos 7 dias</option><option value="past">Realizadas ou vencidas</option><option value="nodate">Sem data</option></select></label>
             <label>Fórum<select id="meeting-forum-filter"><option value="">Todos os fóruns</option></select></label>
           </div>
@@ -417,6 +466,25 @@
           <div class="section-heading"><div><p class="eyebrow">Videoconferência protegida</p><h2 id="meeting-room-title">Sala de reunião</h2><p class="data-disclaimer" id="meeting-room-note">A sala será autenticada pelo Acessa Board e poderá solicitar acesso à câmera e ao microfone.</p></div><a class="ghost-button" id="open-meeting-external" href="#" target="_blank" rel="noreferrer">Abrir em nova janela</a></div>
           <div class="meeting-room-shell"><div id="jaas-meeting-container" aria-label="Sala JaaS da reunião"></div><div class="meeting-room-empty" id="meeting-room-empty"><strong>Sala JaaS ainda não carregada</strong><p>Entre por uma reunião da agenda. O Acessa Board emitirá uma credencial individual e temporária para cada participante.</p></div></div>
           <div class="meeting-privacy-note"><strong>Privacidade e LGPD</strong><p>O acesso é autenticado e individual. Gravações e transcrições somente devem ser iniciadas após aviso aos participantes e conforme a política de retenção aprovada pela Acessa.</p></div>
+        </section>
+
+        <section class="view" id="synergies">
+          <div class="section-heading"><div><p class="eyebrow">Ganho conjunto</p><h2>Sinergias e economias</h2><p class="section-description">Registre oportunidades sem misturar estimativa com economia comprovada.</p></div><button class="primary-button" id="new-synergy">Nova oportunidade</button></div>
+          <div class="hub-summary" id="synergy-summary"></div>
+          <div class="program-front-grid" id="synergy-categories"></div>
+          <div class="hub-list" id="synergy-list"></div>
+        </section>
+
+        <section class="view expansion-view" id="expansion">
+          <div class="section-heading"><div><p class="eyebrow">Crescimento estruturado</p><h2>Expansão da Acessa</h2><p class="section-description">Pipeline de territórios, parceiros e aquisições com critérios claros de decisão.</p></div><div class="top-actions"><button class="ghost-button" id="print-expansion">Imprimir apresentação</button><button class="primary-button" id="new-opportunity">Nova oportunidade</button></div></div>
+          <div class="expansion-pipeline" id="expansion-pipeline"></div>
+          <section class="panel expansion-presentation" id="expansion-presentation"><div class="panel-heading"><div><span class="eyebrow">Roteiro executivo</span><h2>Apresentação de expansão</h2></div></div><div id="expansion-slides"></div></section>
+        </section>
+
+        <section class="view" id="help">
+          <div class="section-heading"><div><p class="eyebrow">Orientação</p><h2>Ajuda e glossário</h2><p class="section-description">Entenda o fluxo do Acessa Board e os termos usados na integração.</p></div><button class="primary-button" id="replay-onboarding">Ver apresentação inicial</button></div>
+          <details class="help-box" open><summary>Primeiros passos</summary><ol><li>Confira o Plano da Semana na página inicial.</li><li>Abra “Começar a Acessa” e identifique a fase atual.</li><li>Assuma ou acompanhe tarefas com responsável e prazo.</li><li>Registre decisões, documentos e evidências no módulo correspondente.</li></ol></details>
+          <div class="glossary-grid" id="glossary-grid"></div>
         </section>
 
         <section class="view" id="documents">
@@ -601,6 +669,16 @@
         <div id="simple-fields"></div>
         <button class="primary-button" type="submit">Salvar</button>
       </form>
+    </dialog>
+
+    <dialog class="modal onboarding-modal" id="onboarding-modal">
+      <div class="modal-card onboarding-card">
+        <div class="modal-heading"><div><p class="eyebrow">Boas-vindas</p><h2 id="onboarding-title">Acessa Board em quatro passos</h2></div><button class="icon-button" type="button" data-dialog-close="onboarding-modal" aria-label="Fechar">×</button></div>
+        <div class="onboarding-progress" id="onboarding-progress" aria-label="Progresso da apresentação"></div>
+        <div class="onboarding-content" id="onboarding-content"></div>
+        <label class="check-row"><input id="onboarding-hide" type="checkbox" /> Não mostrar automaticamente novamente</label>
+        <div class="modal-actions"><button class="ghost-button" id="onboarding-pause" type="button">Pausar</button><button class="primary-button" id="onboarding-next" type="button">Próximo</button></div>
+      </div>
     </dialog>
 
     <div class="auth-gate" id="auth-gate" hidden>

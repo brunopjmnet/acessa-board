@@ -23,6 +23,16 @@ import {
   updateBoardProfile,
   updatePassword,
 } from "./cloud.js";
+import {
+  expansionStages,
+  glossaryEntries,
+  integrationPhaseBlueprints,
+  ixcStageBlueprints,
+  preliminaryRevenue,
+  programFronts,
+  synergyCategories,
+  zeroImpactGateBlueprint,
+} from "./program-data.js";
 
 const statuses = [
   { id: "todo", label: "A fazer" },
@@ -448,7 +458,7 @@ const defaultCompanies = [
 const defaultMilestones = [
   { id: "mou", name: "MOU vinculante assinado", phase: "Fase 1", status: "Concluído", date: "2026-07-09", owner: "Conselho" },
   { id: "holdings", name: "Constituir as seis holdings", phase: "Fase 2", status: "Em andamento", date: "", owner: "Jurídico e sócios" },
-  { id: "cnpj", name: "Abrir CNPJ da Acessa", phase: "Fase 3", status: "Planejado", date: "", owner: "Jurídico e Contabilidade" },
+  { id: "cnpj", name: "Abrir CNPJ da Acessa", phase: "Fase 2", status: "Concluído", date: "", owner: "Jurídico e Contabilidade", evidence: "CNPJ informado como aberto; vincular documento comprobatório", dataStatus: "Informado" },
   { id: "governance", name: "Formalizar governança e contratos", phase: "Fase 3", status: "Em andamento", date: "", owner: "Conselho e Jurídico" },
   { id: "ixc", name: "Preparar IXC neutro da Acessa", phase: "Fase 4", status: "Ideia", date: "", owner: "Felipe Melo" },
   { id: "commercial", name: "Liberar somente novas vendas na Acessa", phase: "Fase 6", status: "Planejado", date: "2027-01-01", owner: "Comercial" },
@@ -589,7 +599,7 @@ const defaultConnectors = [
 ];
 
 const seed = {
-  businessModelVersion: 19,
+  businessModelVersion: 20,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -603,6 +613,15 @@ const seed = {
   connectors: defaultConnectors,
   auditLog: [],
   weeklyPlan: [],
+  programPhases: integrationPhaseBlueprints.map((phase) => ({ ...phase, status: "Não iniciada", items: phase.items.map((label, index) => ({ id: `${phase.id}-item-${index + 1}`, label, done: false, owner: "", due: "", evidence: "" })) })),
+  ixcStages: ixcStageBlueprints.map((stage) => ({ ...stage, status: "Não iniciada", owner: "", due: "", evidence: "" })),
+  zeroImpactGate: zeroImpactGateBlueprint.map((item) => ({ ...item, done: false, evidence: "" })),
+  companyDiagnostics: preliminaryRevenue,
+  clientRisks: [],
+  incidents: [],
+  synergies: [],
+  expansionOpportunities: [],
+  programRecords: [],
   areas: defaultAreas,
   careerTracks: defaultCareerTracks,
   kpis: defaultKpis,
@@ -791,7 +810,7 @@ function buildTopNavigation() {
   children.forEach((element) => {
     if (element.classList.contains("nav-group-label")) {
       const label = element.textContent.trim();
-      if (label === "Visão executiva") {
+      if (label === "Visão executiva" || label === "VisÃ£o executiva") {
         element.remove();
         currentPanel = null;
         return;
@@ -833,6 +852,8 @@ const views = document.querySelectorAll(".view");
 const navButtons = document.querySelectorAll(".nav-item");
 const mainNavigation = document.querySelector("#main-navigation");
 const navToggle = document.querySelector("#nav-toggle");
+const simpleNavigation = document.querySelector("#simple-navigation");
+const navigationModeToggle = document.querySelector("#navigation-mode-toggle");
 const taskModal = document.querySelector("#task-modal");
 const taskForm = document.querySelector("#task-form");
 const taskModalTitle = document.querySelector("#task-modal-title");
@@ -864,16 +885,24 @@ const userPasswordForm = document.querySelector("#user-password-form");
 const userPasswordTarget = document.querySelector("#user-password-target");
 const userPasswordMessage = document.querySelector("#user-password-message");
 const generateUserPasswordButton = document.querySelector("#generate-user-password");
+const onboardingModal = document.querySelector("#onboarding-modal");
+const onboardingContent = document.querySelector("#onboarding-content");
+const onboardingProgress = document.querySelector("#onboarding-progress");
+const onboardingNext = document.querySelector("#onboarding-next");
+const onboardingHide = document.querySelector("#onboarding-hide");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
 let activeCareerTrackId = null;
 let careerLevelContext = null;
 let careerBenefitContext = null;
+let phaseItemContext = null;
 let cloudSaveTimer = null;
 let unsubscribeWorkspace = () => {};
 let passwordTargetUserId = null;
 let passwordRecoveryPending = isPasswordRecoveryRedirect || isUserInviteRedirect;
+let navigationMode = localStorage.getItem("acessa-board-navigation") || "simple";
+let onboardingStep = 0;
 const cloudContext = {
   configured: cloudConfigured,
   connected: false,
@@ -883,6 +912,44 @@ const cloudContext = {
   canEdit: !cloudConfigured,
   currentUserId: null,
 };
+
+const onboardingSteps = [
+  { title: "Veja o que importa agora", text: "A página inicial reúne fase atual, próxima ação, Plano da Semana, bloqueios e riscos ao cliente." },
+  { title: "Siga a jornada de integração", text: "Em Começar a Acessa, percorra as oito fases e marque somente entregas que tenham comprovação." },
+  { title: "Transforme reuniões em execução", text: "Cada reunião registra decisões, tarefas, responsáveis, prazos, pendências, adiamentos e ata." },
+  { title: "Trabalhe com dados confiáveis", text: "Informações preliminares ficam identificadas. Atualize fonte, período, responsável e evidência antes de tratá-las como validadas." },
+];
+
+function canUseFullNavigation() {
+  return !cloudContext.connected || ["admin", "socio", "diretor", "gestor", "rh", "auditor"].includes(cloudContext.role);
+}
+
+function applyNavigationMode(requested = navigationMode) {
+  navigationMode = requested === "full" && canUseFullNavigation() ? "full" : "simple";
+  localStorage.setItem("acessa-board-navigation", navigationMode);
+  if (simpleNavigation) simpleNavigation.hidden = navigationMode !== "simple";
+  document.querySelectorAll("#main-navigation > .nav-menu, #main-navigation > .nav-item").forEach((item) => { item.hidden = navigationMode !== "full"; });
+  if (navigationModeToggle) {
+    navigationModeToggle.hidden = !canUseFullNavigation();
+    navigationModeToggle.textContent = navigationMode === "simple" ? "Modo completo" : "Modo simplificado";
+    navigationModeToggle.setAttribute("aria-pressed", String(navigationMode === "full"));
+  }
+}
+
+function renderOnboardingStep() {
+  const step = onboardingSteps[onboardingStep];
+  onboardingContent.innerHTML = `<span class="onboarding-step-label">Passo ${onboardingStep + 1} de ${onboardingSteps.length}</span><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.text)}</p>`;
+  onboardingProgress.innerHTML = onboardingSteps.map((_, index) => `<span class="${index <= onboardingStep ? "active" : ""}"></span>`).join("");
+  onboardingNext.textContent = onboardingStep === onboardingSteps.length - 1 ? "Começar" : "Próximo";
+}
+
+function showOnboarding(force = false) {
+  if (!force && localStorage.getItem("acessa-board-onboarding-hidden") === "true") return;
+  onboardingStep = 0;
+  onboardingHide.checked = localStorage.getItem("acessa-board-onboarding-hidden") === "true";
+  renderOnboardingStep();
+  if (!onboardingModal.open) onboardingModal.showModal();
+}
 
 function showAuthPanel(panel) {
   authGate.hidden = false;
@@ -905,6 +972,7 @@ function clearDialogContext(dialog) {
     simpleEditId = null;
     careerLevelContext = null;
     careerBenefitContext = null;
+    phaseItemContext = null;
   }
 }
 
@@ -917,9 +985,25 @@ document.querySelectorAll("[data-dialog-close]").forEach((button) => {
   });
 });
 
-[taskModal, simpleModal, userPasswordModal].forEach((dialog) => {
+[taskModal, simpleModal, userPasswordModal, onboardingModal].forEach((dialog) => {
   dialog.addEventListener("cancel", () => clearDialogContext(dialog));
 });
+
+navigationModeToggle?.addEventListener("click", () => applyNavigationMode(navigationMode === "simple" ? "full" : "simple"));
+onboardingNext?.addEventListener("click", () => {
+  if (onboardingStep < onboardingSteps.length - 1) {
+    onboardingStep += 1;
+    renderOnboardingStep();
+    return;
+  }
+  localStorage.setItem("acessa-board-onboarding-hidden", String(onboardingHide.checked));
+  onboardingModal.close();
+});
+document.querySelector("#onboarding-pause")?.addEventListener("click", () => {
+  localStorage.setItem("acessa-board-onboarding-hidden", String(onboardingHide.checked));
+  onboardingModal.close();
+});
+document.querySelector("#replay-onboarding")?.addEventListener("click", () => showOnboarding(true));
 
 function applyTheme(theme) {
   const dark = theme === "dark";
@@ -946,6 +1030,8 @@ function applyAccessMode() {
   document.body.classList.toggle("read-only", readOnly);
   document.querySelectorAll("[data-task-status]").forEach((control) => { control.disabled = readOnly; });
   document.querySelectorAll("[data-weekly-status]").forEach((control) => { control.disabled = readOnly; });
+  document.querySelectorAll("[data-phase-item-id], [data-gate-id], [data-ixc-stage]").forEach((control) => { control.disabled = readOnly; });
+  applyNavigationMode(navigationMode);
 }
 
 function scheduleCloudSave() {
@@ -968,6 +1054,50 @@ async function persistStateToCloud() {
   }
 }
 
+function enrichProgramState(source) {
+  const phaseSource = Array.isArray(source.programPhases) ? source.programPhases : [];
+  const programPhases = integrationPhaseBlueprints.map((blueprint) => {
+    const existing = phaseSource.find((phase) => phase.id === blueprint.id) || {};
+    const existingItems = Array.isArray(existing.items) ? existing.items : [];
+    const items = blueprint.items.map((label, index) => {
+      const id = `${blueprint.id}-item-${index + 1}`;
+      return { id, label, done: false, owner: "", due: "", evidence: "", ...(existingItems.find((item) => item.id === id) || {}) };
+    });
+    const completed = items.filter((item) => item.done).length;
+    const status = completed === items.length ? "Concluída" : completed ? "Em andamento" : existing.status || "Não iniciada";
+    return { ...blueprint, ...existing, items, status };
+  });
+  const ixcSource = Array.isArray(source.ixcStages) ? source.ixcStages : [];
+  const ixcStages = ixcStageBlueprints.map((blueprint) => ({ status: "Não iniciada", owner: "", due: "", evidence: "", ...blueprint, ...(ixcSource.find((stage) => stage.id === blueprint.id) || {}) }));
+  const gateSource = Array.isArray(source.zeroImpactGate) ? source.zeroImpactGate : [];
+  const zeroImpactGate = zeroImpactGateBlueprint.map((blueprint) => ({ done: false, evidence: "", ...blueprint, ...(gateSource.find((item) => item.id === blueprint.id) || {}) }));
+  const today = currentCivilDateIso();
+  const meetings = (Array.isArray(source.meetings) ? source.meetings : []).map((meeting) => ({
+    ...meeting,
+    status: meeting.date && meeting.date < today && ["Agendada", "Em preparação"].includes(meeting.status) ? "Aguardando atualização" : meeting.status,
+  }));
+  const kpis = (Array.isArray(source.kpis) ? source.kpis : []).map((kpi) => ({ dataStatus: "Demonstrativo", validation: "Não validado", source: "", period: "", owner: "", ...kpi }));
+  const companies = (Array.isArray(source.companies) ? source.companies : []).map((company) => ({ dataStatus: "Preliminar", source: "Fonte não informada", updatedAt: "", ...company }));
+  const weeklyPlan = (Array.isArray(source.weeklyPlan) ? source.weeklyPlan : []).slice(0, 3).map((item) => ({ status: "not-started", blocker: "", decisionNeeded: "", evidence: "", front: "", expectedResult: "", ...item }));
+  return {
+    ...source,
+    businessModelVersion: 20,
+    companies,
+    meetings,
+    kpis,
+    weeklyPlan,
+    programPhases,
+    ixcStages,
+    zeroImpactGate,
+    companyDiagnostics: Array.isArray(source.companyDiagnostics) && source.companyDiagnostics.length ? source.companyDiagnostics : preliminaryRevenue,
+    clientRisks: Array.isArray(source.clientRisks) ? source.clientRisks : [],
+    incidents: Array.isArray(source.incidents) ? source.incidents : [],
+    synergies: Array.isArray(source.synergies) ? source.synergies : [],
+    expansionOpportunities: Array.isArray(source.expansionOpportunities) ? source.expansionOpportunities : [],
+    programRecords: Array.isArray(source.programRecords) ? source.programRecords : [],
+  };
+}
+
 function migrateBusinessStructure(source) {
   const { risks: removedRiskModule, ...sourceWithoutRiskModule } = source;
   source = {
@@ -977,9 +1107,9 @@ function migrateBusinessStructure(source) {
       : sourceWithoutRiskModule.governance,
   };
   if (Number(source.businessModelVersion || 0) >= 18) {
-    return {
+    return enrichProgramState({
       ...source,
-      businessModelVersion: 19,
+      businessModelVersion: 20,
       weeklyPlan: (Array.isArray(source.weeklyPlan) ? source.weeklyPlan : []).slice(0, 3).map((item) => ({ status: "not-started", blocker: "", decisionNeeded: "", evidence: "", ...item })),
       meetings: (Array.isArray(source.meetings) ? source.meetings : []).map((meeting) => ({
         taskPlan: meeting.taskPlan || "",
@@ -987,7 +1117,7 @@ function migrateBusinessStructure(source) {
         meetingTaskIds: Array.isArray(meeting.meetingTaskIds) ? meeting.meetingTaskIds : [],
         ...meeting,
       })),
-    };
+    });
   }
   const areas = (source.areas || []).filter((area) => !["comercial", "tecnica"].includes(area.id)).map((area) => area.id === "tecnica-operacoes" ? { ...area, owner: "Harley" } : area);
   if (!areas.some((area) => area.id === "comercial-b2b")) areas.unshift(defaultAreas.find((area) => area.id === "comercial-b2b"));
@@ -1069,7 +1199,7 @@ function migrateBusinessStructure(source) {
   const supplierContracts = Array.isArray(source.supplierContracts) && source.supplierContracts.length ? source.supplierContracts : defaultSupplierContracts;
   const connectors = Array.isArray(source.connectors) && source.connectors.length ? source.connectors : defaultConnectors;
   if (!people.some((person) => person.id === "coord-ti-felipe-melo")) people.push({ id: "coord-ti-felipe-melo", name: "Felipe Melo", role: "Coordenador de TI e Sistemas", area: "Administrativo-Financeira", level: "Coordenador", salary: "A definir", managerId: "dir-admin", type: "Lider", responsibilities: "Coordenar sistemas corporativos, preparar o IXC da Acessa e liderar tecnicamente as migrações com a consultoria e equipes internas.", contact: "A definir" });
-  return { ...source, businessModelVersion: 19, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents, weeklyPlan };
+  return enrichProgramState({ ...source, businessModelVersion: 20, companies, milestones, decisions, products, meetings, expenses, cutoverChecklist, migrationWaves, leaderInterviews, dueDiligence, supplierContracts, connectors, areas, people, raci: enrichedRaci, governance, processManuals, kpis, tasks, documents, weeklyPlan });
 }
 
 function mergeCloudState(remoteState) {
@@ -1092,6 +1222,7 @@ async function initializeCloud() {
   if (!cloudConfigured) {
     setCloudStatus("Local", "local");
     applyAccessMode();
+    window.setTimeout(() => showOnboarding(), 250);
     return;
   }
   accountButton.hidden = false;
@@ -1142,6 +1273,7 @@ async function initializeCloud() {
     });
     setCloudStatus(cloudContext.canEdit ? "Sincronizado" : "Somente leitura", "connected");
     render();
+    window.setTimeout(() => showOnboarding(), 250);
   } catch (error) {
     cloudContext.connected = false;
     cloudContext.canEdit = false;
@@ -1440,6 +1572,7 @@ userPasswordForm.addEventListener("submit", async (event) => {
 });
 
 function render() {
+  renderProgramExperience();
   renderImplementationHub();
   renderCompanies();
   renderDecisions();
@@ -1517,7 +1650,7 @@ function renderCompanies() {
   document.querySelector("#company-grid").innerHTML = (state.companies || []).map((company) => `
     <article class="company-card"><div class="company-top"><div><span>${escapeHtml(company.system)}</span><h3>${escapeHtml(company.name)}</h3></div><strong>${Number(company.share).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%</strong></div>
     <dl><div><dt>Conselho</dt><dd>${escapeHtml(company.council)}</dd></div><div><dt>Clientes</dt><dd>${Number(company.customers).toLocaleString("pt-BR")}</dd></div><div><dt>B2C</dt><dd>${Number(company.b2c).toLocaleString("pt-BR")}</dd></div><div><dt>B2B</dt><dd>${Number(company.b2b).toLocaleString("pt-BR")}</dd></div></dl>
-    <p>${escapeHtml(company.status)}</p><div class="hub-actions"><small class="confidence-tag">${escapeHtml(company.confidence)}</small><button class="ghost-button" type="button" data-edit-id="${company.id}">Editar</button></div></article>`).join("");
+    <p>${escapeHtml(company.status)}</p><small>Fonte: ${escapeHtml(company.source || "Não informada")} · Atualização: ${company.updatedAt ? formatDateTime(company.updatedAt) : "Não informada"}</small><div class="hub-actions"><small class="confidence-tag">${escapeHtml(company.dataStatus || company.confidence || "Preliminar")}</small><button class="ghost-button" type="button" data-edit-id="${company.id}">Editar</button></div></article>`).join("");
   bindSimpleActions("company", "#company-grid");
 }
 
@@ -1763,6 +1896,125 @@ function renderAiHubResponses(task) {
   }).join("") || `<div class="ai-hub-empty"><strong>Nenhuma resposta recebida</strong><p>Verifique os agentes selecionados e tente novamente.</p></div>`;
 }
 
+function phaseProgress(phase) {
+  const items = phase?.items || [];
+  return items.length ? Math.round(items.filter((item) => item.done).length / items.length * 100) : 0;
+}
+
+function emptyState(message = "Ainda não há dados suficientes.") {
+  return `<div class="empty-state"><strong>${escapeHtml(message)}</strong><p>Cadastre ou valide as informações para liberar esta visão.</p></div>`;
+}
+
+function renderProgramOverview() {
+  const phases = state.programPhases || [];
+  const current = phases.find((phase) => phaseProgress(phase) < 100) || phases.at(-1);
+  const progress = phaseProgress(current);
+  document.querySelector("#dashboard-current-phase").innerHTML = `<span class="eyebrow">Fase atual</span><div class="phase-card-title"><div><h2>${escapeHtml(current?.title || "Jornada não iniciada")}</h2><p>${escapeHtml(current?.description || "Defina a primeira fase do programa.")}</p></div><strong>${progress}%</strong></div><div class="progress-track"><span style="width:${progress}%"></span></div><button class="text-button" type="button" data-view-jump="start">Abrir jornada</button>`;
+
+  const blockedWeekly = (state.weeklyPlan || []).find((item) => item.status === "blocked");
+  const criticalRisk = (state.clientRisks || []).find((item) => !["Concluído", "Encerrado", "Mitigado"].includes(item.status) && /cr[ií]tic|alto/i.test(`${item.severity} ${item.impact}`));
+  const overdueTask = (state.tasks || []).find((task) => !["done", "archived"].includes(task.status) && task.due && task.due < currentCivilDateIso());
+  const pendingItem = current?.items?.find((item) => !item.done);
+  const next = criticalRisk
+    ? { label: "Tratar risco crítico ao cliente", detail: criticalRisk.title || criticalRisk.risk, view: "continuity" }
+    : blockedWeekly
+      ? { label: "Destravar a prioridade da semana", detail: blockedWeekly.priority, view: "dashboard" }
+      : overdueTask
+        ? { label: "Regularizar tarefa atrasada", detail: overdueTask.title, view: "board" }
+        : pendingItem
+          ? { label: "Avançar a próxima entrega da jornada", detail: pendingItem.label, view: "start" }
+          : { label: "Revisar o programa", detail: "Todas as entregas cadastradas estão concluídas.", view: "program" };
+  document.querySelector("#next-step-card").innerHTML = `<span class="eyebrow">Próximo passo recomendado</span><h2>${escapeHtml(next.label)}</h2><p>${escapeHtml(next.detail || "Sem detalhe informado")}</p><button class="primary-button" type="button" data-view-jump="${next.view}">Avançar agora</button>`;
+
+  const blockers = [
+    ...(state.weeklyPlan || []).filter((item) => item.status === "blocked").map((item) => ({ title: item.priority, detail: item.blocker, owner: item.owner })),
+    ...(state.tasks || []).filter((item) => item.status === "waiting").map((item) => ({ title: item.title, detail: item.blocker || "Dependência não descrita", owner: item.owner })),
+  ];
+  document.querySelector("#dashboard-blockers").innerHTML = blockers.length ? blockers.slice(0, 4).map((item) => `<article class="compact-record"><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.detail || "Bloqueio não descrito")}</p><small>${escapeHtml(item.owner || "Responsável não definido")}</small></article>`).join("") : emptyState("Nenhum bloqueio ativo.");
+  const risks = (state.clientRisks || []).filter((item) => !["Concluído", "Encerrado", "Mitigado"].includes(item.status));
+  document.querySelector("#dashboard-client-risks").innerHTML = risks.length ? risks.slice(0, 4).map((item) => `<article class="compact-record"><strong>${escapeHtml(item.title || item.risk)}</strong><p>${escapeHtml(item.mitigation || "Mitigação não informada")}</p><small>${escapeHtml(item.owner || "Responsável não definido")} · ${escapeHtml(item.status || "Aberto")}</small></article>`).join("") : emptyState();
+  document.querySelector("#dashboard-phase-progress").innerHTML = phases.map((phase) => { const value = phaseProgress(phase); return `<button type="button" data-view-jump="start"><span>${escapeHtml(phase.shortTitle || phase.title)}</span><b>${value}%</b><i><em style="width:${value}%"></em></i></button>`; }).join("");
+  const pendingDecisions = (state.decisions || []).filter((item) => !item.archivedAt && !/aprovad|conclu[ií]d/i.test(item.status || ""));
+  document.querySelector("#dashboard-decisions").innerHTML = pendingDecisions.length ? pendingDecisions.slice(0, 4).map((item) => `<article class="compact-record"><strong>${escapeHtml(item.subject || item.title)}</strong><p>${escapeHtml(item.context || item.rule || "Contexto não informado")}</p><small>${escapeHtml(item.owner || "Responsável não definido")} · ${formatDate(item.due)}</small></article>`).join("") : emptyState("Nenhuma decisão aguardando aprovação.");
+}
+
+function renderStartJourney() {
+  const container = document.querySelector("#start-journey");
+  container.innerHTML = (state.programPhases || []).map((phase, index) => {
+    const progress = phaseProgress(phase);
+    return `<details class="journey-phase" ${index === 0 || (progress > 0 && progress < 100) ? "open" : ""}><summary><span><small>Fase ${index + 1}</small><strong>${escapeHtml(phase.title)}</strong></span><b>${progress}%</b></summary><p>${escapeHtml(phase.description)}</p><div class="progress-track"><span style="width:${progress}%"></span></div><div class="phase-checklist">${phase.items.map((item) => `<div class="phase-item"><input type="checkbox" data-phase-id="${phase.id}" data-phase-item-id="${item.id}" ${item.done ? "checked" : ""}/><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.owner || "Responsável não definido")} · ${formatDate(item.due)} · ${escapeHtml(item.evidence || "Evidência não informada")}</small><button class="text-button" type="button" data-phase-edit="${phase.id}|${item.id}">Editar controle</button></span></div>`).join("")}</div></details>`;
+  }).join("");
+  container.querySelectorAll("[data-phase-item-id]").forEach((input) => input.addEventListener("change", () => {
+    const phase = state.programPhases.find((item) => item.id === input.dataset.phaseId);
+    const item = phase?.items.find((entry) => entry.id === input.dataset.phaseItemId);
+    if (!item) return;
+    item.done = input.checked;
+    item.updatedAt = new Date().toISOString();
+    logAudit("status_alterado", "programPhases", item, input.checked ? "Concluído" : "Pendente");
+    saveState(); render();
+  }));
+  container.querySelectorAll("[data-phase-edit]").forEach((button) => button.addEventListener("click", () => { const [phaseId, itemId] = button.dataset.phaseEdit.split("|"); openPhaseItemModal(phaseId, itemId); }));
+}
+
+function renderProgramDashboard() {
+  const records = (state.programRecords || []).filter((item) => !item.archivedAt);
+  const completed = records.filter((item) => /conclu[ií]d/i.test(item.status || "")).length;
+  const overdue = records.filter((item) => item.due && item.due < currentCivilDateIso() && !/conclu[ií]d/i.test(item.status || "")).length;
+  document.querySelector("#program-dashboard").innerHTML = `<article><span>Frentes estruturadas</span><strong>${programFronts.length}</strong><small>programa integrado</small></article><article><span>Entregas concluídas</span><strong>${completed}/${records.length}</strong><small>com status registrado</small></article><article><span>Prazos vencidos</span><strong>${overdue}</strong><small>requerem regularização</small></article>`;
+  document.querySelector("#program-fronts").innerHTML = programFronts.map((front) => { const related = records.filter((item) => item.module === front.id); return `<article class="program-front-card"><span>${escapeHtml(front.category || "Frente")}</span><h3>${escapeHtml(front.title)}</h3><p>${escapeHtml(front.description)}</p><small>${related.length} registro(s)</small><button class="text-button" type="button" data-view-jump="${front.view}">Abrir frente</button></article>`; }).join("");
+  document.querySelector("#program-records").innerHTML = records.length ? records.map((item) => `<article class="hub-row"><div><span>${escapeHtml(item.module || "Programa")} · ${escapeHtml(item.company || "Todas")}</span><h3>${escapeHtml(item.title)}</h3><small>${escapeHtml(item.owner || "Responsável não definido")} · ${formatDate(item.due)} · ${escapeHtml(item.source || "Fonte não informada")}</small></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status || "Não iniciado")}</b><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("") : emptyState();
+  bindSimpleActions("programRecord", "#program-records");
+}
+
+function renderContinuity() {
+  const controls = state.zeroImpactGate || [];
+  const completed = controls.filter((item) => item.done).length;
+  const activeRisks = (state.clientRisks || []).filter((item) => !["Encerrado", "Mitigado", "Concluído"].includes(item.status));
+  const openIncidents = (state.incidents || []).filter((item) => !["Encerrado", "Resolvido"].includes(item.status));
+  document.querySelector("#zero-impact-summary").innerHTML = `<article><span>Controles concluídos</span><strong>${completed}/${controls.length}</strong><small>${completed === controls.length && controls.length ? "gate pronto para deliberação" : "migração não liberada"}</small></article><article><span>Riscos ativos</span><strong>${activeRisks.length}</strong><small>continuidade do cliente</small></article><article><span>Incidentes abertos</span><strong>${openIncidents.length}</strong><small>acompanhar até resolução</small></article>`;
+  const gate = document.querySelector("#zero-impact-gate");
+  gate.innerHTML = controls.map((item) => `<label class="control-row"><input type="checkbox" data-gate-id="${item.id}" ${item.done ? "checked" : ""}/><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.evidence || "Evidência não informada")}</small></span></label>`).join("");
+  gate.querySelectorAll("[data-gate-id]").forEach((input) => input.addEventListener("change", () => { const item = state.zeroImpactGate.find((entry) => entry.id === input.dataset.gateId); if (!item) return; item.done = input.checked; saveState(); render(); }));
+  document.querySelector("#client-risk-list").innerHTML = activeRisks.length ? activeRisks.map((item) => `<article class="hub-row"><div><span>${escapeHtml(item.severity || "Severidade não definida")} · ${escapeHtml(item.company || "Todas")}</span><h3>${escapeHtml(item.title || item.risk)}</h3><small>${escapeHtml(item.owner || "Responsável não definido")} · ${formatDate(item.due)}</small><p>${escapeHtml(item.mitigation || "Mitigação não informada")}</p></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status || "Aberto")}</b><button class="ghost-button" data-edit-id="${item.id}">Editar</button></div></article>`).join("") : emptyState();
+  document.querySelector("#incident-list").innerHTML = openIncidents.length ? openIncidents.map((item) => `<article class="hub-row"><div><span>${escapeHtml(item.impact || "Impacto não definido")}</span><h3>${escapeHtml(item.title)}</h3><small>${escapeHtml(item.owner || "Responsável não definido")} · ${formatDateTime(item.startedAt)}</small><p>${escapeHtml(item.action || "Ação de resposta não informada")}</p></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status || "Aberto")}</b><button class="ghost-button" data-edit-id="${item.id}">Editar</button></div></article>`).join("") : emptyState();
+  bindSimpleActions("clientRisk", "#client-risk-list"); bindSimpleActions("incident", "#incident-list");
+}
+
+function renderIxcStages() {
+  const container = document.querySelector("#ixc-stage-tracker");
+  container.innerHTML = (state.ixcStages || []).map((stage, index) => `<article class="ixc-stage-card"><span>${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(stage.title)}</h3><label>Status<select data-ixc-stage="${stage.id}">${["Não iniciada", "Em execução", "Bloqueada", "Concluída"].map((status) => `<option ${stage.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><small>${escapeHtml(stage.owner || "Responsável não definido")} · ${formatDate(stage.due)}</small></article>`).join("");
+  container.querySelectorAll("[data-ixc-stage]").forEach((select) => select.addEventListener("change", () => { const stage = state.ixcStages.find((item) => item.id === select.dataset.ixcStage); if (!stage) return; stage.status = select.value; saveState(); render(); }));
+}
+
+function renderSynergies() {
+  const items = (state.synergies || []).filter((item) => !item.archivedAt);
+  const validated = items.filter((item) => /valid|comprov/i.test(item.validation || "")).reduce((sum, item) => sum + Number(item.estimatedMonthlySaving || 0), 0);
+  document.querySelector("#synergy-summary").innerHTML = `<article><span>Oportunidades</span><strong>${items.length}</strong><small>em análise e execução</small></article><article><span>Economia mensal validada</span><strong>${validated.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong><small>somente itens comprovados</small></article>`;
+  document.querySelector("#synergy-categories").innerHTML = synergyCategories.map((category) => `<article class="program-front-card"><span>Categoria</span><h3>${escapeHtml(category)}</h3><small>${items.filter((item) => item.category === category).length} oportunidade(s)</small></article>`).join("");
+  document.querySelector("#synergy-list").innerHTML = items.length ? items.map((item) => `<article class="hub-row"><div><span>${escapeHtml(item.category || "Categoria não definida")} · ${escapeHtml(item.validation || "Estimativa")}</span><h3>${escapeHtml(item.title)}</h3><small>${escapeHtml(item.owner || "Responsável não definido")} · ${formatDate(item.due)}</small><p>${escapeHtml(item.evidence || "Evidência não informada")}</p></div><div class="hub-actions"><b>${Number(item.estimatedMonthlySaving || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}/mês</b><button class="ghost-button" data-edit-id="${item.id}">Editar</button></div></article>`).join("") : emptyState();
+  bindSimpleActions("synergy", "#synergy-list");
+}
+
+function renderExpansion() {
+  const opportunities = (state.expansionOpportunities || []).filter((item) => !item.archivedAt);
+  document.querySelector("#expansion-pipeline").innerHTML = expansionStages.map((stage) => `<section class="pipeline-stage"><div><span>Etapa</span><h3>${escapeHtml(stage)}</h3></div>${opportunities.filter((item) => item.stage === stage).map((item) => `<article><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.location || "Local não definido")}</p><small>${escapeHtml(item.owner || "Responsável não definido")}</small><button class="text-button" data-edit-id="${item.id}">Editar</button></article>`).join("") || `<small>Nenhuma oportunidade</small>`}</section>`).join("");
+  document.querySelector("#expansion-slides").innerHTML = ["Tese de crescimento", "Mapa de territórios", "Modalidades de expansão", "Critérios de seleção", "Mercado e demanda", "Rede e capacidade", "Operação e pessoas", "Modelo financeiro", "Riscos", "Sinergias", "Governança", "Pipeline", "Próximas decisões", "Plano de 90 dias"].map((title, index) => `<article class="expansion-slide"><span>${index + 1}</span><h3>${escapeHtml(title)}</h3><p>Preencher com fonte, período de referência, responsável e evidência antes da apresentação decisória.</p></article>`).join("");
+  bindSimpleActions("opportunity", "#expansion-pipeline");
+}
+
+function renderRevenueDiagnostics() {
+  const records = state.companyDiagnostics || [];
+  document.querySelector("#revenue-diagnostics").innerHTML = `<table class="data-table"><thead><tr><th>Empresa</th><th>Receita bruta mensal aprox.</th><th>Status</th><th>Fonte</th><th>Referência</th><th>Responsável</th></tr></thead><tbody>${records.map((item) => `<tr><td>${escapeHtml(item.company)}</td><td>${Number(item.grossRevenue || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td><span class="confidence-tag">${escapeHtml(item.validation || "Preliminar")}</span></td><td>${escapeHtml(item.source || "Não informada")}</td><td>${escapeHtml(item.referenceDate || "Não informada")}</td><td>${escapeHtml(item.owner || "Não definido")}</td></tr>`).join("")}</tbody></table>`;
+}
+
+function renderGlossary() {
+  document.querySelector("#glossary-grid").innerHTML = glossaryEntries.map(([term, definition]) => `<article class="glossary-card"><h3>${escapeHtml(term)}</h3><p>${escapeHtml(definition)}</p></article>`).join("");
+}
+
+function renderProgramExperience() {
+  renderProgramOverview(); renderStartJourney(); renderProgramDashboard(); renderContinuity(); renderIxcStages(); renderSynergies(); renderExpansion(); renderRevenueDiagnostics(); renderGlossary();
+}
+
 async function submitAiHubTask(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -1813,8 +2065,9 @@ async function submitAiHubTask(event) {
 
 function renderMetrics() {
   const open = state.tasks.filter((task) => !["done", "archived"].includes(task.status)).length;
+  const today = currentCivilDateIso();
   const next = state.meetings
-    .filter((meeting) => !meeting.archivedAt)
+    .filter((meeting) => !meeting.archivedAt && meeting.date && meeting.date >= today && !["Cancelada", "Realizada"].includes(meeting.status))
     .sort((a, b) => a.date.localeCompare(b.date))[0];
   const activeAreas = state.areas.filter((area) => !area.archivedAt);
   const processCount = activeAreas.reduce((total, area) => total + area.processes.length, 0);
@@ -1833,9 +2086,11 @@ function renderWeeklyPlan() {
     return `<article class="weekly-priority-card status-${escapeHtml(item.status || "not-started")}">
       <div class="weekly-priority-head"><span>Prioridade ${index + 1}</span><b>${escapeHtml(statusLabel(item.status))}</b></div>
       <h3>${escapeHtml(item.priority)}</h3>
+      <p class="weekly-front">${escapeHtml(item.front || "Frente não definida")}</p>
       <div class="weekly-priority-meta"><span><small>Responsável</small>${escapeHtml(item.owner)}</span><span><small>Prazo</small>${formatDate(item.due)}</span></div>
       <label class="weekly-status-control">Situação<select data-weekly-status="${item.id}">${weeklyStatuses.map((status) => `<option value="${status.id}" ${item.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}</select></label>
       <dl class="weekly-priority-details">
+        <div><dt>Resultado esperado</dt><dd>${escapeHtml(item.expectedResult || "Resultado não informado.")}</dd></div>
         <div><dt>Bloqueio</dt><dd>${escapeHtml(item.blocker || "Nenhum bloqueio informado.")}</dd></div>
         <div><dt>Decisão necessária</dt><dd>${escapeHtml(item.decisionNeeded || "Nenhuma decisão pendente dos sócios.")}</dd></div>
         <div><dt>Evidência</dt><dd>${evidenceIsLink ? `<a href="${escapeHtml(item.evidence)}" target="_blank" rel="noreferrer">Abrir evidência</a>` : escapeHtml(item.evidence || "Evidência ainda não anexada.")}</dd></div>
@@ -1872,13 +2127,14 @@ function renderDashboardLists() {
     .join("");
 
   document.querySelector("#dashboard-meetings").innerHTML = [...state.meetings]
-    .filter((meeting) => !meeting.archivedAt)
+    .filter((meeting) => !meeting.archivedAt && meeting.date && meeting.date >= currentCivilDateIso() && !["Cancelada", "Realizada"].includes(meeting.status))
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 4)
     .map(renderMeetingCompact)
-    .join("");
+    .join("") || emptyState("Nenhuma reunião futura agendada.");
 
-  document.querySelector("#dashboard-kpis").innerHTML = state.kpis.filter((kpi) => !kpi.archivedAt).slice(0, 6).map(renderKpiMini).join("");
+  const validatedKpis = state.kpis.filter((kpi) => !kpi.archivedAt && /^(validado|validada)$/i.test(String(kpi.validation || "").trim()));
+  document.querySelector("#dashboard-kpis").innerHTML = validatedKpis.length ? validatedKpis.slice(0, 6).map(renderKpiMini).join("") : emptyState();
 }
 
 function renderGovernance() {
@@ -2451,6 +2707,7 @@ function renderMeetingCard(meeting) {
         <a class="ghost-button" href="mailto:?subject=${subject}&body=${body}">Email</a>
         <a class="ghost-button" href="https://wa.me/?text=${whatsapp}" target="_blank" rel="noreferrer">WhatsApp</a>
         ${minutesLink}
+        <button class="ghost-button" type="button" data-print-minutes="${meeting.id}">Imprimir ata</button>
         <button class="ghost-button" type="button" data-edit-id="${meeting.id}">Editar</button>
         <button class="text-button" type="button" data-archive-id="${meeting.id}">Arquivar</button>
       </div>
@@ -2461,6 +2718,7 @@ function renderMeetingCard(meeting) {
 function bindMeetingUtilities(container) {
   container.querySelectorAll("[data-room-id]").forEach((button) => button.addEventListener("click", () => openMeetingRoom(button.dataset.roomId)));
   container.querySelectorAll("[data-calendar-id]").forEach((button) => button.addEventListener("click", () => downloadMeetingCalendar(button.dataset.calendarId)));
+  container.querySelectorAll("[data-print-minutes]").forEach((button) => button.addEventListener("click", () => printMeetingMinutes(button.dataset.printMinutes)));
   if (container.id === "meeting-next") container.querySelectorAll("[data-edit-id]").forEach((button) => button.addEventListener("click", () => openSimpleModal("meeting", button.dataset.editId)));
 }
 
@@ -2907,10 +3165,16 @@ function archiveSimpleItem(mode, id) {
 }
 
 const simpleConfigs = {
+  phaseItem: {
+    title: "Editar entrega", editTitle: "Editar entrega", collection: "programPhases",
+    fields: [["owner", "Responsável — uma pessoa", "text"], ["due", "Prazo", "date", false], ["evidence", "Evidência ou link", "textarea", false]],
+  },
   weeklyPriority: {
     title: "Nova prioridade da semana", editTitle: "Editar prioridade da semana", collection: "weeklyPlan",
     fields: [
       ["priority", "Prioridade — o que precisa avançar nesta semana", "text"],
+      ["front", "Frente do programa", "text"],
+      ["expectedResult", "Resultado esperado até o fim da semana", "textarea"],
       ["owner", "Responsável — informe uma pessoa", "text"],
       ["due", "Prazo objetivo", "date"],
       ["status", "Situação", "weeklyStatus"],
@@ -2918,6 +3182,26 @@ const simpleConfigs = {
       ["decisionNeeded", "Decisão necessária dos sócios", "textarea", false],
       ["evidence", "Evidência — documento, foto, contrato ou entrega", "textarea", false],
     ],
+  },
+  programRecord: {
+    title: "Nova entrega do programa", editTitle: "Editar entrega do programa", collection: "programRecords",
+    fields: [["title", "Entrega ou pendência", "text"], ["module", "Frente (ex.: finance, people, buildings)", "text"], ["company", "Empresa ou abrangência", "text"], ["owner", "Responsável — uma pessoa", "text"], ["due", "Prazo", "date", false], ["status", "Status", "text"], ["source", "Fonte", "text", false], ["evidence", "Evidência ou link", "textarea", false], ["notes", "Observações", "textarea", false]],
+  },
+  clientRisk: {
+    title: "Novo risco ao cliente", editTitle: "Editar risco ao cliente", collection: "clientRisks",
+    fields: [["title", "Risco", "text"], ["company", "Empresa ou abrangência", "text"], ["severity", "Severidade: Baixa, Média, Alta ou Crítica", "text"], ["impact", "Impacto potencial", "textarea"], ["mitigation", "Mitigação", "textarea"], ["owner", "Responsável — uma pessoa", "text"], ["due", "Prazo", "date", false], ["status", "Status", "text"], ["evidence", "Evidência", "textarea", false]],
+  },
+  incident: {
+    title: "Registrar incidente", editTitle: "Editar incidente", collection: "incidents",
+    fields: [["title", "Incidente", "text"], ["impact", "Clientes e serviços afetados", "textarea"], ["startedAt", "Início", "datetime-local"], ["action", "Resposta e comunicação", "textarea"], ["owner", "Responsável — uma pessoa", "text"], ["status", "Status", "text"], ["rootCause", "Causa raiz", "textarea", false], ["evidence", "Evidência", "textarea", false]],
+  },
+  synergy: {
+    title: "Nova oportunidade de sinergia", editTitle: "Editar sinergia", collection: "synergies",
+    fields: [["title", "Oportunidade", "text"], ["category", "Categoria", "text"], ["companies", "Empresas envolvidas", "text"], ["estimatedMonthlySaving", "Economia mensal estimada", "number"], ["validation", "Validação: Estimada, Aprovada, Contratada ou Comprovada", "text"], ["owner", "Responsável", "text"], ["due", "Prazo", "date", false], ["status", "Status", "text"], ["evidence", "Evidência", "textarea", false]],
+  },
+  opportunity: {
+    title: "Nova oportunidade de expansão", editTitle: "Editar oportunidade", collection: "expansionOpportunities",
+    fields: [["title", "Empresa, parceiro ou território", "text"], ["location", "Cidade ou região", "text"], ["modality", "Modalidade", "text"], ["stage", "Etapa do pipeline", "text"], ["owner", "Responsável", "text"], ["nextAction", "Próxima ação", "textarea"], ["due", "Prazo", "date", false], ["source", "Fonte", "text", false], ["evidence", "Evidência", "textarea", false]],
   },
   supplierContract: {
     title: "Novo contrato de fornecedor ou link", editTitle: "Editar contrato", collection: "supplierContracts",
@@ -2949,11 +3233,11 @@ const simpleConfigs = {
   },
   company: {
     title: "Nova empresa fundadora", editTitle: "Editar empresa", collection: "companies",
-    fields: [["name", "Empresa", "text"], ["share", "Participação percentual", "number"], ["council", "Representante no Conselho", "text"], ["system", "Sistema atual", "text"], ["customers", "Clientes totais", "number"], ["b2c", "Clientes B2C", "number"], ["b2b", "Clientes B2B", "number"], ["status", "Situação da transição", "text"], ["confidence", "Qualidade do dado", "text"]],
+    fields: [["name", "Empresa", "text"], ["share", "Participação percentual", "number"], ["council", "Representante no Conselho", "text"], ["system", "Sistema atual", "text"], ["customers", "Clientes totais", "number"], ["b2c", "Clientes B2C", "number"], ["b2b", "Clientes B2B", "number"], ["status", "Situação da transição", "text"], ["dataStatus", "Status do dado: Preliminar, Informado ou Validado", "text"], ["source", "Fonte", "text"], ["confidence", "Qualidade do dado", "text"]],
   },
   decision: {
     title: "Nova decisão", editTitle: "Editar decisão", collection: "decisions",
-    fields: [["subject", "Assunto", "text"], ["rule", "Regra ou decisão", "textarea"], ["status", "Situação", "text"], ["evidence", "Evidência ou documento", "textarea"]],
+    fields: [["subject", "Assunto", "text"], ["context", "Contexto", "textarea"], ["options", "Alternativas consideradas", "textarea", false], ["impacts", "Impactos esperados", "textarea", false], ["companies", "Empresas afetadas", "text", false], ["owner", "Responsável", "text"], ["due", "Prazo para decisão", "date", false], ["approvers", "Aprovadores", "text"], ["rule", "Decisão final ou regra", "textarea"], ["justification", "Justificativa", "textarea", false], ["status", "Situação", "text"], ["evidence", "Evidência ou documento", "textarea", false]],
   },
   product: {
     title: "Novo produto", editTitle: "Editar produto", collection: "products",
@@ -2976,15 +3260,20 @@ const simpleConfigs = {
       ["time", "Hora", "time"],
       ["duration", "Duração prevista em minutos", "number"],
       ["participants", "Participantes e convidados", "textarea"],
+      ["present", "Presentes", "textarea", false],
+      ["absent", "Ausentes", "textarea", false],
       ["confidentiality", "Confidencialidade: Interno, Restrito ou Conselho", "text"],
       ["objective", "Objetivo e resultado esperado", "textarea"],
       ["agenda", "Pauta detalhada", "textarea"],
       ["materials", "Materiais prévios e links", "textarea", false],
       ["roomUrl", "Link externo alternativo (opcional)", "text", false],
       ["decisions", "Decisões tomadas — uma por linha", "textarea", false],
+      ["previousPendings", "Pendências da reunião anterior", "textarea", false],
       ["taskPlan", "Tarefas criadas — uma por linha: Tarefa | Responsável | AAAA-MM-DD", "textarea", false],
       ["deferredTopics", "Assuntos adiados — um por linha", "textarea", false],
       ["minutes", "Ata ou resumo oficial", "textarea", false],
+      ["minutesOwner", "Responsável pela ata", "text", false],
+      ["minutesStatus", "Status da ata: Minuta, Em revisão ou Assinada", "text", false],
       ["minutesLink", "Link seguro da ata assinada", "text", false],
       ["nextDate", "Próxima reunião (opcional)", "date", false],
     ],
@@ -3180,6 +3469,32 @@ function priorityValue(priority) {
   return { Critica: 4, Alta: 3, Media: 2, Baixa: 1 }[priority] ?? 0;
 }
 
+function openPhaseItemModal(phaseId, itemId) {
+  const phase = state.programPhases.find((entry) => entry.id === phaseId);
+  const item = phase?.items.find((entry) => entry.id === itemId);
+  if (!item) return;
+  phaseItemContext = { phaseId, itemId };
+  simpleMode = "phaseItem";
+  simpleEditId = null;
+  simpleForm.reset();
+  const config = simpleConfigs.phaseItem;
+  simpleTitle.textContent = "Editar responsável, prazo e evidência";
+  simpleFields.innerHTML = config.fields.map(renderField).join("");
+  config.fields.forEach(([name]) => { const field = simpleForm.elements.namedItem(name); if (field) field.value = item[name] ?? ""; });
+  simpleModal.showModal();
+}
+
+function printMeetingMinutes(id) {
+  const meeting = state.meetings.find((item) => item.id === id);
+  if (!meeting) return;
+  const printable = window.open("", "_blank");
+  if (!printable) return window.alert("Permita a abertura da janela para imprimir a ata.");
+  printable.opener = null;
+  const minutes = meeting.minutes || generateMeetingMinutes(meeting);
+  printable.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ata — ${escapeHtml(meeting.title)}</title><style>body{font:15px/1.6 Arial,sans-serif;max-width:820px;margin:48px auto;color:#182033}h1{font-size:26px;border-bottom:2px solid #5b4ee8;padding-bottom:16px}pre{white-space:pre-wrap;font:inherit}small{color:#586174}@media print{body{margin:20mm}}</style></head><body><small>Acessa Board · Ata de reunião</small><h1>${escapeHtml(meeting.title)}</h1><pre>${escapeHtml(minutes)}</pre><p><strong>Status da ata:</strong> ${escapeHtml(meeting.minutesStatus || (meeting.minutesLink ? "Assinada" : "Minuta"))}</p><script>window.print()<\/script></body></html>`);
+  printable.document.close();
+}
+
 function parseMeetingTaskPlan(value) {
   return String(value || "").split("\n").map((line) => line.trim()).filter(Boolean).map((line, index) => {
     const [title, owner, due, ...extra] = line.split("|").map((part) => part.trim());
@@ -3229,8 +3544,10 @@ function generateMeetingMinutes(meeting) {
   return [
     `MINUTA DE ATA — ${meeting.title}`,
     `Data e hora: ${formatDate(meeting.date)} às ${meeting.time || "a definir"}`,
-    `Participantes: ${meeting.participants || "A definir"}`,
+    `Presentes: ${meeting.present || meeting.participants || "A definir"}`,
+    `Ausentes: ${meeting.absent || "Nenhum registro"}`,
     `Objetivo: ${meeting.objective || "A definir"}`,
+    `Pendências da reunião anterior: ${meeting.previousPendings || "Nenhuma registrada"}`,
     `Decisões tomadas: ${decisions.length ? decisions.join("; ") : "Nenhuma decisão registrada"}`,
     `Tarefas criadas: ${tasks.length ? tasks.map((task) => `${task.title} (${task.owner}, ${formatDate(task.due)})`).join("; ") : "Nenhuma tarefa criada"}`,
     `Assuntos adiados: ${deferred.length ? deferred.join("; ") : "Nenhum"}`,
@@ -3239,7 +3556,7 @@ function generateMeetingMinutes(meeting) {
 }
 
 function formatDate(date) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date))) return "Data inválida";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date))) return "Prazo não definido";
   const [year, month, day] = String(date).split("-");
   return `${day}/${month}/${year}`;
 }
@@ -3255,7 +3572,7 @@ function currentCivilDateIso() {
 
 function formatDateTime(value) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Data inválida";
+  if (Number.isNaN(date.getTime())) return "Atualização não informada";
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
@@ -3364,6 +3681,16 @@ document.querySelector("#new-weekly-priority").addEventListener("click", () => {
   const count = (state.weeklyPlan || []).filter((item) => !item.archivedAt).length;
   if (count >= 3) return window.alert("O Plano da Semana aceita no máximo três prioridades.");
   openSimpleModal("weeklyPriority");
+});
+document.querySelector("#new-program-record")?.addEventListener("click", () => openSimpleModal("programRecord"));
+document.querySelector("#new-client-risk")?.addEventListener("click", () => openSimpleModal("clientRisk"));
+document.querySelector("#new-incident")?.addEventListener("click", () => openSimpleModal("incident"));
+document.querySelector("#new-synergy")?.addEventListener("click", () => openSimpleModal("synergy"));
+document.querySelector("#new-opportunity")?.addEventListener("click", () => openSimpleModal("opportunity"));
+document.querySelector("#print-expansion")?.addEventListener("click", () => {
+  document.body.classList.add("printing-expansion");
+  window.print();
+  window.setTimeout(() => document.body.classList.remove("printing-expansion"), 300);
 });
 document.querySelectorAll("#board-search, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
 document.querySelector("#board-email-summary").addEventListener("click", () => prepareBoardEmail());
@@ -3541,6 +3868,15 @@ simpleForm.addEventListener("submit", async (event) => {
       : value;
   });
 
+  if (simpleMode === "phaseItem") {
+    const phase = state.programPhases.find((entry) => entry.id === phaseItemContext?.phaseId);
+    const item = phase?.items.find((entry) => entry.id === phaseItemContext?.itemId);
+    if (!item) return;
+    Object.assign(item, values, { updatedAt: new Date().toISOString() });
+    logAudit("editado", "programPhases", item, phase.title);
+    saveState(); simpleModal.close(); phaseItemContext = null; render(); return;
+  }
+
   if (simpleMode === "meeting") {
     try {
       parseMeetingTaskPlan(values.taskPlan);
@@ -3634,6 +3970,7 @@ simpleForm.addEventListener("submit", async (event) => {
   }
 
   Object.assign(item, values);
+  item.updatedAt = new Date().toISOString();
   if (simpleMode === "meeting") {
     synchronizeMeetingTasks(item, values.taskPlan);
     if (!String(item.minutes || "").trim()) item.minutes = generateMeetingMinutes(item);
