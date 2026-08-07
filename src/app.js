@@ -4083,4 +4083,5 @@ accountButton.addEventListener("click", async () => {
 });
 
 render();
+document.documentElement.classList.remove("js-loading");
 initializeCloud();

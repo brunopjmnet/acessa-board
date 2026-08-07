@@ -11,6 +11,7 @@
     />
     <script>
       try {
+        document.documentElement.classList.add("js-loading");
         if (localStorage.getItem("acessa-board-theme") === "dark") document.documentElement.dataset.theme = "dark";
       } catch {}
     </script>
@@ -109,8 +110,8 @@
 
         <section class="view active" id="dashboard">
           <div class="overview-lead-grid">
-            <section class="panel program-phase-card" id="dashboard-current-phase"></section>
-            <section class="panel next-step-card" id="next-step-card"></section>
+            <section class="panel program-phase-card" id="dashboard-current-phase"><div class="loading-state"><strong>Carregando fase atual…</strong><p>Preparando a jornada de integração.</p></div></section>
+            <section class="panel next-step-card" id="next-step-card"><div class="loading-state"><strong>Carregando próximo passo…</strong><p>Analisando prioridades, prazos e bloqueios.</p></div></section>
           </div>
           <section class="weekly-plan" aria-labelledby="weekly-plan-title">
             <div class="weekly-plan-heading">
@@ -121,13 +122,13 @@
               </div>
               <button class="primary-button" id="new-weekly-priority" type="button">Adicionar prioridade</button>
             </div>
-            <div class="weekly-plan-grid" id="weekly-plan-grid"></div>
+            <div class="weekly-plan-grid" id="weekly-plan-grid"><div class="loading-state"><strong>Carregando prioridades…</strong><p>Sincronizando o Plano da Semana.</p></div></div>
           </section>
 
           <div class="overview-status-grid">
-            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Atenção imediata</span><h2>Bloqueios</h2></div></div><div class="action-list" id="dashboard-blockers"></div></section>
-            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Continuidade</span><h2>Riscos ao cliente</h2></div><button class="text-button" data-view-jump="continuity">Abrir controle</button></div><div class="action-list" id="dashboard-client-risks"></div></section>
-            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Jornada</span><h2>Avanço por fase</h2></div><button class="text-button" data-view-jump="start">Ver jornada</button></div><div class="phase-progress-list" id="dashboard-phase-progress"></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Atenção imediata</span><h2>Bloqueios</h2></div></div><div class="action-list" id="dashboard-blockers"><div class="loading-state compact"><span>Carregando…</span></div></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Continuidade</span><h2>Riscos ao cliente</h2></div><button class="text-button" data-view-jump="continuity">Abrir controle</button></div><div class="action-list" id="dashboard-client-risks"><div class="loading-state compact"><span>Carregando…</span></div></div></section>
+            <section class="panel"><div class="panel-heading"><div><span class="eyebrow">Jornada</span><h2>Avanço por fase</h2></div><button class="text-button" data-view-jump="start">Ver jornada</button></div><div class="phase-progress-list" id="dashboard-phase-progress"><div class="loading-state compact"><span>Carregando…</span></div></div></section>
           </div>
 
           <div class="metrics-grid executive">

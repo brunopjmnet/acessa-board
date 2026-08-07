@@ -1481,6 +1481,14 @@ button.metric-card:hover::before { transform: translateX(4px); }
 /* Programa de integração e navegação orientada a ação */
 .simple-navigation { display: grid; gap: 6px; }
 #main-navigation > [hidden],.simple-navigation[hidden] { display: none !important; }
+html.js-loading #main-navigation > .nav-item,
+html.js-loading #main-navigation > .nav-group-label { display: none !important; }
+html.js-loading #simple-navigation { display: grid !important; }
+.loading-state { width: 100%; min-height: 100px; display: flex; flex-direction: column; justify-content: center; gap: 5px; color: var(--muted); }
+.loading-state p { margin: 0; }
+.loading-state.compact { min-height: 36px; }
+.loading-state::before { content: ""; width: 34px; height: 4px; border-radius: 99px; background: linear-gradient(90deg,var(--accent),#2dc6b5); animation: loading-pulse 1.2s ease-in-out infinite alternate; }
+@keyframes loading-pulse { to { width: 78px; opacity: .55; } }
 .overview-lead-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-bottom: 18px; }
 .overview-status-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin: 18px 0; }
 .program-phase-card,.next-step-card { min-height: 220px; display: flex; flex-direction: column; align-items: flex-start; }
