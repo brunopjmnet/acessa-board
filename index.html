@@ -37,9 +37,8 @@
   <body>
     <div class="app-shell">
       <header class="sidebar">
-        <button class="brand" type="button" data-view-jump="dashboard" aria-label="Ir para o Centro de comando">
+        <button class="brand" type="button" data-view-jump="dashboard" aria-label="Ir para o início">
           <img src="./logo_acessa_nordeste_grupo_preview.png" alt="Acessa" />
-          <div class="brand-workspace"><span>Acessa Board</span><small>Governança e integração empresarial</small></div>
         </button>
 
         <button class="nav-toggle" id="nav-toggle" type="button" aria-controls="main-navigation" aria-expanded="false"><span aria-hidden="true">☰</span><span>Menu</span></button>
@@ -56,7 +55,6 @@
           <span class="nav-group-label">Visão executiva</span>
           <button class="nav-item full-nav-item active" data-view="dashboard">Visão geral</button>
           <button class="nav-item" data-view="start" data-nav-section="Orientação">Começar a Acessa</button>
-          <button class="nav-item" data-view="program" data-nav-section="Orientação">Painel do programa</button>
           <button class="nav-item" data-view="continuity" data-nav-section="Orientação">Impacto zero ao cliente</button>
           <span class="nav-group-label">Integração</span>
           <button class="nav-item" data-view="implementation" data-nav-section="Planejamento">Jornada de implantação</button>
@@ -92,30 +90,30 @@
           <button class="nav-item" data-view="help" data-nav-section="Controle e conformidade">Ajuda e glossário</button>
         </nav>
 
-        <div class="sidebar-note">
-          <span>Ambiente corporativo</span>
-          <p>Base única para decisões, execução e integração da Acessa.</p>
-        </div>
       </header>
 
       <main class="main">
         <header class="topbar">
           <div class="topbar-identity">
-            <div class="topbar-monogram" aria-hidden="true">A</div>
             <div class="topbar-copy">
-              <p class="eyebrow">Acessa Board</p>
               <h1>Visão geral da Acessa</h1>
               <p class="topbar-subtitle">O que precisa avançar agora, sem perder o controle da integração.</p>
             </div>
           </div>
           <div class="top-actions">
-            <span class="cloud-status local" id="cloud-status" title="Os dados estão armazenados somente neste navegador">● Local</span>
-            <button class="ghost-button" id="navigation-mode-toggle" type="button">Modo completo</button>
-            <button class="ghost-button" id="export-backup" title="Exportar backup completo">Exportar</button>
-            <button class="ghost-button" id="import-backup" title="Restaurar um backup">Restaurar</button>
+            <span class="cloud-status local" id="cloud-status" title="Status da conexão corporativa">● Local</span>
+            <div class="util-menu" id="util-menu">
+              <button class="ghost-button util-menu-toggle" id="util-menu-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="Mais opções">⋯</button>
+              <div class="util-dropdown" id="util-dropdown" hidden>
+                <button class="util-item" id="navigation-mode-toggle" type="button">Modo completo</button>
+                <button class="util-item theme-toggle" id="theme-toggle" type="button" aria-pressed="false">◐ Tema escuro</button>
+                <hr class="util-separator" />
+                <button class="util-item" id="export-backup" type="button">Exportar backup</button>
+                <button class="util-item" id="import-backup" type="button">Restaurar backup</button>
+                <button class="util-item" id="email-summary" type="button">Enviar resumo por e-mail</button>
+              </div>
+            </div>
             <input id="backup-file" type="file" accept="application/json,.json" hidden />
-            <button class="ghost-button" id="email-summary">Resumo</button>
-            <button class="ghost-button theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Ativar tema escuro">◐ <span>Tema escuro</span></button>
             <button class="ghost-button" id="account-button" type="button" hidden>Entrar</button>
             <button class="primary-button" id="new-task">Nova tarefa</button>
           </div>
@@ -220,15 +218,11 @@
         </section>
 
         <section class="view" id="start">
-          <div class="section-heading"><div><p class="eyebrow">Guia prático</p><h2>Começar a Acessa</h2><p class="section-description">Percorra as oito fases, marque entregas concluídas e mantenha responsáveis, prazos e evidências visíveis.</p></div><button class="ghost-button" data-view-jump="program">Abrir painel do programa</button></div>
+          <div class="section-heading"><div><p class="eyebrow">Guia prático · Execução da integração</p><h2>Começar a Acessa</h2><p class="section-description">Percorra as oito fases, marque entregas concluídas e mantenha responsáveis, prazos e evidências visíveis.</p></div><button class="primary-button" id="new-program-record">Nova entrega</button></div>
+          <div class="hub-summary" id="program-dashboard"></div>
           <details class="help-box"><summary>Como usar esta jornada</summary><p>Abra uma fase, confira o objetivo e marque somente entregas comprovadas. Itens sem responsável, prazo ou evidência continuam sinalizados como incompletos.</p></details>
           <div class="journey-grid" id="start-journey"></div>
-        </section>
-
-        <section class="view" id="program">
-          <div class="section-heading"><div><p class="eyebrow">Execução da integração</p><h2>Painel do programa</h2><p class="section-description">Frentes, entregas, pendências e evidências em uma visão orientada a ação.</p></div><button class="primary-button" id="new-program-record">Nova entrega</button></div>
-          <div class="hub-summary" id="program-dashboard"></div>
-          <div class="program-front-grid" id="program-fronts"></div>
+          <div class="panel"><div class="panel-heading"><div><span class="eyebrow">Frentes do programa</span><h2>Áreas de trabalho</h2></div></div><div class="program-front-grid" id="program-fronts"></div></div>
           <div class="panel"><div class="panel-heading"><div><span class="eyebrow">Registros operacionais</span><h2>Entregas e pendências</h2></div></div><div class="hub-list" id="program-records"></div></div>
         </section>
 

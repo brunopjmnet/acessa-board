@@ -2096,7 +2096,7 @@ function renderProgramOverview() {
         ? { label: "Regularizar tarefa atrasada", detail: overdueTask.title, view: "board" }
         : pendingItem
           ? { label: "Avançar a próxima entrega da jornada", detail: pendingItem.label, view: "start" }
-          : { label: "Revisar o programa", detail: "Todas as entregas cadastradas estão concluídas.", view: "program" };
+          : { label: "Revisar o programa", detail: "Todas as entregas cadastradas estão concluídas.", view: "start" };
   document.querySelector("#next-step-card").innerHTML = `<span class="eyebrow">Próximo passo recomendado</span><h2>${escapeHtml(next.label)}</h2><p>${escapeHtml(next.detail || "Sem detalhe informado")}</p><button class="primary-button" type="button" data-view-jump="${next.view}">Avançar agora</button>`;
 
   const blockers = [
@@ -3940,6 +3940,28 @@ document.querySelector("#backup-file").addEventListener("change", async (event) 
     event.target.value = "";
   }
 });
+
+// Util menu dropdown (⋯ button in topbar)
+(function () {
+  const toggle = document.querySelector("#util-menu-toggle");
+  const dropdown = document.querySelector("#util-dropdown");
+  if (!toggle || !dropdown) return;
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = dropdown.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+  dropdown.addEventListener("click", () => {
+    dropdown.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!toggle.contains(e.target)) {
+      dropdown.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  });
+})();
 
 document.querySelector("#email-summary").addEventListener("click", () => {
   const open = state.tasks.filter((task) => !["done", "archived"].includes(task.status)).length;

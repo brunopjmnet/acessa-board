@@ -303,6 +303,41 @@ a {
   gap: 8px;
 }
 
+/* Utility dropdown (⋯ menu in topbar) */
+.util-menu { position: relative; }
+.util-menu-toggle { min-width: 38px; font-size: 16px; letter-spacing: 2px; padding-inline: 10px; }
+.util-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 300;
+  min-width: 210px;
+  padding: 5px 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+}
+.util-dropdown[hidden] { display: none; }
+.util-dropdown.open { display: block !important; }
+.util-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  min-height: unset;
+  line-height: 1.4;
+}
+.util-item:hover { background: var(--hover, rgba(0,0,0,0.05)); }
+.util-separator { margin: 5px 0; border: none; border-top: 1px solid var(--line); }
+
 .primary-button,
 .ghost-button,
 .text-button {
