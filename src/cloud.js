@@ -77,6 +77,113 @@ export async function listBoardProfiles() {
   return data || [];
 }
 
+function safeStorageFilename(name) {
+  const extension = String(name || "arquivo").split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  return `${crypto.randomUUID()}.${extension}`;
+}
+
+async function sha256Hex(file) {
+  const bytes = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+export async function listBoardArtifacts(workspaceId) {
+  if (!supabase || !workspaceId) return [];
+  const { data, error } = await supabase
+    .from("board_documents")
+    .select("*, board_document_signature_requests(id, signer_id, status, requested_at, signed_at), board_document_signatures(id, signer_id, signer_name, signed_at, authentication_aal)")
+    .eq("workspace_id", workspaceId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function uploadBoardArtifact({ workspaceId, file, title, category, confidentiality, relationType, relationId, artifactType, signatureLevel }) {
+  if (!supabase || !workspaceId) throw new Error("A conexão corporativa ainda não foi configurada.");
+  if (!(file instanceof File) || !file.size) throw new Error("Selecione um arquivo para anexar.");
+  if (file.size > 50 * 1024 * 1024) throw new Error("O arquivo deve ter no máximo 50 MB.");
+  const session = await getCloudSession();
+  if (!session) throw new Error("Entre novamente antes de anexar o arquivo.");
+  const sha256 = await sha256Hex(file);
+  const storagePath = `${workspaceId}/${relationType}/${relationId}/${safeStorageFilename(file.name)}`;
+  const { error: uploadError } = await supabase.storage.from("acessa-board-documents").upload(storagePath, file, {
+    contentType: file.type || "application/octet-stream",
+    upsert: false,
+  });
+  if (uploadError) throw uploadError;
+  const { data, error } = await supabase.from("board_documents").insert({
+    workspace_id: workspaceId,
+    title: String(title || file.name).trim(),
+    category: category || "Documento da fase",
+    confidentiality: confidentiality || "Interno",
+    status: signatureLevel === "none" ? "Vigente" : "Aguardando assinaturas",
+    storage_path: storagePath,
+    content_type: file.type || "application/octet-stream",
+    size_bytes: file.size,
+    original_filename: file.name,
+    sha256,
+    relation_type: relationType,
+    relation_id: relationId,
+    artifact_type: artifactType || "document",
+    signature_level: signatureLevel || "none",
+    created_by: session.user.id,
+    updated_by: session.user.id,
+  }).select("*").single();
+  if (error) {
+    await supabase.storage.from("acessa-board-documents").remove([storagePath]);
+    throw error;
+  }
+  return data;
+}
+
+export async function createBoardSignatureRequests(documentId, workspaceId, signerIds) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const session = await getCloudSession();
+  if (!session) throw new Error("Entre novamente para solicitar assinaturas.");
+  const uniqueSignerIds = [...new Set((signerIds || []).filter(Boolean))];
+  if (!uniqueSignerIds.length) return [];
+  const rows = uniqueSignerIds.map((signerId) => ({
+    workspace_id: workspaceId,
+    document_id: documentId,
+    signer_id: signerId,
+    requested_by: session.user.id,
+  }));
+  const { data, error } = await supabase.from("board_document_signature_requests").upsert(rows, {
+    onConflict: "document_id,signer_id",
+    ignoreDuplicates: true,
+  }).select("*");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function openBoardArtifact(storagePath) {
+  if (!supabase || !storagePath) throw new Error("Arquivo indisponível.");
+  const { data, error } = await supabase.storage.from("acessa-board-documents").createSignedUrl(storagePath, 300);
+  if (error) throw error;
+  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+}
+
+export async function reauthenticateForSignature(password) {
+  const session = await getCloudSession();
+  const email = session?.user?.email;
+  if (!email) throw new Error("Não foi possível identificar o e-mail da conta.");
+  await signIn(email, password);
+}
+
+export async function signBoardDocument(documentId, signerName) {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { data, error } = await supabase.rpc("board_sign_document", {
+    p_document_id: documentId,
+    p_signer_name: signerName,
+    p_consent_version: "acessa-signature-consent-v1",
+    p_user_agent: navigator.userAgent,
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function updateBoardProfile(userId, changes) {
   if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
   const allowed = {};

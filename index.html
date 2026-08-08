@@ -506,7 +506,7 @@
             <div>
               <p class="eyebrow">Central documental institucional</p>
               <h2>Contratos, atos societários e documentos de controle</h2>
-              <p class="data-disclaimer">Organize contrato social, acordo de sócios, MOU, atas, políticas, procurações e demais documentos. Nesta fase, registre o link do repositório seguro; o upload de arquivos será habilitado com o backend.</p>
+              <p class="data-disclaimer">Organize contrato social, acordo de sócios, MOU, atas, políticas e procurações. Arquivos ficam no repositório privado, podem ser vinculados a marcos ou reuniões e preservam histórico de assinatura.</p>
             </div>
             <button class="primary-button" id="new-document">Adicionar documento</button>
           </div>
@@ -682,6 +682,40 @@
         </div>
         <div id="simple-fields"></div>
         <button class="primary-button" type="submit">Salvar</button>
+      </form>
+    </dialog>
+
+    <dialog class="modal artifact-modal" id="artifact-modal">
+      <form class="modal-card" id="artifact-form">
+        <div class="modal-heading">
+          <div><p class="eyebrow">Dossiê digital</p><h2>Documentos, atas e assinaturas</h2></div>
+          <button class="icon-button" type="button" data-dialog-close="artifact-modal" aria-label="Fechar">×</button>
+        </div>
+        <p id="artifact-context-label" class="artifact-context-label"></p>
+        <section class="artifact-current"><h3>Arquivos vinculados</h3><div id="artifact-current-list"></div></section>
+        <div class="artifact-form-grid">
+          <label>Título do documento<input name="title" required placeholder="Ex.: MOU vinculante assinado" /></label>
+          <label>Arquivo<input name="file" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt" required /></label>
+          <label>Tipo de artefato<select name="artifactType"><option value="document">Documento da fase</option><option value="minutes">Ata</option><option value="transcript">Transcrição</option><option value="gemini_notes">Notas do Gemini</option><option value="summary">Resumo</option></select></label>
+          <label>Categoria<input name="category" value="Documento da fase" required /></label>
+          <label>Confidencialidade<select name="confidentiality"><option>Interno</option><option>Restrito</option><option>Conselho</option></select></label>
+          <label>Nível de assinatura<select name="signatureLevel"><option value="none">Não requer assinatura</option><option value="internal_advanced">Eletrônica interna com evidências</option><option value="qualified_icp_brasil">Qualificada ICP-Brasil (provedor externo)</option></select></label>
+        </div>
+        <fieldset class="artifact-signers"><legend>Signatários internos</legend><p>Selecione quem receberá a solicitação. Cada pessoa deverá entrar com seu próprio login e confirmar a senha.</p><div id="artifact-signer-list"></div></fieldset>
+        <p class="legal-note"><strong>Validade:</strong> o sistema preserva identidade autenticada, aceite, data/hora, hash SHA-256 e imutabilidade. Atos que por lei, registro ou política exijam certificado devem usar a opção ICP-Brasil e um provedor qualificado.</p>
+        <button class="primary-button" type="submit">Anexar ao dossiê</button>
+      </form>
+    </dialog>
+
+    <dialog class="modal signature-modal" id="signature-modal">
+      <form class="modal-card" id="signature-form">
+        <div class="modal-heading"><div><p class="eyebrow">Manifestação de vontade</p><h2>Assinar documento</h2></div><button class="icon-button" type="button" data-dialog-close="signature-modal" aria-label="Fechar">×</button></div>
+        <p id="signature-document-label" class="signature-document-label"></p>
+        <label>Seu nome completo<input name="signerName" autocomplete="name" required minlength="3" /></label>
+        <label>Confirme sua senha<input name="password" type="password" autocomplete="current-password" required /></label>
+        <label class="signature-consent"><input name="consent" type="checkbox" required /> Li o documento, concordo com seu conteúdo e manifesto minha vontade de assiná-lo eletronicamente. Reconheço que o hash acima identifica a versão assinada.</label>
+        <p class="auth-error" id="signature-message" role="alert"></p>
+        <button class="primary-button" type="submit">Confirmar assinatura</button>
       </form>
     </dialog>
 

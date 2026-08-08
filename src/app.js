@@ -1,15 +1,18 @@
 import {
   cloudConfigured,
+  createBoardSignatureRequests,
   createJaasMeetingSession,
   deleteBoardUser,
   isPasswordRecoveryRedirect,
   isUserInviteRedirect,
   inviteBoardUser,
+  listBoardArtifacts,
   listBoardProfiles,
   loadProtectedBusinessData,
   loadCloudContext,
   onAuthEvent,
   requestPasswordReset,
+  reauthenticateForSignature,
   saveCloudState,
   saveProtectedCompensation,
   saveProtectedConnection,
@@ -17,9 +20,12 @@ import {
   saveProtectedExpense,
   sanitizeSharedWorkspaceState,
   setBoardUserPassword,
+  signBoardDocument,
   signIn,
   signOut,
   subscribeToWorkspace,
+  uploadBoardArtifact,
+  openBoardArtifact,
   updateBoardProfile,
   updatePassword,
 } from "./cloud.js";
@@ -902,6 +908,14 @@ const onboardingContent = document.querySelector("#onboarding-content");
 const onboardingProgress = document.querySelector("#onboarding-progress");
 const onboardingNext = document.querySelector("#onboarding-next");
 const onboardingHide = document.querySelector("#onboarding-hide");
+const artifactModal = document.querySelector("#artifact-modal");
+const artifactForm = document.querySelector("#artifact-form");
+const artifactContextLabel = document.querySelector("#artifact-context-label");
+const artifactSignerList = document.querySelector("#artifact-signer-list");
+const signatureModal = document.querySelector("#signature-modal");
+const signatureForm = document.querySelector("#signature-form");
+const signatureDocumentLabel = document.querySelector("#signature-document-label");
+const signatureMessage = document.querySelector("#signature-message");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
@@ -915,6 +929,10 @@ let passwordTargetUserId = null;
 let passwordRecoveryPending = isPasswordRecoveryRedirect || isUserInviteRedirect;
 let navigationMode = storageGet("acessa-board-navigation") || "simple";
 let onboardingStep = 0;
+let artifactContext = null;
+let signatureDocumentId = null;
+let cloudArtifacts = [];
+let boardProfiles = [];
 const cloudContext = {
   configured: cloudConfigured,
   connected: false,
@@ -1273,6 +1291,16 @@ async function initializeCloud() {
       await persistStateToCloud();
     }
     await hydrateProtectedBusinessData();
+    try {
+      [cloudArtifacts, boardProfiles] = await Promise.all([
+        listBoardArtifacts(cloudContext.workspaceId),
+        listBoardProfiles(),
+      ]);
+    } catch (artifactError) {
+      console.warn("Não foi possível carregar os dossiês documentais.", artifactError);
+      cloudArtifacts = [];
+      boardProfiles = [];
+    }
     unsubscribeWorkspace();
     unsubscribeWorkspace = subscribeToWorkspace(cloudContext.workspaceId, (payload) => {
       const incomingVersion = Number(payload.new?.version ?? 0);
@@ -1626,10 +1654,128 @@ function renderImplementationHub() {
     <button class="hub-summary-card" type="button" data-view-jump="companies" aria-label="Abrir empresas fundadoras"><span>Empresas fundadoras</span><strong>${(state.companies || []).length}</strong><small>holdings serão sócias da Acessa</small></button>
     <button class="hub-summary-card" type="button" data-view-jump="diligence" aria-label="Abrir dados da base estimada"><span>Base estimada</span><strong>${totalCustomers.toLocaleString("pt-BR")}</strong><small>B2C e B2B; validar nas fontes</small></button>
     <button class="hub-summary-card" type="button" data-view-jump="cutover" aria-label="Abrir virada comercial"><span>Virada comercial</span><strong>01/01/27</strong><small>somente novas vendas</small></button>`;
-  document.querySelector("#milestone-list").innerHTML = milestones.map((item) => `
-    <article class="hub-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status)}</b><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`).join("");
+  document.querySelector("#milestone-list").innerHTML = milestones.map((item) => {
+    const artifacts = artifactsFor("milestone", item.id);
+    const pending = artifacts.reduce((total, artifact) => total + (artifact.board_document_signature_requests || []).filter((request) => request.status === "pending").length, 0);
+    return `<article class="hub-row milestone-row"><div><span>${escapeHtml(item.phase)}</span><h3>${escapeHtml(item.name)}</h3><small>${escapeHtml(item.owner)}${item.date ? ` · ${formatDate(item.date)}` : " · prazo a definir"}</small><div class="artifact-inline-status"><span>${artifacts.length} documento(s)</span>${pending ? `<span class="warning">${pending} assinatura(s) pendente(s)</span>` : ""}</div></div><div class="hub-actions"><b class="hub-status">${escapeHtml(item.status)}</b><button class="primary-button" type="button" data-artifact-context="milestone" data-artifact-id="${item.id}">Dossiê e assinaturas</button><button class="ghost-button" type="button" data-edit-id="${item.id}">Editar</button></div></article>`;
+  }).join("");
   bindSimpleActions("milestone", "#milestone-list");
+  bindArtifactActions(document.querySelector("#milestone-list"));
 }
+
+function artifactsFor(relationType, relationId) {
+  return cloudArtifacts.filter((artifact) => artifact.relation_type === relationType && artifact.relation_id === relationId);
+}
+
+function artifactSignatureStatus(artifact) {
+  const requests = artifact.board_document_signature_requests || [];
+  if (artifact.signature_level === "qualified_icp_brasil") return "Assinatura ICP-Brasil externa";
+  if (!requests.length) return artifact.signature_level === "none" ? "Sem assinatura" : "Signatários não definidos";
+  return `${requests.filter((request) => request.status === "signed").length}/${requests.length} assinaturas`;
+}
+
+function artifactListHtml(relationType, relationId) {
+  const artifacts = artifactsFor(relationType, relationId);
+  if (!artifacts.length) return `<p class="artifact-empty">Nenhum arquivo anexado a este registro.</p>`;
+  return artifacts.map((artifact) => {
+    const ownRequest = (artifact.board_document_signature_requests || []).find((request) => request.signer_id === cloudContext.currentUserId && request.status === "pending");
+    return `<article class="artifact-row"><div><strong>${escapeHtml(artifact.title)}</strong><small>${escapeHtml(artifact.original_filename || artifact.category)} · SHA-256 ${escapeHtml(String(artifact.sha256 || "").slice(0, 12))}…</small></div><span class="tag ${ownRequest ? "warning" : ""}">${escapeHtml(artifactSignatureStatus(artifact))}</span><div class="artifact-row-actions"><button class="ghost-button" type="button" data-open-artifact="${artifact.id}">Abrir</button>${ownRequest ? `<button class="primary-button" type="button" data-sign-artifact="${artifact.id}">Assinar</button>` : ""}</div></article>`;
+  }).join("");
+}
+
+async function openArtifactModal(relationType, relationId) {
+  if (!cloudContext.connected) return window.alert("Entre no Acessa Board corporativo para anexar arquivos e coletar assinaturas.");
+  const related = relationType === "milestone" ? state.milestones.find((item) => item.id === relationId) : state.meetings.find((item) => item.id === relationId);
+  artifactContext = { relationType, relationId };
+  artifactForm.reset();
+  artifactContextLabel.textContent = `${relationType === "milestone" ? "Marco" : "Reunião"}: ${related?.name || related?.title || relationId}`;
+  artifactForm.elements.artifactType.value = relationType === "meeting" ? "minutes" : "document";
+  artifactSignerList.innerHTML = boardProfiles.map((profile) => `<label class="check-row"><input type="checkbox" name="signerIds" value="${escapeHtml(profile.user_id)}" /> ${escapeHtml(profile.display_name || "Usuário")} <small>${escapeHtml(profile.role)}</small></label>`).join("") || `<p class="muted">Seu perfil não pode listar outros usuários. Um administrador poderá definir os signatários.</p>`;
+  document.querySelector("#artifact-current-list").innerHTML = artifactListHtml(relationType, relationId);
+  artifactModal.showModal();
+  bindArtifactActions(document.querySelector("#artifact-current-list"));
+}
+
+function bindArtifactActions(container) {
+  container?.querySelectorAll("[data-artifact-context]").forEach((button) => button.addEventListener("click", () => openArtifactModal(button.dataset.artifactContext, button.dataset.artifactId)));
+  container?.querySelectorAll("[data-open-artifact]").forEach((button) => button.addEventListener("click", async () => {
+    const artifact = cloudArtifacts.find((item) => item.id === button.dataset.openArtifact);
+    try { await openBoardArtifact(artifact?.storage_path); } catch (error) { window.alert(error instanceof Error ? error.message : "Não foi possível abrir o arquivo."); }
+  }));
+  container?.querySelectorAll("[data-sign-artifact]").forEach((button) => button.addEventListener("click", () => openSignatureModal(button.dataset.signArtifact)));
+}
+
+function openSignatureModal(documentId) {
+  const artifact = cloudArtifacts.find((item) => item.id === documentId);
+  if (!artifact) return;
+  if (artifactModal?.open) artifactModal.close();
+  signatureDocumentId = documentId;
+  signatureForm.reset();
+  signatureMessage.textContent = "";
+  signatureDocumentLabel.textContent = `${artifact.title} · SHA-256 ${artifact.sha256}`;
+  signatureModal.showModal();
+}
+
+artifactForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!artifactContext) return;
+  const button = artifactForm.querySelector("button[type='submit']");
+  const form = new FormData(artifactForm);
+  const file = artifactForm.elements.file.files[0];
+  button.disabled = true;
+  button.textContent = "Protegendo e anexando...";
+  try {
+    const artifact = await uploadBoardArtifact({
+      workspaceId: cloudContext.workspaceId,
+      file,
+      title: form.get("title"),
+      category: form.get("category"),
+      confidentiality: form.get("confidentiality"),
+      relationType: artifactContext.relationType,
+      relationId: artifactContext.relationId,
+      artifactType: form.get("artifactType"),
+      signatureLevel: form.get("signatureLevel"),
+    });
+    const signerIds = form.getAll("signerIds");
+    if (form.get("signatureLevel") === "internal_advanced" && signerIds.length) {
+      await createBoardSignatureRequests(artifact.id, cloudContext.workspaceId, signerIds);
+    }
+    cloudArtifacts = await listBoardArtifacts(cloudContext.workspaceId);
+    logAudit("documento_anexado", "board_documents", artifact, `${artifactContext.relationType}:${artifactContext.relationId}`);
+    saveState();
+    artifactModal.close();
+    render();
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : "Não foi possível anexar o documento.");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Anexar ao dossiê";
+  }
+});
+
+signatureForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!signatureDocumentId) return;
+  const button = signatureForm.querySelector("button[type='submit']");
+  const form = new FormData(signatureForm);
+  button.disabled = true;
+  button.textContent = "Registrando assinatura...";
+  signatureMessage.textContent = "Confirmando sua identidade e a integridade do arquivo...";
+  try {
+    await reauthenticateForSignature(String(form.get("password") || ""));
+    await signBoardDocument(signatureDocumentId, String(form.get("signerName") || ""));
+    cloudArtifacts = await listBoardArtifacts(cloudContext.workspaceId);
+    signatureModal.close();
+    signatureDocumentId = null;
+    render();
+    window.alert("Assinatura registrada com hash do arquivo e trilha de auditoria.");
+  } catch (error) {
+    signatureMessage.textContent = error instanceof Error ? error.message : "Não foi possível assinar o documento.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Confirmar assinatura";
+  }
+});
 
 async function hydrateProtectedBusinessData() {
   if (!cloudContext.connected || !cloudContext.workspaceId) return;
@@ -2697,6 +2843,7 @@ function renderMeetingCard(meeting) {
   const whatsapp = encodeURIComponent(`Lembrete Acessa: ${meeting.title} em ${formatDate(meeting.date)} às ${meeting.time}. Pauta: ${meeting.agenda}`);
   const statusClass = meeting.status === "Realizada" ? "done" : meeting.status === "Cancelada" ? "cancelled" : "scheduled";
   const minutesLink = /^https?:/i.test(meeting.minutesLink || "") ? `<a class="ghost-button" href="${escapeHtml(meeting.minutesLink)}" target="_blank" rel="noreferrer">Ata assinada</a>` : "";
+  const googleMeetLink = /^https:\/\/meet\.google\.com\//i.test(meeting.googleMeetUrl || "") ? `<a class="primary-button" href="${escapeHtml(meeting.googleMeetUrl)}" target="_blank" rel="noreferrer">Entrar no Google Meet</a>` : "";
   return `
     <article class="meeting-card">
       <div class="meeting-card-header">
@@ -2712,9 +2859,12 @@ function renderMeetingCard(meeting) {
         <div><span>Participantes</span><p>${escapeHtml(meeting.participants || "A definir")}</p></div>
       </div>
       <div class="meeting-agenda"><span>Pauta</span><p>${escapeHtml(meeting.agenda || "Pauta pendente")}</p></div>
+      ${meeting.geminiSummary ? `<div class="meeting-gemini-summary"><span>Resumo Gemini</span><p>${escapeHtml(meeting.geminiSummary)}</p>${safeMeetingUrl(meeting.geminiNotesUrl) ? `<a href="${escapeHtml(meeting.geminiNotesUrl)}" target="_blank" rel="noreferrer">Abrir notas no Google Docs</a>` : ""}</div>` : ""}
       <details class="meeting-details"><summary>Abrir controle: decisões, tarefas, pendências, assuntos adiados e ata</summary><div class="meeting-materials"><span>Materiais prévios</span><p>${escapeHtml(meeting.materials || "Nenhum material vinculado.")}</p></div>${renderMeetingControl(meeting)}</details>
       <div class="card-actions">
         <button class="primary-button" type="button" data-room-id="${meeting.id}">Entrar na sala JaaS</button>
+        ${googleMeetLink}
+        <button class="primary-button" type="button" data-artifact-context="meeting" data-artifact-id="${meeting.id}">Atas e anexos</button>
         <button class="ghost-button" type="button" data-calendar-id="${meeting.id}">Calendário</button>
         <a class="ghost-button" href="mailto:?subject=${subject}&body=${body}">Email</a>
         <a class="ghost-button" href="https://wa.me/?text=${whatsapp}" target="_blank" rel="noreferrer">WhatsApp</a>
@@ -2731,6 +2881,7 @@ function bindMeetingUtilities(container) {
   container.querySelectorAll("[data-room-id]").forEach((button) => button.addEventListener("click", () => openMeetingRoom(button.dataset.roomId)));
   container.querySelectorAll("[data-calendar-id]").forEach((button) => button.addEventListener("click", () => downloadMeetingCalendar(button.dataset.calendarId)));
   container.querySelectorAll("[data-print-minutes]").forEach((button) => button.addEventListener("click", () => printMeetingMinutes(button.dataset.printMinutes)));
+  bindArtifactActions(container);
   if (container.id === "meeting-next") container.querySelectorAll("[data-edit-id]").forEach((button) => button.addEventListener("click", () => openSimpleModal("meeting", button.dataset.editId)));
 }
 
@@ -2847,7 +2998,9 @@ function downloadMeetingCalendar(id) {
 }
 
 function renderDocuments() {
-  document.querySelector("#document-grid").innerHTML = state.documents.filter((doc) => !doc.archivedAt).map((doc) => `
+  const protectedCards = cloudArtifacts.map((doc) => `
+    <article class="document-card protected-document-card"><div><span class="eyebrow">Arquivo protegido</span><h3>${escapeHtml(doc.title)}</h3><p class="muted">${escapeHtml(doc.relation_type || "workspace")} · ${escapeHtml(doc.artifact_type || "document")}</p></div><div class="tag-row"><span class="tag">${escapeHtml(doc.category)}</span><span class="tag violet">${escapeHtml(artifactSignatureStatus(doc))}</span><span class="tag ${doc.confidentiality === "Restrito" ? "warning" : ""}">${escapeHtml(doc.confidentiality)}</span></div><dl class="kpi-details"><div><dt>Arquivo</dt><dd>${escapeHtml(doc.original_filename || "Protegido")}</dd></div><div><dt>Integridade</dt><dd>SHA-256 ${escapeHtml(String(doc.sha256 || "").slice(0, 16))}…</dd></div><div><dt>Status</dt><dd>${escapeHtml(doc.status)}</dd></div><div><dt>Versão</dt><dd>${escapeHtml(doc.version || "1.0")}</dd></div></dl><div class="card-actions"><button class="ghost-button" type="button" data-open-artifact="${doc.id}">Abrir arquivo</button>${(doc.board_document_signature_requests || []).some((request) => request.signer_id === cloudContext.currentUserId && request.status === "pending") ? `<button class="primary-button" type="button" data-sign-artifact="${doc.id}">Assinar</button>` : ""}</div></article>`).join("");
+  const legacyCards = state.documents.filter((doc) => !doc.archivedAt).map((doc) => `
     <article class="document-card">
       <div>
         <h3>${escapeHtml(doc.title)}</h3>
@@ -2873,7 +3026,9 @@ function renderDocuments() {
       </div>
     </article>
   `).join("");
+  document.querySelector("#document-grid").innerHTML = protectedCards + legacyCards;
   bindSimpleActions("document", "#document-grid");
+  bindArtifactActions(document.querySelector("#document-grid"));
 }
 
 function renderAudits() {
@@ -3279,6 +3434,10 @@ const simpleConfigs = {
       ["agenda", "Pauta detalhada", "textarea"],
       ["materials", "Materiais prévios e links", "textarea", false],
       ["roomUrl", "Link externo alternativo (opcional)", "text", false],
+      ["googleMeetUrl", "Link do Google Meet", "text", false],
+      ["googleCalendarEventId", "ID do evento no Google Agenda", "text", false],
+      ["geminiNotesUrl", "Link das notas do Gemini no Google Docs", "text", false],
+      ["geminiSummary", "Resumo importado do Gemini", "textarea", false],
       ["decisions", "Decisões tomadas — uma por linha", "textarea", false],
       ["previousPendings", "Pendências da reunião anterior", "textarea", false],
       ["taskPlan", "Tarefas criadas — uma por linha: Tarefa | Responsável | AAAA-MM-DD", "textarea", false],
@@ -3714,7 +3873,7 @@ document.querySelector("#back-to-meetings").addEventListener("click", () => {
   setView("meetings");
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
-document.querySelector("#new-document").addEventListener("click", () => openSimpleModal("document"));
+document.querySelector("#new-document").addEventListener("click", () => openArtifactModal("workspace", "general"));
 document.querySelector("#new-person").addEventListener("click", () => openSimpleModal("person"));
 document.querySelector("#new-kpi").addEventListener("click", () => openSimpleModal("kpi"));
 document.querySelector("#new-process").addEventListener("click", () => openSimpleModal("process"));
