@@ -2171,7 +2171,6 @@ function renderSynergies() {
 function renderExpansion() {
   const opportunities = (state.expansionOpportunities || []).filter((item) => !item.archivedAt);
   document.querySelector("#expansion-pipeline").innerHTML = expansionStages.map((stage) => `<section class="pipeline-stage"><div><span>Etapa</span><h3>${escapeHtml(stage)}</h3></div>${opportunities.filter((item) => item.stage === stage).map((item) => `<article><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.location || "Local não definido")}</p><small>${escapeHtml(item.owner || "Responsável não definido")}</small><button class="text-button" data-edit-id="${item.id}">Editar</button></article>`).join("") || `<small>Nenhuma oportunidade</small>`}</section>`).join("");
-  document.querySelector("#expansion-slides").innerHTML = ["Tese de crescimento", "Mapa de territórios", "Modalidades de expansão", "Critérios de seleção", "Mercado e demanda", "Rede e capacidade", "Operação e pessoas", "Modelo financeiro", "Riscos", "Sinergias", "Governança", "Pipeline", "Próximas decisões", "Plano de 90 dias"].map((title, index) => `<article class="expansion-slide"><span>${index + 1}</span><h3>${escapeHtml(title)}</h3><p>Preencher com fonte, período de referência, responsável e evidência antes da apresentação decisória.</p></article>`).join("");
   bindSimpleActions("opportunity", "#expansion-pipeline");
 }
 
