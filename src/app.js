@@ -1690,7 +1690,7 @@ async function openArtifactModal(relationType, relationId) {
   artifactForm.reset();
   artifactContextLabel.textContent = `${relationType === "milestone" ? "Marco" : "Reunião"}: ${related?.name || related?.title || relationId}`;
   artifactForm.elements.artifactType.value = relationType === "meeting" ? "minutes" : "document";
-  artifactSignerList.innerHTML = boardProfiles.map((profile) => `<label class="check-row"><input type="checkbox" name="signerIds" value="${escapeHtml(profile.user_id)}" /> ${escapeHtml(profile.display_name || "Usuário")} <small>${escapeHtml(profile.role)}</small></label>`).join("") || `<p class="muted">Seu perfil não pode listar outros usuários. Um administrador poderá definir os signatários.</p>`;
+  artifactSignerList.innerHTML = boardProfiles.map((profile) => `<label class="artifact-signer-option"><input type="checkbox" name="signerIds" value="${escapeHtml(profile.user_id)}" /><span><strong>${escapeHtml(profile.display_name || "Usuário")}</strong><small>${escapeHtml(profile.role)}</small></span></label>`).join("") || `<p class="muted">Seu perfil não pode listar outros usuários. Um administrador poderá definir os signatários.</p>`;
   document.querySelector("#artifact-current-list").innerHTML = artifactListHtml(relationType, relationId);
   artifactModal.showModal();
   bindArtifactActions(document.querySelector("#artifact-current-list"));

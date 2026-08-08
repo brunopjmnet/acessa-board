@@ -2504,7 +2504,8 @@ th { font-size: 12px !important; }
 .artifact-inline-status { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
 .artifact-inline-status span { padding: 4px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 800; }
 .artifact-inline-status .warning { background: #fff3d8; color: #805400; }
-.artifact-modal .modal-card { width: min(980px,calc(100vw - 30px)); }
+.artifact-modal { width: min(980px,calc(100% - 28px)); max-width: 980px; }
+.artifact-modal .modal-card { width: 100%; min-width: 0; max-height: calc(100dvh - 28px); overflow-x: hidden; overflow-y: auto; }
 .artifact-context-label,.signature-document-label { padding: 12px 14px; border-radius: 11px; background: var(--surface-2); font-weight: 800; overflow-wrap: anywhere; }
 .artifact-current { padding: 15px; border: 1px solid var(--line); border-radius: 13px; }
 .artifact-current h3 { margin: 0 0 10px; font-size: 15px; }
@@ -2519,6 +2520,12 @@ th { font-size: 12px !important; }
 .artifact-signers legend { padding: 0 7px; font-weight: 850; }
 .artifact-signers > p { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
 #artifact-signer-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; max-height: 180px; overflow: auto; }
+.artifact-signer-option { display: grid !important; grid-template-columns: 20px minmax(0,1fr); align-items: center; gap: 10px !important; min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); cursor: pointer; }
+.artifact-signer-option:hover { border-color: #aaa2ec; }
+.artifact-signer-option input[type="checkbox"] { width: 18px; min-width: 18px; height: 18px; min-height: 18px; margin: 0; padding: 0; accent-color: var(--brand); }
+.artifact-signer-option span,.artifact-signer-option strong,.artifact-signer-option small { display: block; min-width: 0; }
+.artifact-signer-option strong { overflow: hidden; color: var(--text); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.artifact-signer-option small { margin-top: 2px; color: var(--muted); font-size: 10px; text-transform: capitalize; }
 .legal-note { margin: 0; padding: 13px 15px; border: 1px solid #e6c47d; border-radius: 12px; background: #fff8e9; color: #654b19; font-size: 12px; line-height: 1.55; }
 .signature-consent { display: grid !important; grid-template-columns: auto 1fr; align-items: start; gap: 10px !important; padding: 14px; border: 1px solid var(--line); border-radius: 12px; line-height: 1.5; }
 .signature-consent input { margin-top: 3px; }
@@ -2528,7 +2535,7 @@ th { font-size: 12px !important; }
 .meeting-gemini-summary a { color: var(--brand-dark); font-weight: 800; }
 html[data-theme="dark"] .legal-note { border-color: #735d32; background: #3d311c; color: #f2d596; }
 html[data-theme="dark"] .meeting-gemini-summary { border-color: #4d487e; background: linear-gradient(120deg,#28254c,#171b2c); }
-@media (max-width: 700px) { .artifact-form-grid,#artifact-signer-list { grid-template-columns: 1fr; } .artifact-row { grid-template-columns: 1fr; } .milestone-row { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 700px) { .artifact-modal { width: calc(100% - 16px); } .artifact-modal .modal-card { max-height: calc(100dvh - 16px); padding: 16px; } .artifact-form-grid,#artifact-signer-list { grid-template-columns: 1fr; } .artifact-row { grid-template-columns: 1fr; } .milestone-row { align-items: flex-start; flex-direction: column; } }
 .expense-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .expense-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .expense-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
