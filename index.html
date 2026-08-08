@@ -80,7 +80,6 @@
           <button class="nav-item" data-view="expenses" data-nav-section="Financeiro e contratos">Despesas compartilhadas</button>
           <button class="nav-item" data-view="supplier-contracts" data-nav-section="Financeiro e contratos">Contratos e custos</button>
           <button class="nav-item" data-view="career" data-nav-section="Pessoas e estrutura">Cargos e carreira</button>
-          <button class="nav-item" data-view="org" data-nav-section="Pessoas e estrutura">Organograma</button>
           <button class="nav-item" data-view="connectors" data-nav-section="Sistemas e segurança">Integrações</button>
           <button class="nav-item" data-view="ai-hub" data-nav-section="Sistemas e segurança">AI Hub</button>
           <button class="nav-item" id="users-nav" data-view="users" data-nav-section="Sistemas e segurança" hidden>Usuários e acessos</button>
@@ -229,6 +228,12 @@
         <section class="view" id="companies">
           <div class="section-heading"><div><p class="eyebrow">Seis grupos, uma nova companhia</p><h2>Empresas, holdings e participações</h2><p class="data-disclaimer">Participações seguem o MOU. Quantidades de clientes são estimativas até validação nos sistemas.</p></div><button class="primary-button" id="new-company">Nova empresa</button></div>
           <div class="company-grid" id="company-grid"></div>
+          <div class="connector-section" id="company-connectors" style="margin-top:2rem">
+            <div class="section-heading" style="margin-bottom:1rem"><div><p class="eyebrow">Sistemas e segurança</p><h3>Integrações via API</h3><p class="data-disclaimer">Cada empresa configura sua própria conexão com IXC, SGP, ERP ou contabilidade.</p></div><button class="primary-button" id="new-connector">Novo conector</button></div>
+            <div class="transition-rule"><strong>Ordem segura</strong><p>Definir campos → criar usuário somente leitura → testar em ambiente controlado → conferir totais → registrar a sincronização → somente depois automatizar. Senhas e tokens nunca devem ser digitados nos campos comuns do Hub.</p></div>
+            <div class="diligence-grid connector-grid" id="connector-grid"></div>
+            <p class="data-disclaimer" style="margin-top:1.5rem">🔜 <em>Futuramente: cada empresa terá sua própria configuração de integração inline, com seleção de quais dados alimentar no Hub (clientes, receita, tickets, estoque). Esta seção será expandida conforme as conexões forem homologadas.</em></p>
+          </div>
         </section>
 
         <section class="view" id="decisions">
@@ -297,11 +302,6 @@
           <div class="expense-list" id="supplier-contract-list"></div>
         </section>
 
-        <section class="view" id="connectors">
-          <div class="section-heading"><div><p class="eyebrow">Dados automáticos e importações</p><h2>Integrações com IXC, SGP e contabilidade</h2><p class="data-disclaimer">Esta tela registra o escopo e a prontidão. Senhas e tokens nunca devem ser digitados nos campos comuns do Hub.</p></div><button class="primary-button" id="new-connector">Novo conector</button></div>
-          <div class="transition-rule"><strong>Ordem segura</strong><p>Definir campos → criar usuário somente leitura → testar em ambiente controlado → conferir totais → registrar a sincronização → somente depois automatizar.</p></div>
-          <div class="diligence-grid connector-grid" id="connector-grid"></div>
-        </section>
 
         <section class="view" id="governance">
           <div class="section-heading">
@@ -522,10 +522,14 @@
               <p class="eyebrow">Governança</p>
               <h2>Organograma executivo Acessa</h2>
             </div>
-            <button class="primary-button" id="new-person">Adicionar pessoa</button>
           </div>
-          <div class="org-chart" id="org-chart"></div>
-          <div class="org-grid" id="org-grid"></div>
+          <div class="transition-rule">
+            <strong>Diagrama externo</strong>
+            <p>O organograma é mantido no LucidChart para facilitar edições colaborativas e exportações. Clique no botão abaixo para abrir.</p>
+          </div>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:1rem 0">
+            <a href="https://lucid.app" target="_blank" rel="noopener noreferrer" class="primary-button" style="text-decoration:none">Abrir no LucidChart →</a>
+          </div>
         </section>
         <section class="view ai-hub-view" id="ai-hub">
           <div class="section-heading ai-hub-heading">

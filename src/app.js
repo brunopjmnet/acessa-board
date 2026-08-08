@@ -1639,7 +1639,7 @@ function render() {
   renderPeopleTransition();
   renderDueDiligence();
   renderSupplierContracts();
-  renderConnectors();
+  renderConnectors();  // renders into #connector-grid inside #companies
   renderMetrics();
   renderWeeklyPlan();
   renderDashboardLists();
@@ -1654,8 +1654,7 @@ function render() {
   renderDocuments();
   renderAudits();
   renderArchive();
-  renderPeople();
-  renderOrgChart();
+  // renderPeople() and renderOrgChart() removed — org page replaced by LucidChart link
   applyAccessMode();
 }
 
@@ -3891,7 +3890,7 @@ document.querySelector("#back-to-meetings").addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 document.querySelector("#new-document").addEventListener("click", () => openArtifactModal("workspace", "general"));
-document.querySelector("#new-person").addEventListener("click", () => openSimpleModal("person"));
+document.querySelector("#new-person")?.addEventListener("click", () => openSimpleModal("person"));
 document.querySelector("#new-kpi").addEventListener("click", () => openSimpleModal("kpi"));
 document.querySelector("#new-process").addEventListener("click", () => openSimpleModal("process"));
 document.querySelector("#new-governance").addEventListener("click", () => openSimpleModal("governance"));
