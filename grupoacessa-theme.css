@@ -662,3 +662,91 @@ html[data-theme="dark"] #board .column.has-tasks { background: rgba(79,70,229,.0
   .task-details-grid { grid-template-columns: 1fr; }
   .task-details-grid section.full { grid-column: auto; }
 }
+
+/* Painel AVIX: visão geral, operação, evolução estratégica e reuniões */
+#board .board-heading { margin-bottom: 14px; }
+.avix-tabs { display: flex; gap: 6px; margin-bottom: 16px; padding: 5px; border: 1px solid #dfe4ef; border-radius: 12px; background: rgba(255,255,255,.78); width: fit-content; max-width: 100%; overflow-x: auto; }
+.avix-tabs button { border: 0; border-radius: 8px; padding: 9px 14px; background: transparent; color: #5d6679; font: inherit; font-size: 12px; font-weight: 750; white-space: nowrap; cursor: pointer; }
+.avix-tabs button.active { background: #5748e8; color: #fff; box-shadow: 0 4px 12px rgba(73,61,205,.22); }
+.avix-panel[hidden] { display: none !important; }
+.avix-panel { animation: avix-panel-in .18s ease-out; }
+@keyframes avix-panel-in { from { opacity: .5; transform: translateY(3px); } }
+.avix-overview-metrics { display: grid; grid-template-columns: repeat(8, minmax(112px, 1fr)); gap: 8px; }
+.avix-overview-metrics article { min-height: 92px; padding: 13px; border: 1px solid #e1e5ee; border-radius: 12px; background: rgba(255,255,255,.86); display: flex; flex-direction: column; }
+.avix-overview-metrics span { color: #687187; font-size: 11px; font-weight: 750; }
+.avix-overview-metrics strong { margin: 5px 0 2px; color: #151a2b; font-size: 23px; line-height: 1; }
+.avix-overview-metrics small { margin-top: auto; color: #7b8496; font-size: 10px; }
+.avix-overview-metrics .danger { border-top: 3px solid #dc3b45; }
+.avix-overview-metrics .progress { border-top: 3px solid #5748e8; }
+.avix-overview-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 12px; margin-top: 12px; }
+.avix-content-card, .avix-strategic-card, .avix-meeting-row { border: 1px solid #dfe4ef; border-radius: 14px; background: rgba(255,255,255,.88); box-shadow: 0 4px 16px rgba(27,35,69,.04); }
+.avix-content-card { padding: 18px; }
+.avix-card-heading, .avix-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.avix-card-heading h3, .avix-panel-heading h3 { margin: 3px 0 0; color: #151a2b; font-size: 18px; }
+.avix-panel-heading { margin: 4px 0 14px; }
+.avix-panel-heading p { margin: 5px 0 0; max-width: 720px; color: #697286; font-size: 12px; }
+.avix-advance-list { display: grid; margin-top: 12px; }
+.avix-advance-list article { display: flex; gap: 10px; padding: 11px 0; border-top: 1px solid #edf0f5; }
+.avix-advance-list article:first-child { border-top: 0; }
+.avix-advance-list strong, .avix-next-card strong { display: block; color: #252b3b; font-size: 12px; }
+.avix-advance-list small { display: block; margin-top: 3px; color: #7a8395; font-size: 10px; }
+.avix-advance-icon { width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%; display: grid; place-items: center; background: #e9f7f0; color: #168158; font-weight: 800; }
+.avix-next-card { display: flex; gap: 14px; margin-top: 15px; }
+.avix-next-card p { margin: 5px 0 9px; color: #697286; font-size: 11px; line-height: 1.45; }
+.avix-meeting-date { width: 86px; flex: 0 0 86px; padding: 10px; border-radius: 10px; background: #f0efff; text-align: center; }
+.avix-meeting-date strong, .avix-meeting-date small { display: block; }
+.avix-meeting-date strong { font-size: 11px; color: #3f36bd; white-space: nowrap; }
+.avix-meeting-date small { margin-top: 4px; font-size: 11px; color: #697286; }
+.avix-status { display: inline-flex; align-items: center; width: fit-content; padding: 4px 7px; border-radius: 999px; background: #eef1f6; color: #596276; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.status-em-andamento, .status-scheduled { background: #e9f1ff; color: #2765bf; }
+.status-concluido { background: #e9f7f0; color: #168158; }
+.status-aguardando-decisao, .status-em-definicao { background: #fff2dc; color: #a55b08; }
+.status-history, .status-em-estudo { background: #eef1f6; color: #596276; }
+.avix-strategic-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.avix-strategic-card { padding: 17px; }
+.avix-strategic-card header { display: flex; justify-content: space-between; gap: 14px; }
+.avix-strategic-card h4 { margin: 7px 0 0; color: #161b2c; font-size: 16px; }
+.avix-strategic-card header > strong { color: #5145d9; font-size: 20px; }
+.avix-progress { height: 7px; margin: 13px 0 15px; overflow: hidden; border-radius: 99px; background: #eaedf3; }
+.avix-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#6254ef,#29a7c8); }
+.avix-strategic-card dl { display: grid; gap: 10px; margin: 0; }
+.avix-strategic-card dl > div { padding-top: 9px; border-top: 1px solid #edf0f5; }
+.avix-strategic-card dt { color: #6c7589; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.avix-strategic-card dd { margin: 5px 0 0; color: #303748; font-size: 11px; line-height: 1.5; }
+.avix-strategic-card ul { margin: 0; padding-left: 17px; }
+.avix-strategic-card footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #edf0f5; color: #677085; font-size: 10px; }
+.avix-strategic-card footer button { margin-left: auto; }
+.avix-meeting-list { display: grid; gap: 10px; }
+.avix-meeting-row { display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 15px; padding: 15px; }
+.avix-meeting-row h4 { margin: 5px 0; color: #181d2e; }
+.avix-meeting-row p { margin: 0 0 5px; color: #616a7d; font-size: 11px; }
+.avix-meeting-row small { color: #7a8395; font-size: 10px; }
+.avix-meeting-actions { display: flex; align-items: center; gap: 7px; }
+#board .board-toolbar { grid-template-columns: 1.25fr repeat(8,minmax(125px,1fr)) auto; overflow-x: auto; }
+.task-project { margin: -1px 0 9px; color: #7a8394; font-size: 10px; }
+.task-indicators .has-evidence { color: #147a55; background: #eaf7f1; }
+.task-indicators .no-evidence { color: #7f8798; }
+.avix-list-head, .avix-list-row { grid-template-columns: minmax(210px,1.5fr) minmax(130px,1fr) minmax(130px,1fr) 130px 95px 80px 115px 85px 95px 36px !important; min-width: 1250px; }
+.board-list { overflow-x: auto; }
+.avix-list-head button { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
+.task-evidence-required { flex-direction: row !important; align-items: center; gap: 8px !important; }
+.task-evidence-required input { width: auto !important; }
+.task-history { margin: 0; padding-left: 18px; }
+.task-history li { margin: 6px 0; }
+.task-history small { display: block; color: #727b8d; }
+
+@media (max-width: 1180px) {
+  .avix-overview-metrics { grid-template-columns: repeat(4,1fr); }
+  .avix-strategic-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .avix-tabs { width: 100%; }
+  .avix-overview-metrics { grid-template-columns: repeat(2,1fr); }
+  .avix-overview-grid { grid-template-columns: 1fr; }
+  .avix-strategic-card { padding: 14px; }
+  .avix-meeting-row { grid-template-columns: 76px 1fr; align-items: start; }
+  .avix-meeting-date { width: 70px; flex-basis: 70px; }
+  .avix-meeting-actions { grid-column: 1 / -1; }
+  .avix-panel-heading { flex-direction: column; }
+  .avix-panel-heading .primary-button { width: 100%; }
+}

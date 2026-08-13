@@ -418,12 +418,26 @@
         <section class="view" id="board">
           <div class="section-heading board-heading">
             <div>
-              <p class="eyebrow">Projeto · Implantação</p>
-              <h2>Plano de ação da Acessa</h2>
-              <p class="section-description">Acompanhe responsáveis, entregas, prazos, bloqueios e evidências.</p>
+              <p class="eyebrow">Projeto AVIX · Gestão integrada</p>
+              <h2>Plano de ação e evolução do AVIX</h2>
+              <p class="section-description">Acompanhe decisões, responsáveis, entregas, prazos e evidências das reuniões do grupo.</p>
             </div>
             <button class="primary-button" id="new-task-board" type="button">Nova tarefa</button>
           </div>
+          <nav class="avix-tabs" aria-label="Seções do projeto AVIX">
+            <button class="active" type="button" data-avix-tab="overview" aria-selected="true">Visão geral</button>
+            <button type="button" data-avix-tab="tasks" aria-selected="false">Quadro de tarefas</button>
+            <button type="button" data-avix-tab="evolution" aria-selected="false">Evolução do projeto</button>
+            <button type="button" data-avix-tab="meetings" aria-selected="false">Reuniões e decisões</button>
+          </nav>
+          <section class="avix-panel active" data-avix-panel="overview">
+            <div class="avix-overview-metrics" id="avix-overview-metrics"></div>
+            <div class="avix-overview-grid">
+              <section class="avix-content-card"><div class="avix-card-heading"><div><span class="eyebrow">Registro recente</span><h3>Últimos avanços</h3></div></div><div id="avix-latest-progress"></div></section>
+              <section class="avix-content-card"><div class="avix-card-heading"><div><span class="eyebrow">Agenda do grupo</span><h3>Próxima reunião</h3></div><button class="text-button" type="button" data-avix-go="meetings">Ver agenda</button></div><div id="avix-next-meeting"></div></section>
+            </div>
+          </section>
+          <section class="avix-panel" data-avix-panel="tasks" hidden>
           <details class="board-help" id="board-help">
             <summary>Como utilizar o quadro</summary>
             <div class="board-orientation" aria-label="Como utilizar o quadro">
@@ -437,10 +451,14 @@
             <summary>Filtros do quadro <span id="board-filter-count"></span></summary>
             <div class="board-toolbar">
               <label>Buscar<input id="board-search" type="search" placeholder="Tarefa, responsável ou empresa" /></label>
+              <label>Empresa<select id="board-company-filter"><option value="">Todas as empresas</option></select></label>
+              <label>Projeto<select id="board-project-filter"><option value="">Todos os projetos</option></select></label>
+              <label>Frente estratégica<select id="board-front-filter"><option value="">Todas as frentes</option></select></label>
               <label>Responsável<select id="board-owner-filter"><option value="">Todos os responsáveis</option></select></label>
               <label>Prioridade<select id="board-priority-filter"><option value="">Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></label>
-              <label>Fase<select id="board-phase-filter"><option value="">Todas as fases</option></select></label>
+              <label>Status<select id="board-phase-filter"><option value="">Todos os status</option></select></label>
               <label>Prazo<select id="board-due-filter"><option value="">Todos</option><option value="overdue">Atrasados</option><option value="week">Próximos 7 dias</option><option value="nodate">Sem prazo</option></select></label>
+              <label>Origem<select id="board-origin-filter"><option value="">Todas as origens</option></select></label>
               <button class="text-button board-clear-filters" id="board-clear-filters" type="button" hidden>Limpar filtros</button>
             </div>
           </details>
@@ -450,6 +468,15 @@
           </div>
           <div class="kanban" id="kanban"></div>
           <div class="board-list" id="board-list" hidden></div>
+          </section>
+          <section class="avix-panel" data-avix-panel="evolution" hidden>
+            <div class="avix-panel-heading"><div><span class="eyebrow">Frentes estratégicas</span><h3>Evolução do projeto</h3><p>Decisões consolidadas, atividades em curso e próximos passos sem transformar automaticamente estratégia em tarefa.</p></div></div>
+            <div class="avix-strategic-grid" id="avix-strategic-grid"></div>
+          </section>
+          <section class="avix-panel" data-avix-panel="meetings" hidden>
+            <div class="avix-panel-heading"><div><span class="eyebrow">Agenda e histórico</span><h3>Reuniões e decisões</h3><p>Encontros passados permanecem no histórico, com pauta, decisões, anexos e tarefas relacionadas.</p></div><button class="primary-button" type="button" id="new-avix-meeting">Nova reunião</button></div>
+            <div class="avix-meeting-list" id="avix-meeting-list"></div>
+          </section>
         </section>
 
         <section class="view" id="meetings">
@@ -661,18 +688,23 @@
         <div class="task-form-grid">
           <label class="full">Título da entrega <input name="title" required placeholder="Ex.: comparar propostas das agências de marketing" /></label>
           <label>Responsável <input name="owner" required placeholder="Uma pessoa, ex.: Felipe" /></label>
+          <label>Solicitante <input name="requester" placeholder="Pessoa ou reunião que solicitou" /></label>
           <label>Validador <input name="validator" placeholder="Sócio ou líder que aprova" /></label>
-          <label>Fase / frente <input name="phase" placeholder="Ex.: Virada comercial" /></label>
+          <label>Projeto <input name="project" placeholder="Ex.: AVIX" /></label>
+          <label>Frente estratégica <input name="strategicFront" placeholder="Ex.: Infraestrutura e rede" /></label>
+          <label>Fase / frente operacional <input name="phase" placeholder="Ex.: Virada comercial" /></label>
           <label>Empresa relacionada <input name="company" placeholder="Ex.: Megalink ou Todas" /></label>
           <label>Categoria <input name="category" placeholder="Ex.: Sistemas, Jurídico, Pessoas" /></label>
           <label>Prazo <input name="due" type="date" required /></label>
           <label>Prioridade<select name="priority"><option value="Critica">Crítica</option><option>Alta</option><option value="Media">Média</option><option>Baixa</option></select></label>
-          <label>Status<select name="status"><option value="todo">A fazer</option><option value="doing">Em andamento</option><option value="waiting">Aguardando</option><option value="done">Concluído</option><option value="archived">Arquivo</option></select></label>
+          <label>Status<select name="status"><option value="todo">A fazer</option><option value="doing">Em andamento</option><option value="waiting-third">Aguardando terceiro</option><option value="waiting-validation">Aguardando validação</option><option value="done">Concluído</option><option value="archived">Arquivado</option></select></label>
           <label class="full">Descrição / contexto <textarea name="description" placeholder="Explique o motivo, escopo e informações necessárias."></textarea></label>
           <label class="full">Resultado esperado <textarea name="expectedResult" placeholder="O que precisa existir para a tarefa ser considerada entregue?"></textarea></label>
           <label class="full">Checklist <textarea name="checklist" placeholder="Uma etapa por linha"></textarea></label>
           <label class="full">Bloqueio ou dependência <textarea name="blocker" placeholder="Informe de quem ou do que esta tarefa depende."></textarea></label>
           <label class="full">Evidência ou link <input name="evidenceLink" type="url" placeholder="https://docs.google.com/spreadsheets/..." /></label>
+          <label>Origem <select name="origin"><option value="Criação manual">Criação manual</option><option value="Reunião">Reunião</option><option value="WhatsApp">WhatsApp</option><option value="Documento">Documento</option></select></label>
+          <label class="task-evidence-required"><input name="evidenceRequired" type="checkbox" /> Exigir evidência antes da conclusão</label>
         </div>
         <div class="modal-actions"><button class="ghost-button" type="button" data-dialog-close="task-modal">Cancelar</button><button class="primary-button" type="submit">Salvar tarefa</button></div>
       </form>

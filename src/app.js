@@ -44,7 +44,8 @@ import {
 const statuses = [
   { id: "todo", label: "A fazer" },
   { id: "doing", label: "Em andamento" },
-  { id: "waiting", label: "Aguardando" },
+  { id: "waiting-third", label: "Aguardando terceiro" },
+  { id: "waiting-validation", label: "Aguardando validação" },
   { id: "done", label: "Concluído" },
   { id: "archived", label: "Arquivado" },
 ];
@@ -617,8 +618,38 @@ const defaultConnectors = [
   { id: "connector-accounting", system: "Contabilidade", scope: "Despesas, impostos, folha consolidada e centros de custo", mode: "Planilha / API", owner: "Bruno", status: "Não conectado", lastSync: "", note: "Importar apenas dados aprovados e separar informações restritas." },
 ];
 
+const avixChecklistUrl = "https://docs.google.com/spreadsheets/d/1G9zJmAiYsg5iB0uoQ6P4R9L4wgyvXO5rDbSBsmbDb8I/edit?usp=sharing";
+const avixSource = "Decisões da reunião de 11/08/2026";
+const avixTasks = [
+  {
+    id: "avix-2026-08-11-checklist-principal", sourceId: "whatsapp-2026-08-11-checklist-principal", title: "Preencher checklist dos funcionários", owner: "A definir", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-13", priority: "Alta", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Gestão de pessoas", strategicFront: "Estrutura organizacional", phase: "Gestão de pessoas", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, referenceLink: avixChecklistUrl, expectedResult: "Checklist dos funcionários preenchido individualmente pelos participantes indicados.", description: "Tarefa principal que consolida as entregas individuais registradas na mensagem do grupo.", checklist: ["Filipe", "Rodrigo", "Harley"], childTaskIds: ["avix-2026-08-11-checklist-filipe", "avix-2026-08-11-checklist-rodrigo", "avix-2026-08-11-checklist-harley"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00",
+  },
+  ...["Filipe", "Rodrigo", "Harley"].map((owner) => ({
+    id: `avix-2026-08-11-checklist-${owner.toLocaleLowerCase("pt-BR")}`, sourceId: `whatsapp-2026-08-11-checklist-${owner.toLocaleLowerCase("pt-BR")}`, parentTaskId: "avix-2026-08-11-checklist-principal", title: `Preencher checklist dos funcionários — ${owner}`, owner, requester: "Grupo AVIX", validator: "A definir", due: "2026-08-13", priority: "Alta", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Gestão de pessoas", strategicFront: "Estrutura organizacional", phase: "Gestão de pessoas", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, referenceLink: avixChecklistUrl, expectedResult: `Checklist dos funcionários sob responsabilidade de ${owner} preenchido.`, checklist: ["Abrir a planilha de referência", "Preencher os dados", "Enviar para validação"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00",
+  })),
+  { id: "avix-2026-08-11-marketing", sourceId: "whatsapp-2026-08-11-marketing", title: "Analisar agências de marketing", owner: "Filipe", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-18", priority: "Media", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Marketing", strategicFront: "Naming e marca", phase: "Marketing", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, expectedResult: "Comparação das agências analisadas.", description: "Comparar as agências avaliadas e apresentar uma recomendação ao grupo.", checklist: ["Levantar agências", "Comparar propostas", "Registrar recomendação"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
+  { id: "avix-2026-08-11-contaxx", sourceId: "whatsapp-2026-08-11-contaxx", title: "Enviar dados para a Contaxx", owner: "Rodrigo", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-12", priority: "Alta", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Contabilidade/Contaxx", strategicFront: "Consultorias e estruturação", phase: "Contabilidade", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, expectedResult: "Dados solicitados entregues à Contaxx com confirmação de recebimento.", checklist: ["Consolidar dados", "Enviar à Contaxx", "Anexar comprovante"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
+  { id: "avix-2026-08-11-pjm", sourceId: "whatsapp-2026-08-11-pjm", title: "Analisar estrutura física da PJM", owner: "Harley", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-14", priority: "Media", status: "todo", project: "AVIX", company: "PJMNET", category: "Infraestrutura", strategicFront: "Infraestrutura e rede", phase: "Infraestrutura", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, expectedResult: "Diagnóstico da estrutura física da PJM.", checklist: ["Realizar vistoria", "Registrar fotos", "Elaborar relatório"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
+];
+
+const avixStrategicFronts = [
+  { id: "formation", name: "Formação do grupo", status: "Concluído", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Grupo iniciado com sete provedores", "Link X desligada após análise técnica e estratégica", "Motivos: equipamentos fora do padrão desejado, alto investimento para adequação e impacto financeiro incompatível com a fase inicial", "Formação atual: PJMNET, PointNet, TurboLink, ISPTEC, MegaLink e Linax"], underway: ["Composição atual registrada e definida"], next: "Manter o cadastro societário alinhado às decisões formais.", evidence: "Pauta consolidada das reuniões", stages: ["done", "done", "done"] },
+  { id: "consulting", name: "Consultorias e estruturação", status: "Em andamento", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Tríade Consultoria envolvida", "Gustavo Posser conduz valuation e Memorando de Entendimentos"], underway: ["Valuation das empresas", "Análise de possível fusão ou holding", "Modelo societário, organização tributária e segurança jurídica"], next: "Consolidar o modelo societário e registrar a decisão.", evidence: "Pauta consolidada das reuniões", stages: ["done", "doing", "doing", "definition"] },
+  { id: "organization", name: "Estrutura organizacional", status: "Em definição", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Discussão iniciada sobre a diretoria do grupo"], underway: ["Criação da diretoria", "Definição de setores estratégicos compartilhados"], next: "Aprovar composição, papéis e alçadas da diretoria.", evidence: "Pauta consolidada das reuniões", stages: ["definition", "definition"] },
+  { id: "standards", name: "Padronização operacional", status: "Em estudo", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Necessidade de padronização registrada"], underway: ["Planos comerciais", "Equipamentos padrão para rede", "Redução de complexidade e ganho de escala"], next: "Definir responsáveis, critérios e cronograma.", evidence: "Pauta consolidada das reuniões", stages: ["study", "study", "study"] },
+  { id: "brand", name: "Naming e marca", status: "Em andamento", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Profissional contratado para criação do nome e da identidade"], underway: ["Desenvolvimento do posicionamento institucional da marca"], next: "Validar nome, identidade e aplicações finais.", evidence: "Pauta consolidada das reuniões", stages: ["done", "doing"] },
+  { id: "network", name: "Infraestrutura e rede", status: "Em estudo", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Estudo de integração registrado"], underway: ["Interligação entre redes", "Desenvolvimento da rede neutra", "Compartilhamento de infraestrutura e redução de custos"], next: "Consolidar diagnóstico técnico e arquitetura da rede neutra.", evidence: "Pauta consolidada das reuniões", stages: ["study", "study", "study"] },
+  { id: "partnerships", name: "Parcerias e novos produtos", status: "Em andamento", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Deezer, ExitLag e intermediação via PlayHub iniciados"], underway: ["Avaliação de implantação e oferta comercial"], next: "Comprovar produtos implantados e medir ticket médio, churn e competitividade.", evidence: "Pauta consolidada das reuniões", stages: ["doing", "study", "study"] },
+  { id: "next", name: "Próximos passos", status: "Aguardando decisão", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Prioridades estratégicas consolidadas"], underway: ["Definir modelo societário", "Consolidar diretoria", "Avançar na rede neutra", "Integrar operações entre empresas", "Estruturar o AVIX como grupo sólido e escalável"], next: "Converter cada decisão aprovada em tarefa com responsável e prazo.", evidence: "Pauta consolidada das reuniões", stages: ["definition", "not-started", "study", "not-started", "not-started"] },
+];
+
+const avixMeetings = [
+  { id: "avix-meeting-group-2026-08-13", sourceId: "whatsapp-meeting-group-2026-08-13-14", title: "Reunião do grupo", forum: "Grupo AVIX", status: "Agendada", organizer: "A definir", date: "2026-08-13", time: "14:00", duration: 60, participants: "A definir", objective: "Acompanhar decisões, tarefas e próximos passos do grupo.", agenda: "A definir", materials: "Mensagem do grupo de 11/08/2026.", decisions: "", minutes: "Ata pendente.", actionItems: "Relacionar as tarefas originadas na reunião.", confidentiality: "Interno", origin: "WhatsApp" },
+  { id: "avix-meeting-contaxx-2026-08-13", sourceId: "whatsapp-meeting-contaxx-2026-08-13-17", title: "Reunião Contaxx", forum: "Grupo AVIX", status: "Agendada", organizer: "A definir", date: "2026-08-13", time: "17:00", duration: 60, participants: "A definir", objective: "Reunião com a Contaxx.", agenda: "A definir", materials: "Mensagem do grupo de 11/08/2026.", decisions: "", minutes: "Ata pendente.", actionItems: "Registrar decisões, responsáveis e prazos.", confidentiality: "Interno", origin: "WhatsApp" },
+];
+
 const seed = {
-  businessModelVersion: 20,
+  businessModelVersion: 21,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -647,7 +678,9 @@ const seed = {
   processManuals: defaultProcessManuals,
   governance: defaultGovernance,
   raci: defaultRaci,
+  strategicFronts: avixStrategicFronts,
   tasks: [
+    ...avixTasks,
     ...phaseZeroTasks,
     {
       id: crypto.randomUUID(),
@@ -696,6 +729,7 @@ const seed = {
     },
   ],
   meetings: [
+    ...avixMeetings,
     {
       id: "meeting-conselho-demo",
       title: "Conselho de Sócios — Reunião demonstrativa",
@@ -955,6 +989,7 @@ let signatureDocumentId = null;
 let cloudArtifacts = [];
 let boardProfiles = [];
 let boardViewMode = storageGet("acessa-board-view") || "kanban";
+let boardSort = storageGet("acessa-board-sort") || "due";
 const cloudContext = {
   configured: cloudConfigured,
   connected: false,
@@ -1093,6 +1128,30 @@ function scheduleCloudSave() {
   cloudSaveTimer = setTimeout(persistStateToCloud, 450);
 }
 
+function mergeImportedRecords(existingItems, importedItems) {
+  const current = Array.isArray(existingItems) ? [...existingItems] : [];
+  importedItems.forEach((imported) => {
+    const index = current.findIndex((item) => item.id === imported.id || (item.sourceId && item.sourceId === imported.sourceId));
+    if (index < 0) current.push(structuredClone(imported));
+    else current[index] = { ...imported, ...current[index], id: imported.id, sourceId: imported.sourceId };
+  });
+  return current;
+}
+
+function enrichAvixState(source) {
+  const tasks = mergeImportedRecords(source.tasks, avixTasks).map((task) => {
+    const clean = { project: task.project || "Acessa", origin: task.origin || "Criação manual", comments: Array.isArray(task.comments) ? task.comments : [], history: Array.isArray(task.history) ? task.history : [], createdAt: task.createdAt || "", updatedAt: task.updatedAt || task.createdAt || "", ...task };
+    if (clean.status === "waiting") clean.status = "waiting-third";
+    ["title", "owner", "category"].forEach((field) => {
+      if (String(clean[field] || "").trim().toLocaleLowerCase("pt-BR") === "teste") clean[field] = field === "title" ? "Tarefa sem título — revisar cadastro" : "A definir";
+    });
+    return clean;
+  });
+  const meetings = mergeImportedRecords(source.meetings, avixMeetings);
+  const strategicFronts = mergeImportedRecords(source.strategicFronts, avixStrategicFronts);
+  return { ...source, businessModelVersion: 21, tasks, meetings, strategicFronts };
+}
+
 async function persistStateToCloud() {
   if (!cloudContext.connected || !cloudContext.canEdit || cloudContext.version === null) return;
   try {
@@ -1107,6 +1166,7 @@ async function persistStateToCloud() {
 }
 
 function enrichProgramState(source) {
+  source = enrichAvixState(source);
   const phaseSource = Array.isArray(source.programPhases) ? source.programPhases : [];
   const programPhases = integrationPhaseBlueprints.map((blueprint) => {
     const existing = phaseSource.find((phase) => phase.id === blueprint.id) || {};
@@ -1133,7 +1193,7 @@ function enrichProgramState(source) {
   const weeklyPlan = (Array.isArray(source.weeklyPlan) ? source.weeklyPlan : []).slice(0, 3).map((item) => ({ status: "not-started", blocker: "", decisionNeeded: "", evidence: "", front: "", expectedResult: "", ...item }));
   return {
     ...source,
-    businessModelVersion: 20,
+    businessModelVersion: 21,
     companies,
     meetings,
     kpis,
@@ -1309,6 +1369,7 @@ async function initializeCloud() {
     if (remoteState && Object.keys(remoteState).length) {
       state = mergeCloudState(remoteState);
       storageRemove(storageKey);
+      if (cloudContext.canEdit && Number(remoteState.businessModelVersion || 0) < 21) await persistStateToCloud();
     } else if (cloudContext.canEdit) {
       await persistStateToCloud();
     }
@@ -1457,8 +1518,8 @@ function setView(id) {
   const topbarTitle = document.querySelector("#topbar-title");
   const topbarSubtitle = document.querySelector("#topbar-subtitle");
   if (id === "board") {
-    topbarTitle.textContent = "Implantação";
-    topbarSubtitle.textContent = "Projeto ativo · Execução integrada";
+    topbarTitle.textContent = "Projeto AVIX";
+    topbarSubtitle.textContent = "Plano de ação, evolução e decisões do grupo";
   } else {
     topbarTitle.textContent = "Visão geral da Acessa";
     topbarSubtitle.textContent = "O que precisa avançar agora, sem perder o controle da integração.";
@@ -1665,6 +1726,7 @@ function render() {
   renderCareer();
   renderLearning();
   renderKpis();
+  renderAvixDashboard();
   renderKanban();
   renderMeetings();
   renderDocuments();
@@ -1773,6 +1835,14 @@ artifactForm?.addEventListener("submit", async (event) => {
       await createBoardSignatureRequests(artifact.id, cloudContext.workspaceId, signerIds);
     }
     cloudArtifacts = await listBoardArtifacts(cloudContext.workspaceId);
+    if (artifactContext.relationType === "task") {
+      const relatedTask = state.tasks.find((task) => task.id === artifactContext.relationId);
+      if (relatedTask) {
+        relatedTask.updatedAt = new Date().toISOString();
+        relatedTask.history = Array.isArray(relatedTask.history) ? relatedTask.history : [];
+        relatedTask.history.unshift({ at: relatedTask.updatedAt, actor: cloudContext.role || "Usuário", action: "Anexou evidência", detail: artifact.title });
+      }
+    }
     logAudit("documento_anexado", "board_documents", artifact, `${artifactContext.relationType}:${artifactContext.relationId}`);
     saveState();
     artifactModal.close();
@@ -2683,14 +2753,72 @@ function kpiStatus(status) {
   return ["good", "watch", "risk"].includes(status) ? status : "watch";
 }
 
+function avixTaskProgress(task) {
+  return task.status === "done" ? 100 : task.status === "waiting-validation" ? 90 : task.status === "doing" ? 50 : 0;
+}
+
+function strategicProgress(front) {
+  const values = { done: 100, doing: 50, study: 25, definition: 25, waiting: 10, "not-started": 0 };
+  const stages = Array.isArray(front.stages) ? front.stages : [];
+  return stages.length ? Math.round(stages.reduce((sum, stage) => sum + (values[stage] ?? 0), 0) / stages.length) : 0;
+}
+
+function meetingTemporalStatus(meeting) {
+  if (meeting.status === "Cancelada") return "Cancelada";
+  const when = meeting.date ? new Date(`${meeting.date}T${meeting.time || "23:59"}:00`) : null;
+  if (!when || Number.isNaN(when.getTime())) return "Data a definir";
+  if (when.getTime() < Date.now()) return "No histórico";
+  return meeting.date === currentCivilDateIso() ? "Hoje" : "Agendada";
+}
+
+function renderAvixDashboard() {
+  const tasks = state.tasks.filter((task) => task.project === "AVIX" && !task.archivedAt);
+  const active = tasks.filter((task) => !["done", "archived"].includes(task.status));
+  const overdue = active.filter((task) => task.due && task.due < currentCivilDateIso()).length;
+  const critical = active.filter((task) => task.priority === "Critica").length;
+  const doing = active.filter((task) => task.status === "doing").length;
+  const validation = active.filter((task) => task.status === "waiting-validation").length;
+  const done = tasks.filter((task) => task.status === "done").length;
+  const progressBase = tasks.filter((task) => !["archived", "cancelled"].includes(task.status) && !task.parentTaskId);
+  const progress = progressBase.length ? Math.round(progressBase.reduce((sum, task) => sum + avixTaskProgress(task), 0) / progressBase.length) : 0;
+  const futureMeetings = state.meetings.filter((meeting) => !meeting.archivedAt && meeting.status !== "Cancelada" && meeting.date && new Date(`${meeting.date}T${meeting.time || "23:59"}:00`).getTime() >= Date.now()).sort((a, b) => `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`));
+  const nextMeeting = futureMeetings[0];
+  document.querySelector("#avix-overview-metrics").innerHTML = [
+    ["Tarefas abertas", active.length, "Entrega pendente"], ["Atrasadas", overdue, overdue ? "Requer ação" : "Dentro do prazo"], ["Críticas", critical, "Prioridade máxima"], ["Em andamento", doing, "Execução ativa"], ["Em validação", validation, "Aguardando aprovação"], ["Concluídas", done, "Com entrega registrada"], ["Evolução", `${progress}%`, `${progressBase.length} tarefas calculadas`], ["Próxima reunião", nextMeeting ? formatDate(nextMeeting.date) : "A definir", nextMeeting ? nextMeeting.time : "Sem agenda futura"],
+  ].map(([label, value, note], index) => `<article class="${index === 1 && overdue ? "danger" : index === 6 ? "progress" : ""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
+  const advances = (state.strategicFronts || []).flatMap((front) => (front.advanced || []).map((text) => ({ text, front: front.name, date: front.updatedAt, source: front.evidence }))).slice(0, 5);
+  document.querySelector("#avix-latest-progress").innerHTML = advances.length ? `<div class="avix-advance-list">${advances.map((item) => `<article><span class="avix-advance-icon" aria-hidden="true">✓</span><div><strong>${escapeHtml(item.text)}</strong><small>${formatDate(item.date)} · ${escapeHtml(item.front)} · Origem: ${escapeHtml(item.source)}</small></div></article>`).join("")}</div>` : `<p class="empty">Nenhum avanço registrado.</p>`;
+  document.querySelector("#avix-next-meeting").innerHTML = nextMeeting ? `<article class="avix-next-card"><span class="avix-meeting-date"><strong>${formatDate(nextMeeting.date)}</strong><small>${escapeHtml(nextMeeting.time || "A definir")}</small></span><div><strong>${escapeHtml(nextMeeting.title)}</strong><p>${escapeHtml(nextMeeting.objective || "Objetivo a definir")}</p><span class="avix-status status-scheduled">${meetingTemporalStatus(nextMeeting)}</span></div></article>` : `<div class="avix-empty-state"><strong>Nenhuma reunião futura cadastrada</strong><p>Os encontros de 13/08/2026 permanecem disponíveis no histórico.</p></div>`;
+  document.querySelector("#avix-strategic-grid").innerHTML = (state.strategicFronts || []).map((front) => {
+    const percent = strategicProgress(front);
+    return `<article class="avix-strategic-card"><header><div><span class="avix-status status-${String(front.status).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}">${escapeHtml(front.status)}</span><h4>${escapeHtml(front.name)}</h4></div><strong>${percent}%</strong></header><div class="avix-progress" role="progressbar" aria-label="Evolução de ${escapeHtml(front.name)}" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><i style="width:${percent}%"></i></div><dl><div><dt>O que já evoluiu</dt><dd><ul>${(front.advanced || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></dd></div><div><dt>Em andamento</dt><dd><ul>${(front.underway || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></dd></div><div><dt>Próxima decisão</dt><dd>${escapeHtml(front.next || "A definir")}</dd></div></dl><footer><span><b>Responsável:</b> ${escapeHtml(front.owner || "A definir")}</span><span><b>Prazo:</b> ${escapeHtml(front.due || "A definir")}</span><span><b>Atualização:</b> ${formatDate(front.updatedAt)}</span><button class="ghost-button" type="button" data-front-task="${front.id}">Criar tarefa</button></footer></article>`;
+  }).join("");
+  const avixMeetingsList = state.meetings.filter((meeting) => meeting.sourceId?.startsWith("whatsapp-meeting-") && !meeting.archivedAt).sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`));
+  document.querySelector("#avix-meeting-list").innerHTML = avixMeetingsList.map((meeting) => `<article class="avix-meeting-row"><div class="avix-meeting-date"><strong>${formatDate(meeting.date)}</strong><small>${escapeHtml(meeting.time || "A definir")}</small></div><div><span class="avix-status ${meetingTemporalStatus(meeting) === "No histórico" ? "status-history" : "status-scheduled"}">${meetingTemporalStatus(meeting)}</span><h4>${escapeHtml(meeting.title)}</h4><p>${escapeHtml(meeting.objective || "Objetivo a definir")}</p><small>Participantes: ${escapeHtml(meeting.participants || "A definir")} · ${meetingTasks(meeting).length} tarefa(s) relacionada(s)</small></div><div class="avix-meeting-actions"><button class="ghost-button" type="button" data-avix-meeting-edit="${meeting.id}">Abrir e editar</button>${cloudContext.connected && cloudContext.canEdit ? `<button class="text-button" type="button" data-artifact-context="meeting" data-artifact-id="${meeting.id}">Anexos</button>` : ""}</div></article>`).join("") || `<p class="empty">Nenhuma reunião do AVIX cadastrada.</p>`;
+  document.querySelectorAll("[data-front-task]").forEach((button) => button.addEventListener("click", () => {
+    const front = state.strategicFronts.find((item) => item.id === button.dataset.frontTask);
+    openTaskModal();
+    taskForm.elements.namedItem("project").value = "AVIX";
+    taskForm.elements.namedItem("strategicFront").value = front?.name || "";
+    taskForm.elements.namedItem("phase").value = front?.name || "";
+    taskForm.elements.namedItem("description").value = front?.next || "";
+  }));
+  document.querySelectorAll("[data-avix-meeting-edit]").forEach((button) => button.addEventListener("click", () => openSimpleModal("meeting", button.dataset.avixMeetingEdit)));
+  bindArtifactActions(document.querySelector("#avix-meeting-list"));
+}
+
 function renderKanban() {
   const kanban = document.querySelector("#kanban");
   const boardList = document.querySelector("#board-list");
   const search = document.querySelector("#board-search").value.trim().toLowerCase();
+  const selectedCompany = document.querySelector("#board-company-filter").value;
+  const selectedProject = document.querySelector("#board-project-filter").value;
+  const selectedFront = document.querySelector("#board-front-filter").value;
   const selectedOwner = document.querySelector("#board-owner-filter").value;
   const priority = document.querySelector("#board-priority-filter").value;
   const selectedPhase = document.querySelector("#board-phase-filter").value;
   const dueFilter = document.querySelector("#board-due-filter").value;
+  const selectedOrigin = document.querySelector("#board-origin-filter").value;
   const today = currentCivilDateIso();
   const weekDate = new Date(`${today}T12:00:00`); weekDate.setDate(weekDate.getDate() + 7);
   const weekIso = weekDate.toISOString().slice(0, 10);
@@ -2700,27 +2828,48 @@ function renderKanban() {
   const owners = [...new Set(boardTasks.map((task) => task.owner).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   ownerSelect.innerHTML = `<option value="">Todos os responsáveis</option>${owners.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
   ownerSelect.value = owners.includes(selectedOwner) ? selectedOwner : "";
+  const syncFilter = (selector, values, placeholder, selected) => {
+    const field = document.querySelector(selector);
+    const items = [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    field.innerHTML = `<option value="">${placeholder}</option>${items.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
+    field.value = items.includes(selected) ? selected : "";
+    return field.value;
+  };
+  const companyFilter = syncFilter("#board-company-filter", boardTasks.map((task) => task.company), "Todas as empresas", selectedCompany);
+  const projectFilter = syncFilter("#board-project-filter", boardTasks.map((task) => task.project), "Todos os projetos", selectedProject);
+  const frontFilter = syncFilter("#board-front-filter", boardTasks.map((task) => task.strategicFront || task.phase), "Todas as frentes", selectedFront);
+  const originFilter = syncFilter("#board-origin-filter", boardTasks.map((task) => task.origin), "Todas as origens", selectedOrigin);
   const phaseSelect = document.querySelector("#board-phase-filter");
   const phases = [...new Set(boardTasks.map((task) => task.phase).filter(Boolean))].sort();
-  phaseSelect.innerHTML = `<option value="">Todas as fases</option>${phases.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
-  phaseSelect.value = selectedPhase;
+  phaseSelect.innerHTML = `<option value="">Todos os status</option>${statuses.map((item) => `<option value="${item.id}">${item.label}</option>`).join("")}`;
+  phaseSelect.value = statuses.some((item) => item.id === selectedPhase) ? selectedPhase : "";
   const filtered = boardTasks.filter((task) => {
     const haystack = `${task.title} ${task.owner} ${task.company || ""} ${task.category || ""} ${task.phase || ""}`.toLowerCase();
     if (search && !haystack.includes(search)) return false;
     if (selectedOwner && task.owner !== selectedOwner) return false;
+    if (companyFilter && task.company !== companyFilter) return false;
+    if (projectFilter && task.project !== projectFilter) return false;
+    if (frontFilter && (task.strategicFront || task.phase) !== frontFilter) return false;
+    if (originFilter && task.origin !== originFilter) return false;
     if (priority && task.priority !== priority) return false;
-    if (selectedPhase && task.phase !== selectedPhase) return false;
+    if (selectedPhase && task.status !== selectedPhase) return false;
     if (dueFilter === "overdue" && !(task.due && task.due < today && !["done", "archived"].includes(task.status))) return false;
     if (dueFilter === "week" && !(task.due && task.due >= today && task.due <= weekIso)) return false;
     if (dueFilter === "nodate" && task.due) return false;
     return true;
+  }).sort((a, b) => {
+    if (boardSort === "owner") return String(a.owner || "").localeCompare(String(b.owner || ""), "pt-BR");
+    if (boardSort === "priority") return priorityValue(b.priority) - priorityValue(a.priority);
+    if (boardSort === "status") return statuses.findIndex((status) => status.id === a.status) - statuses.findIndex((status) => status.id === b.status);
+    if (boardSort === "title") return String(a.title || "").localeCompare(String(b.title || ""), "pt-BR");
+    return String(a.due || "9999-12-31").localeCompare(String(b.due || "9999-12-31"));
   });
   const overdue = activeTasks.filter((task) => task.due && task.due < today && !["done", "archived"].includes(task.status)).length;
   const critical = activeTasks.filter((task) => task.priority === "Critica" && task.status !== "done").length;
-  const waiting = activeTasks.filter((task) => task.status === "waiting").length;
+  const waiting = activeTasks.filter((task) => ["waiting-third", "waiting-validation"].includes(task.status)).length;
   const done = activeTasks.filter((task) => task.status === "done").length;
   document.querySelector("#board-health").innerHTML = `<article class="${overdue ? "danger" : "good"}"><span>Atrasadas</span><strong>${overdue}</strong><small>exigem replanejamento</small></article><article class="${critical ? "warning" : "good"}"><span>Críticas abertas</span><strong>${critical}</strong><small>prioridade máxima</small></article><article><span>Aguardando</span><strong>${waiting}</strong><small>dependências externas</small></article><article class="good"><span>Concluídas</span><strong>${done}</strong><small>entregas registradas</small></article>`;
-  const filterValues = [search, selectedOwner, priority, selectedPhase, dueFilter].filter(Boolean);
+  const filterValues = [search, companyFilter, projectFilter, frontFilter, selectedOwner, priority, selectedPhase, dueFilter, originFilter].filter(Boolean);
   const clearFilters = document.querySelector("#board-clear-filters");
   clearFilters.hidden = filterValues.length === 0;
   document.querySelector("#board-filter-count").textContent = filterValues.length ? `(${filterValues.length})` : "";
@@ -2737,7 +2886,7 @@ function renderKanban() {
       return `<section class="column ${tasks.length ? "has-tasks" : ""}" data-board-status="${status.id}" aria-label="${status.label}, ${tasks.length} tarefa(s)"><header><h3>${status.label}</h3><span>${tasks.length}</span></header>${cards || `<p class="column-empty">Nenhuma tarefa nesta fase</p>`}</section>`;
     })
     .join("");
-  boardList.innerHTML = filtered.length ? `<div class="board-list-head"><span>Entrega</span><span>Responsável</span><span>Prazo</span><span>Status</span><span></span></div>${filtered.map(renderTaskListRow).join("")}` : `<p class="empty">Nenhuma tarefa corresponde aos filtros.</p>`;
+  boardList.innerHTML = filtered.length ? `<div class="board-list-head avix-list-head"><button type="button" data-task-sort="title">Tarefa</button><span>Projeto / empresa</span><span>Frente / categoria</span><button type="button" data-task-sort="owner">Responsável</button><button type="button" data-task-sort="due">Prazo</button><button type="button" data-task-sort="priority">Prioridade</button><button type="button" data-task-sort="status">Status</button><span>Evidências</span><span>Atualização</span><span></span></div>${filtered.map(renderTaskListRow).join("")}` : `<p class="empty">Nenhuma tarefa corresponde aos filtros.</p>`;
   kanban.hidden = boardViewMode !== "kanban";
   boardList.hidden = boardViewMode !== "list";
   document.querySelector("#board-view-kanban").classList.toggle("active", boardViewMode === "kanban");
@@ -2746,6 +2895,11 @@ function renderKanban() {
   document.querySelector("#board-view-list").setAttribute("aria-pressed", String(boardViewMode === "list"));
   bindTaskActions(kanban);
   bindTaskActions(boardList);
+  boardList.querySelectorAll("[data-task-sort]").forEach((button) => button.addEventListener("click", () => {
+    boardSort = button.dataset.taskSort;
+    storageSet("acessa-board-sort", boardSort);
+    renderKanban();
+  }));
 }
 
 function bindTaskActions(container) {
@@ -2802,12 +2956,13 @@ function renderTaskCard(task) {
     <article class="task-card ${isOverdue ? "overdue" : isDueSoon ? "due-soon" : ""}" data-priority="${escapeHtml(task.priority)}" data-task-id="${task.id}" data-task-status="${task.status}" draggable="${canDrag}" tabindex="0">
       <div class="task-card-head"><span class="task-phase">${escapeHtml(category)}</span>${renderTaskMenu(task)}</div>
       <h4>${escapeHtml(task.title)}</h4>
+      <p class="task-project">${escapeHtml(task.project || "Acessa")} · ${escapeHtml(task.company || "A definir")}</p>
       <div class="task-owner"><span class="task-avatar" aria-hidden="true">${escapeHtml(ownerInitials(task.owner))}</span><span><small>Responsável</small><strong>${escapeHtml(task.owner || "Não definido")}</strong></span></div>
       <div class="task-card-footer">
         <span class="task-due ${isOverdue ? "overdue" : isDueSoon ? "due-soon" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}${isOverdue ? `<b>Atrasada</b>` : isDueSoon ? `<b>Vence em breve</b>` : ""}</span>
         <span class="task-priority priority-${String(task.priority || "media").toLowerCase()}">${escapeHtml(task.priority || "Média")}</span>
       </div>
-      ${(evidenceCount || task.checklist?.length) ? `<div class="task-indicators">${evidenceCount ? `<span title="${evidenceCount} evidência(s) vinculada(s)" aria-label="${evidenceCount} evidência(s) vinculada(s)">↗ ${evidenceCount}</span>` : ""}${task.checklist?.length ? `<span title="${task.checklist.length} item(ns) no checklist" aria-label="${task.checklist.length} item(ns) no checklist">✓ ${task.checklist.length}</span>` : ""}</div>` : ""}
+      <div class="task-indicators">${evidenceCount ? `<span class="has-evidence" title="${evidenceCount} evidência(s) vinculada(s)" aria-label="${evidenceCount} evidência(s) vinculada(s)">📎 ${evidenceCount} · com evidência</span>` : `<span class="no-evidence" title="Nenhuma evidência anexada">📎 0</span>`}${task.checklist?.length ? `<span title="Progresso do checklist" aria-label="Progresso do checklist">✓ ${Number(task.checklistDone || 0)}/${task.checklist.length}</span>` : ""}</div>
     </article>
   `;
 }
@@ -2815,10 +2970,10 @@ function renderTaskCard(task) {
 function renderTaskListRow(task) {
   const isOverdue = task.due && task.due < currentCivilDateIso() && !["done", "archived"].includes(task.status);
   const statusLabel = statuses.find((status) => status.id === task.status)?.label || task.status;
-  return `<article class="board-list-row ${isOverdue ? "overdue" : ""}">
-    <div><span class="task-phase">${escapeHtml(taskCardCategory(task))}</span><strong>${escapeHtml(task.title)}</strong></div>
-    <span class="task-owner-inline"><i class="task-avatar" aria-hidden="true">${escapeHtml(ownerInitials(task.owner))}</i>${escapeHtml(task.owner)}</span><span class="${isOverdue ? "due-overdue" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}${isOverdue ? `<small>Atrasada</small>` : ""}</span>
-    <span class="board-status-badge status-${task.status}">${escapeHtml(statusLabel)}</span>
+  return `<article class="board-list-row avix-list-row ${isOverdue ? "overdue" : ""}">
+    <div><strong>${escapeHtml(task.title)}</strong></div><span>${escapeHtml(task.project || "Acessa")} / ${escapeHtml(task.company || "A definir")}</span><span>${escapeHtml(task.strategicFront || task.category || "A definir")}</span>
+    <span class="task-owner-inline"><i class="task-avatar" aria-hidden="true">${escapeHtml(ownerInitials(task.owner))}</i>${escapeHtml(task.owner || "A definir")}</span><span class="${isOverdue ? "due-overdue" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}${isOverdue ? `<small>Atrasada</small>` : ""}</span><span>${escapeHtml(task.priority || "Média")}</span>
+    <span class="board-status-badge status-${task.status}">${escapeHtml(statusLabel)}</span><span>${taskEvidenceCount(task)} arquivo(s)</span><span>${task.updatedAt ? formatDate(task.updatedAt.slice(0, 10)) : "A definir"}</span>
     <div class="board-list-actions">${renderTaskMenu(task)}</div>
   </article>`;
 }
@@ -2861,8 +3016,23 @@ function renderTaskMenu(task) {
 function moveTaskToStatus(taskId, nextStatus) {
   const task = state.tasks.find((item) => item.id === taskId);
   if (!task || !statuses.some((status) => status.id === nextStatus) || task.status === nextStatus) return;
+  if (["waiting-validation", "done"].includes(nextStatus) && task.evidenceRequired && taskEvidenceCount(task) === 0) {
+    window.alert("Esta tarefa exige evidência. Anexe um arquivo ou informe o link da entrega antes de enviá-la para validação.");
+    return;
+  }
+  if (nextStatus === "done" && task.status !== "waiting-validation") {
+    window.alert("A conclusão exige o fluxo de validação: envie primeiro para “Aguardando validação”.");
+    return;
+  }
+  if (nextStatus === "done" && cloudContext.configured && !["admin", "socio", "diretor", "gestor"].includes(cloudContext.role)) {
+    window.alert("Somente líder ou validador pode aprovar e concluir esta tarefa.");
+    return;
+  }
   const previousStatus = task.status;
   task.status = nextStatus;
+  task.updatedAt = new Date().toISOString();
+  task.history = Array.isArray(task.history) ? task.history : [];
+  task.history.unshift({ at: task.updatedAt, actor: cloudContext.role || "Usuário local", action: nextStatus === "waiting-validation" ? "Enviou para validação" : nextStatus === "done" ? "Aprovou a entrega" : "Alterou o status", detail: `${previousStatus} → ${nextStatus}` });
   logAudit("status_alterado", "tasks", task, `${previousStatus} → ${nextStatus}`);
   saveState(); render();
 }
@@ -2883,18 +3053,32 @@ function openTaskDetails(taskId) {
   taskDetailsContext.textContent = `${taskCardCategory(task)} · ${statuses.find((status) => status.id === task.status)?.label || task.status}`;
   taskDetailsTitle.textContent = task.title;
   taskDetailsContent.innerHTML = `<div class="task-details-grid">
-    <section><span>Responsável</span><strong>${escapeHtml(task.owner || "Não definido")}</strong></section><section><span>Validador</span><strong>${escapeHtml(task.validator || "Não definido")}</strong></section>
-    <section><span>Prazo</span><strong>${task.due ? formatDate(task.due) : "Sem prazo"}</strong></section><section><span>Prioridade</span><strong>${escapeHtml(task.priority || "Média")}</strong></section>
+    <section><span>Responsável</span><strong>${escapeHtml(task.owner || "A definir")}</strong></section><section><span>Solicitante</span><strong>${escapeHtml(task.requester || "A definir")}</strong></section><section><span>Validador</span><strong>${escapeHtml(task.validator || "A definir")}</strong></section>
+    <section><span>Criação</span><strong>${task.createdAt ? formatDate(task.createdAt.slice(0, 10)) : "A definir"}</strong></section><section><span>Prazo</span><strong>${task.due ? formatDate(task.due) : "A definir"}</strong></section><section><span>Prioridade</span><strong>${escapeHtml(task.priority || "Média")}</strong></section>
     <section class="full"><span>Descrição</span><p>${escapeHtml(task.description || "Sem descrição adicional.")}</p></section>
     <section class="full"><span>Resultado esperado</span><p>${escapeHtml(task.expectedResult || "Resultado ainda não informado.")}</p></section>
     ${task.blocker ? `<section class="full task-detail-warning"><span>Bloqueio ou dependência</span><p>${escapeHtml(task.blocker)}</p></section>` : ""}
     <section class="full"><span>Checklist</span>${task.checklist?.length ? `<ul>${task.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : `<p>Nenhum item cadastrado.</p>`}</section>
-    <section class="full"><span>Evidências</span>${task.evidenceLink ? `<a href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer">Abrir link da evidência ↗</a>` : ""}<p>${artifacts.length} arquivo(s) protegido(s) anexado(s).</p></section>
+    <section class="full"><span>Origem</span><p>${escapeHtml(task.sourceLabel || task.origin || "Criação manual")}</p></section>
+    <section class="full"><span>Comentários</span>${task.comments?.length ? `<ul>${task.comments.map((item) => `<li>${escapeHtml(item.text || item)}</li>`).join("")}</ul>` : `<p>Nenhum comentário registrado.</p>`}</section>
+    <section class="full"><span>Documentos e evidências</span>${task.referenceLink ? `<a href="${escapeHtml(task.referenceLink)}" target="_blank" rel="noreferrer">Abrir link de referência ↗</a>` : ""}${task.evidenceLink ? `<a href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer">Abrir evidência ↗</a>` : ""}<p>${artifacts.length} arquivo(s) protegido(s) anexado(s). ${task.evidenceRequired ? "Evidência obrigatória para validação." : ""}</p></section>
+    <section class="full"><span>Histórico de alterações</span>${task.history?.length ? `<ol class="task-history">${task.history.map((item) => `<li><strong>${escapeHtml(item.action)}</strong><small>${escapeHtml(item.actor || "Usuário")} · ${new Date(item.at).toLocaleString("pt-BR")} · ${escapeHtml(item.detail || "")}</small></li>`).join("")}</ol>` : `<p>Nenhuma alteração posterior à criação.</p>`}</section>
   </div>`;
   const editable = !cloudContext.configured || cloudContext.canEdit;
-  taskDetailsActions.innerHTML = `${cloudContext.connected && editable ? `<button class="ghost-button" type="button" data-task-artifacts="${task.id}">Anexos e evidências</button>` : ""}${editable ? `<button class="primary-button" type="button" data-task-edit="${task.id}">Editar tarefa</button>` : ""}`;
+  taskDetailsActions.innerHTML = `${editable ? `<button class="ghost-button" type="button" data-task-comment="${task.id}">Adicionar comentário</button>` : ""}${cloudContext.connected && editable ? `<button class="ghost-button" type="button" data-task-artifacts="${task.id}">Anexos e evidências</button>` : ""}${editable ? `<button class="primary-button" type="button" data-task-edit="${task.id}">Editar tarefa</button>` : ""}`;
   taskDetailsActions.querySelector("[data-task-edit]")?.addEventListener("click", () => { taskDetailsModal.close(); openTaskModal(task.id); });
   taskDetailsActions.querySelector("[data-task-artifacts]")?.addEventListener("click", () => { taskDetailsModal.close(); openArtifactModal("task", task.id); });
+  taskDetailsActions.querySelector("[data-task-comment]")?.addEventListener("click", () => {
+    const text = window.prompt("Escreva o comentário da tarefa:");
+    if (!String(text || "").trim()) return;
+    task.comments = Array.isArray(task.comments) ? task.comments : [];
+    task.comments.unshift({ text: String(text).trim(), author: cloudContext.role || "Usuário local", at: new Date().toISOString() });
+    task.updatedAt = new Date().toISOString();
+    task.history = Array.isArray(task.history) ? task.history : [];
+    task.history.unshift({ at: task.updatedAt, actor: cloudContext.role || "Usuário local", action: "Adicionou comentário", detail: String(text).trim() });
+    logAudit("comentario_adicionado", "tasks", task);
+    saveState(); taskDetailsModal.close(); render(); openTaskDetails(task.id);
+  });
   taskDetailsModal.showModal();
 }
 
@@ -3424,9 +3608,16 @@ function openTaskModal(id = null) {
   taskForm.reset();
   taskModalTitle.textContent = id ? "Editar tarefa" : "Nova tarefa";
   const task = id ? state.tasks.find((item) => item.id === id) : null;
+  if (!task) {
+    taskForm.elements.namedItem("project").value = "AVIX";
+    taskForm.elements.namedItem("origin").value = "Criação manual";
+  }
   if (task) {
     taskForm.elements.namedItem("title").value = task.title ?? "";
     taskForm.elements.namedItem("owner").value = task.owner ?? "";
+    taskForm.elements.namedItem("requester").value = task.requester ?? "";
+    taskForm.elements.namedItem("project").value = task.project ?? "Acessa";
+    taskForm.elements.namedItem("strategicFront").value = task.strategicFront ?? "";
     taskForm.elements.namedItem("phase").value = task.phase ?? "";
     taskForm.elements.namedItem("company").value = task.company ?? "";
     taskForm.elements.namedItem("category").value = task.category ?? "";
@@ -3438,6 +3629,8 @@ function openTaskModal(id = null) {
     taskForm.elements.namedItem("expectedResult").value = task.expectedResult ?? "";
     taskForm.elements.namedItem("blocker").value = task.blocker ?? "";
     taskForm.elements.namedItem("evidenceLink").value = task.evidenceLink ?? "";
+    taskForm.elements.namedItem("origin").value = task.origin ?? "Criação manual";
+    taskForm.elements.namedItem("evidenceRequired").checked = Boolean(task.evidenceRequired);
     taskForm.elements.namedItem("checklist").value = (task.checklist ?? []).join("\n");
   }
   taskModal.showModal();
@@ -4058,13 +4251,17 @@ document.querySelector("#print-expansion")?.addEventListener("click", () => {
   window.print();
   window.setTimeout(() => document.body.classList.remove("printing-expansion"), 300);
 });
-document.querySelectorAll("#board-search, #board-owner-filter, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
+document.querySelectorAll("#board-search, #board-company-filter, #board-project-filter, #board-front-filter, #board-owner-filter, #board-priority-filter, #board-phase-filter, #board-due-filter, #board-origin-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
 document.querySelector("#board-clear-filters").addEventListener("click", () => {
   document.querySelector("#board-search").value = "";
+  document.querySelector("#board-company-filter").value = "";
+  document.querySelector("#board-project-filter").value = "";
+  document.querySelector("#board-front-filter").value = "";
   document.querySelector("#board-owner-filter").value = "";
   document.querySelector("#board-priority-filter").value = "";
   document.querySelector("#board-phase-filter").value = "";
   document.querySelector("#board-due-filter").value = "";
+  document.querySelector("#board-origin-filter").value = "";
   renderKanban();
   document.querySelector("#board-search").focus();
 });
@@ -4076,6 +4273,21 @@ boardMobileMedia.addEventListener("change", (event) => {
   document.querySelector("#board-filters-panel").open = !event.matches;
 });
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
+document.querySelector("#new-avix-meeting").addEventListener("click", () => openSimpleModal("meeting"));
+function activateAvixTab(tab) {
+  document.querySelectorAll("[data-avix-tab]").forEach((button) => {
+    const active = button.dataset.avixTab === tab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  document.querySelectorAll("[data-avix-panel]").forEach((panel) => {
+    const active = panel.dataset.avixPanel === tab;
+    panel.hidden = !active;
+    panel.classList.toggle("active", active);
+  });
+}
+document.querySelectorAll("[data-avix-tab]").forEach((button) => button.addEventListener("click", () => activateAvixTab(button.dataset.avixTab)));
+document.querySelectorAll("[data-avix-go]").forEach((button) => button.addEventListener("click", () => activateAvixTab(button.dataset.avixGo)));
 document.querySelectorAll("#meeting-search, #meeting-status-filter, #meeting-period-filter, #meeting-forum-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderMeetings));
 document.querySelector("#back-to-meetings").addEventListener("click", () => {
   disposeJaasMeeting();
@@ -4173,29 +4385,55 @@ taskForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const data = new FormData(taskForm);
   const existing = taskEditId ? state.tasks.find((task) => task.id === taskEditId) : null;
+  const requestedStatus = String(data.get("status") || existing?.status || "todo");
+  const evidenceWillExist = Boolean(String(data.get("evidenceLink") || "").trim()) || (existing ? artifactsFor("task", existing.id).length > 0 : false);
+  if (["waiting-validation", "done"].includes(requestedStatus) && data.get("evidenceRequired") && !evidenceWillExist) {
+    window.alert("Esta tarefa exige evidência. Informe o link ou anexe a entrega antes de enviá-la para validação.");
+    return;
+  }
+  if (requestedStatus === "done" && existing?.status !== "waiting-validation") {
+    window.alert("A conclusão exige o fluxo de validação. Salve primeiro como “Aguardando validação”.");
+    return;
+  }
+  if (requestedStatus === "done" && cloudContext.configured && !["admin", "socio", "diretor", "gestor"].includes(cloudContext.role)) {
+    window.alert("Somente líder ou validador pode aprovar e concluir esta tarefa.");
+    return;
+  }
   const task = existing ?? {
     id: crypto.randomUUID(),
     status: "todo",
+    createdAt: new Date().toISOString(),
+    history: [],
   };
+  const previousStatus = task.status;
+  const previousDue = task.due;
   Object.assign(task, {
     title: data.get("title"),
     owner: data.get("owner"),
+    requester: data.get("requester"),
+    project: data.get("project") || "Acessa",
+    strategicFront: data.get("strategicFront"),
     phase: data.get("phase"),
     company: data.get("company"),
     category: data.get("category"),
     validator: data.get("validator"),
     due: data.get("due"),
     priority: data.get("priority"),
-    status: data.get("status") || task.status,
+    status: requestedStatus,
     description: data.get("description"),
     expectedResult: data.get("expectedResult"),
     blocker: data.get("blocker"),
     evidenceLink: data.get("evidenceLink"),
+    origin: data.get("origin") || "Criação manual",
+    evidenceRequired: Boolean(data.get("evidenceRequired")),
+    updatedAt: new Date().toISOString(),
     checklist: String(data.get("checklist") || "")
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean),
   });
+  if (existing && previousStatus !== task.status) task.history.unshift({ at: task.updatedAt, actor: cloudContext.role || "Usuário local", action: task.status === "done" ? "Aprovou a entrega" : "Alterou o status", detail: `${previousStatus} → ${task.status}` });
+  if (existing && previousDue !== task.due) task.history.unshift({ at: task.updatedAt, actor: cloudContext.role || "Usuário local", action: "Alterou o prazo", detail: `${previousDue || "A definir"} → ${task.due || "A definir"}` });
   if (!existing) state.tasks.push(task);
   logAudit(existing ? "editado" : "criado", "tasks", task);
   saveState();
