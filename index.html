@@ -421,18 +421,29 @@
             <div>
               <p class="eyebrow">Execução integrada</p>
               <h2>Quadro operacional da implantação</h2>
-              <p class="section-description">Prioridades, responsáveis, fases, empresas e alertas em uma única visão.</p>
+              <p class="section-description">Um quadro único para os sócios acompanharem responsáveis, entregas, prazos, bloqueios e evidências.</p>
             </div>
             <div class="top-actions"><button class="ghost-button" id="board-email-summary" type="button">Preparar e-mail</button><button class="primary-button" id="new-task-board">Adicionar tarefa</button></div>
+          </div>
+          <div class="board-orientation" aria-label="Como usar o quadro">
+            <div><span>1</span><p><strong>Defina a entrega</strong><small>Registre um resultado verificável, não apenas uma atividade.</small></p></div>
+            <div><span>2</span><p><strong>Nomeie uma pessoa</strong><small>O responsável coordena a tarefa e mantém o prazo atualizado.</small></p></div>
+            <div><span>3</span><p><strong>Anexe a evidência</strong><small>Use arquivo, Google Drive, Planilhas ou outro link seguro.</small></p></div>
           </div>
           <div class="board-health" id="board-health"></div>
           <div class="board-toolbar">
             <label>Buscar<input id="board-search" type="search" placeholder="Tarefa, responsável ou empresa" /></label>
+            <label>Responsável<select id="board-owner-filter"><option value="">Todos os responsáveis</option></select></label>
             <label>Prioridade<select id="board-priority-filter"><option value="">Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></label>
             <label>Fase<select id="board-phase-filter"><option value="">Todas as fases</option></select></label>
             <label>Prazo<select id="board-due-filter"><option value="">Todos</option><option value="overdue">Atrasados</option><option value="week">Próximos 7 dias</option><option value="nodate">Sem prazo</option></select></label>
           </div>
+          <div class="board-viewbar">
+            <div class="segmented-control" aria-label="Formato do quadro"><button class="active" id="board-view-kanban" type="button">Quadro</button><button id="board-view-list" type="button">Lista</button></div>
+            <p><strong id="board-result-count">0 tarefas</strong><span> · filtros atualizados automaticamente</span></p>
+          </div>
           <div class="kanban" id="kanban"></div>
+          <div class="board-list" id="board-list" hidden></div>
         </section>
 
         <section class="view" id="meetings">
@@ -487,8 +498,10 @@
               <h2>Contratos, atos societários e documentos de controle</h2>
               <p class="data-disclaimer">Organize contrato social, acordo de sócios, MOU, atas, políticas e procurações. Arquivos ficam no repositório privado, podem ser vinculados a marcos ou reuniões e preservam histórico de assinatura.</p>
             </div>
-            <button class="primary-button" id="new-document">Adicionar documento</button>
+            <div class="top-actions"><button class="ghost-button" id="new-document-link">Adicionar link</button><button class="primary-button" id="new-document">Adicionar documento</button></div>
           </div>
+          <div class="document-overview" id="document-overview"></div>
+          <div class="document-toolbar"><label>Buscar documento<input id="document-search" type="search" placeholder="Título, responsável, categoria ou empresa" /></label><label>Categoria<select id="document-type-filter"><option value="">Todas as categorias</option></select></label><label>Acesso<select id="document-access-filter"><option value="">Todos os acessos</option><option>Interno</option><option>Restrito</option><option>Conselho</option></select></label></div>
           <div class="document-categories" aria-label="Categorias documentais recomendadas">
             <span>Contrato social</span><span>Acordo de sócios</span><span>MOU</span><span>Atas e deliberações</span><span>Políticas</span><span>Procurações</span><span>Licenças e certidões</span><span>Contratos estratégicos</span>
           </div>
@@ -632,28 +645,30 @@
       </form>
     </dialog>
 
-    <dialog class="modal" id="task-modal">
+    <dialog class="modal task-modal" id="task-modal">
       <form method="dialog" class="modal-card" id="task-form">
         <div class="modal-heading">
           <h2 id="task-modal-title">Nova tarefa</h2>
           <button class="icon-button" type="button" data-dialog-close="task-modal" aria-label="Fechar sem salvar" title="Fechar sem salvar">×</button>
         </div>
-        <label>Título <input name="title" required placeholder="Ex.: revisar SLA de manutenção" /></label>
-        <label>Diretoria / responsável <input name="owner" required placeholder="Ex.: Diretoria Técnica" /></label>
-        <label>Fase / frente <input name="phase" placeholder="Ex.: Virada comercial" /></label>
-        <label>Empresa relacionada <input name="company" placeholder="Ex.: Megalink ou Todas" /></label>
-        <label>Categoria <input name="category" placeholder="Ex.: Sistemas, Jurídico, Pessoas" /></label>
-        <label>Prazo <input name="due" type="date" required /></label>
-        <label>Prioridade
-          <select name="priority">
-            <option value="Critica">Crítica</option>
-            <option>Alta</option>
-            <option value="Media">Média</option>
-            <option>Baixa</option>
-          </select>
-        </label>
-        <label>Checklist <textarea name="checklist" placeholder="Uma etapa por linha"></textarea></label>
-        <button class="primary-button" type="submit">Salvar tarefa</button>
+        <p class="task-form-intro">Deixe claro quem entrega, qual resultado será aceito e onde está a evidência.</p>
+        <div class="task-form-grid">
+          <label class="full">Título da entrega <input name="title" required placeholder="Ex.: comparar propostas das agências de marketing" /></label>
+          <label>Responsável <input name="owner" required placeholder="Uma pessoa, ex.: Felipe" /></label>
+          <label>Validador <input name="validator" placeholder="Sócio ou líder que aprova" /></label>
+          <label>Fase / frente <input name="phase" placeholder="Ex.: Virada comercial" /></label>
+          <label>Empresa relacionada <input name="company" placeholder="Ex.: Megalink ou Todas" /></label>
+          <label>Categoria <input name="category" placeholder="Ex.: Sistemas, Jurídico, Pessoas" /></label>
+          <label>Prazo <input name="due" type="date" required /></label>
+          <label>Prioridade<select name="priority"><option value="Critica">Crítica</option><option>Alta</option><option value="Media">Média</option><option>Baixa</option></select></label>
+          <label>Status<select name="status"><option value="todo">A fazer</option><option value="doing">Em andamento</option><option value="waiting">Aguardando</option><option value="done">Concluído</option><option value="archived">Arquivo</option></select></label>
+          <label class="full">Descrição / contexto <textarea name="description" placeholder="Explique o motivo, escopo e informações necessárias."></textarea></label>
+          <label class="full">Resultado esperado <textarea name="expectedResult" placeholder="O que precisa existir para a tarefa ser considerada entregue?"></textarea></label>
+          <label class="full">Checklist <textarea name="checklist" placeholder="Uma etapa por linha"></textarea></label>
+          <label class="full">Bloqueio ou dependência <textarea name="blocker" placeholder="Informe de quem ou do que esta tarefa depende."></textarea></label>
+          <label class="full">Evidência ou link <input name="evidenceLink" type="url" placeholder="https://docs.google.com/spreadsheets/..." /></label>
+        </div>
+        <div class="modal-actions"><button class="ghost-button" type="button" data-dialog-close="task-modal">Cancelar</button><button class="primary-button" type="submit">Salvar tarefa</button></div>
       </form>
     </dialog>
 
@@ -722,6 +737,8 @@
         <label>Senha<input name="password" type="password" autocomplete="current-password" required /></label>
         <p class="auth-error" id="auth-error" role="alert"></p>
         <button class="primary-button" type="submit">Entrar com segurança</button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button class="google-auth-button" id="google-sign-in" type="button"><span aria-hidden="true">G</span>Continuar com Google</button>
         <button class="auth-link" id="forgot-password" type="button">Esqueci minha senha</button>
       </form>
       <form class="auth-card" id="recovery-form" hidden>

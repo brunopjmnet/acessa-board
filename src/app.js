@@ -22,6 +22,7 @@ import {
   setBoardUserPassword,
   signBoardDocument,
   signIn,
+  signInWithGoogle,
   signOut,
   subscribeToWorkspace,
   uploadBoardArtifact,
@@ -948,6 +949,7 @@ let artifactContext = null;
 let signatureDocumentId = null;
 let cloudArtifacts = [];
 let boardProfiles = [];
+let boardViewMode = storageGet("acessa-board-view") || "kanban";
 const cloudContext = {
   configured: cloudConfigured,
   connected: false,
@@ -2667,7 +2669,9 @@ function kpiStatus(status) {
 
 function renderKanban() {
   const kanban = document.querySelector("#kanban");
+  const boardList = document.querySelector("#board-list");
   const search = document.querySelector("#board-search").value.trim().toLowerCase();
+  const selectedOwner = document.querySelector("#board-owner-filter").value;
   const priority = document.querySelector("#board-priority-filter").value;
   const selectedPhase = document.querySelector("#board-phase-filter").value;
   const dueFilter = document.querySelector("#board-due-filter").value;
@@ -2675,6 +2679,10 @@ function renderKanban() {
   const weekDate = new Date(`${today}T12:00:00`); weekDate.setDate(weekDate.getDate() + 7);
   const weekIso = weekDate.toISOString().slice(0, 10);
   const activeTasks = state.tasks.filter((task) => task.status !== "archived");
+  const ownerSelect = document.querySelector("#board-owner-filter");
+  const owners = [...new Set(activeTasks.map((task) => task.owner).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  ownerSelect.innerHTML = `<option value="">Todos os responsáveis</option>${owners.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
+  ownerSelect.value = owners.includes(selectedOwner) ? selectedOwner : "";
   const phaseSelect = document.querySelector("#board-phase-filter");
   const phases = [...new Set(activeTasks.map((task) => task.phase).filter(Boolean))].sort();
   phaseSelect.innerHTML = `<option value="">Todas as fases</option>${phases.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
@@ -2682,6 +2690,7 @@ function renderKanban() {
   const filtered = activeTasks.filter((task) => {
     const haystack = `${task.title} ${task.owner} ${task.company || ""} ${task.category || ""} ${task.phase || ""}`.toLowerCase();
     if (search && !haystack.includes(search)) return false;
+    if (selectedOwner && task.owner !== selectedOwner) return false;
     if (priority && task.priority !== priority) return false;
     if (selectedPhase && task.phase !== selectedPhase) return false;
     if (dueFilter === "overdue" && !(task.due && task.due < today && task.status !== "done")) return false;
@@ -2694,6 +2703,7 @@ function renderKanban() {
   const waiting = activeTasks.filter((task) => task.status === "waiting").length;
   const done = activeTasks.filter((task) => task.status === "done").length;
   document.querySelector("#board-health").innerHTML = `<article class="${overdue ? "danger" : "good"}"><span>Atrasadas</span><strong>${overdue}</strong><small>exigem replanejamento</small></article><article class="${critical ? "warning" : "good"}"><span>Críticas abertas</span><strong>${critical}</strong><small>prioridade máxima</small></article><article><span>Aguardando</span><strong>${waiting}</strong><small>dependências externas</small></article><article class="good"><span>Concluídas</span><strong>${done}</strong><small>entregas registradas</small></article>`;
+  document.querySelector("#board-result-count").textContent = `${filtered.length} ${filtered.length === 1 ? "tarefa" : "tarefas"}`;
   kanban.innerHTML = statuses
     .map((status) => {
       const cards = filtered
@@ -2703,8 +2713,17 @@ function renderKanban() {
       return `<section class="column"><h3>${status.label}</h3>${cards || `<p class="empty">Sem itens.</p>`}</section>`;
     })
     .join("");
+  boardList.innerHTML = filtered.length ? `<div class="board-list-head"><span>Entrega</span><span>Responsável</span><span>Prazo</span><span>Status</span><span></span></div>${filtered.map(renderTaskListRow).join("")}` : `<p class="empty">Nenhuma tarefa corresponde aos filtros.</p>`;
+  kanban.hidden = boardViewMode !== "kanban";
+  boardList.hidden = boardViewMode !== "list";
+  document.querySelector("#board-view-kanban").classList.toggle("active", boardViewMode === "kanban");
+  document.querySelector("#board-view-list").classList.toggle("active", boardViewMode === "list");
+  bindTaskActions(kanban);
+  bindTaskActions(boardList);
+}
 
-  kanban.querySelectorAll("[data-task-status]").forEach((select) => {
+function bindTaskActions(container) {
+  container.querySelectorAll("[data-task-status]").forEach((select) => {
     select.addEventListener("change", () => {
       const task = state.tasks.find((item) => item.id === select.dataset.taskStatus);
       const previousStatus = task.status;
@@ -2714,10 +2733,17 @@ function renderKanban() {
       render();
     });
   });
-  kanban.querySelectorAll("[data-task-edit]").forEach((button) => {
+  container.querySelectorAll("[data-task-edit]").forEach((button) => {
     button.addEventListener("click", () => openTaskModal(button.dataset.taskEdit));
   });
-  kanban.querySelectorAll("[data-task-email]").forEach((button) => button.addEventListener("click", () => prepareTaskEmail(state.tasks.find((task) => task.id === button.dataset.taskEmail))));
+  container.querySelectorAll("[data-task-email]").forEach((button) => button.addEventListener("click", () => prepareTaskEmail(state.tasks.find((task) => task.id === button.dataset.taskEmail))));
+  container.querySelectorAll("[data-task-archive]").forEach((button) => button.addEventListener("click", () => {
+    const task = state.tasks.find((item) => item.id === button.dataset.taskArchive);
+    if (!task || !window.confirm(`Arquivar a tarefa “${task.title}”?`)) return;
+    task.status = "archived";
+    logAudit("arquivado", "tasks", task);
+    saveState(); render();
+  }));
 }
 
 function renderTaskCard(task) {
@@ -2732,15 +2758,28 @@ function renderTaskCard(task) {
         <span class="tag ${task.priority === "Critica" || task.priority === "Alta" ? "warning" : ""}">${escapeHtml(task.priority)}</span>
         ${task.company ? `<span class="tag company">${escapeHtml(task.company)}</span>` : ""}
       </div>
+      ${task.expectedResult ? `<p class="task-outcome"><span>Resultado esperado</span>${escapeHtml(task.expectedResult)}</p>` : ""}
+      ${task.blocker ? `<p class="task-blocker"><span>Bloqueio</span>${escapeHtml(task.blocker)}</p>` : ""}
       <ul class="checklist">
         ${task.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
       </ul>
       <select data-task-status="${task.id}" aria-label="Status da tarefa">
         ${statuses.map((status) => `<option value="${status.id}" ${task.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}
       </select>
-      <div class="task-actions"><button class="text-button" type="button" data-task-email="${task.id}">Avisar</button><button class="ghost-button" type="button" data-task-edit="${task.id}">Editar tarefa</button></div>
+      ${task.evidenceLink ? `<a class="task-evidence" href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer">Abrir evidência ↗</a>` : ""}
+      <div class="task-actions"><button class="text-button" type="button" data-task-email="${task.id}">Avisar</button><button class="ghost-button" type="button" data-task-edit="${task.id}">Editar</button><button class="icon-button task-archive" type="button" data-task-archive="${task.id}" title="Arquivar" aria-label="Arquivar tarefa">⌁</button></div>
     </article>
   `;
+}
+
+function renderTaskListRow(task) {
+  const isOverdue = task.due && task.due < currentCivilDateIso() && !["done", "archived"].includes(task.status);
+  return `<article class="board-list-row ${isOverdue ? "overdue" : ""}">
+    <div><span class="task-phase">${escapeHtml(task.phase || task.category || "Operação")}</span><strong>${escapeHtml(task.title)}</strong>${task.company ? `<small>${escapeHtml(task.company)}</small>` : ""}</div>
+    <span>${escapeHtml(task.owner)}</span><span class="${isOverdue ? "due-overdue" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}</span>
+    <select data-task-status="${task.id}" aria-label="Status da tarefa">${statuses.map((status) => `<option value="${status.id}" ${task.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}</select>
+    <div class="board-list-actions">${task.evidenceLink ? `<a href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer" title="Abrir evidência">↗</a>` : ""}<button class="ghost-button" type="button" data-task-edit="${task.id}">Abrir</button></div>
+  </article>`;
 }
 
 function renderActionItem(task) {
@@ -3014,9 +3053,28 @@ function downloadMeetingCalendar(id) {
 }
 
 function renderDocuments() {
-  const protectedCards = cloudArtifacts.map((doc) => `
+  const search = document.querySelector("#document-search").value.trim().toLocaleLowerCase("pt-BR");
+  const selectedType = document.querySelector("#document-type-filter").value;
+  const selectedAccess = document.querySelector("#document-access-filter").value;
+  const legacyDocuments = state.documents.filter((doc) => !doc.archivedAt);
+  const typeSelect = document.querySelector("#document-type-filter");
+  const documentTypes = [...new Set([...cloudArtifacts.map((doc) => doc.category), ...legacyDocuments.map((doc) => doc.type)].filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  typeSelect.innerHTML = `<option value="">Todas as categorias</option>${documentTypes.map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join("")}`;
+  typeSelect.value = documentTypes.includes(selectedType) ? selectedType : "";
+  const matchesDocument = (doc, isCloud = false) => {
+    const type = isCloud ? doc.category : doc.type;
+    const haystack = [doc.title, type, doc.owner, doc.parties, doc.repository, doc.note, doc.original_filename].filter(Boolean).join(" ").toLocaleLowerCase("pt-BR");
+    return (!search || haystack.includes(search)) && (!selectedType || type === selectedType) && (!selectedAccess || (doc.confidentiality || "Interno") === selectedAccess);
+  };
+  const filteredCloud = cloudArtifacts.filter((doc) => matchesDocument(doc, true));
+  const filteredLegacy = legacyDocuments.filter((doc) => matchesDocument(doc));
+  const linked = legacyDocuments.filter((doc) => /^https?:\/\//i.test(doc.link || "")).length;
+  const restricted = [...cloudArtifacts, ...legacyDocuments].filter((doc) => ["Restrito", "Conselho"].includes(doc.confidentiality)).length;
+  const reviewDue = legacyDocuments.filter((doc) => doc.reviewDate && doc.reviewDate < currentCivilDateIso()).length;
+  document.querySelector("#document-overview").innerHTML = `<article><span>Itens ativos</span><strong>${cloudArtifacts.length + legacyDocuments.length}</strong><small>arquivos e referências</small></article><article><span>Links online</span><strong>${linked}</strong><small>Drive, Planilhas e portais</small></article><article><span>Acesso controlado</span><strong>${restricted}</strong><small>restrito ou Conselho</small></article><article class="${reviewDue ? "warning" : "good"}"><span>Revisões vencidas</span><strong>${reviewDue}</strong><small>exigem atualização</small></article>`;
+  const protectedCards = filteredCloud.map((doc) => `
     <article class="document-card protected-document-card"><div><span class="eyebrow">Arquivo protegido</span><h3>${escapeHtml(doc.title)}</h3><p class="muted">${escapeHtml(doc.relation_type || "workspace")} · ${escapeHtml(doc.artifact_type || "document")}</p></div><div class="tag-row"><span class="tag">${escapeHtml(doc.category)}</span><span class="tag violet">${escapeHtml(artifactSignatureStatus(doc))}</span><span class="tag ${doc.confidentiality === "Restrito" ? "warning" : ""}">${escapeHtml(doc.confidentiality)}</span></div><dl class="kpi-details"><div><dt>Arquivo</dt><dd>${escapeHtml(doc.original_filename || "Protegido")}</dd></div><div><dt>Integridade</dt><dd>SHA-256 ${escapeHtml(String(doc.sha256 || "").slice(0, 16))}…</dd></div><div><dt>Status</dt><dd>${escapeHtml(doc.status)}</dd></div><div><dt>Versão</dt><dd>${escapeHtml(doc.version || "1.0")}</dd></div></dl><div class="card-actions"><button class="ghost-button" type="button" data-open-artifact="${doc.id}">Abrir arquivo</button>${(doc.board_document_signature_requests || []).some((request) => request.signer_id === cloudContext.currentUserId && request.status === "pending") ? `<button class="primary-button" type="button" data-sign-artifact="${doc.id}">Assinar</button>` : ""}</div></article>`).join("");
-  const legacyCards = state.documents.filter((doc) => !doc.archivedAt).map((doc) => `
+  const legacyCards = filteredLegacy.map((doc) => `
     <article class="document-card">
       <div>
         <h3>${escapeHtml(doc.title)}</h3>
@@ -3042,7 +3100,7 @@ function renderDocuments() {
       </div>
     </article>
   `).join("");
-  document.querySelector("#document-grid").innerHTML = protectedCards + legacyCards;
+  document.querySelector("#document-grid").innerHTML = protectedCards + legacyCards || `<div class="empty-state"><strong>Nenhum documento encontrado</strong><p>Revise os filtros ou adicione um arquivo ou link online.</p></div>`;
   bindSimpleActions("document", "#document-grid");
   bindArtifactActions(document.querySelector("#document-grid"));
 }
@@ -3256,8 +3314,14 @@ function openTaskModal(id = null) {
     taskForm.elements.namedItem("phase").value = task.phase ?? "";
     taskForm.elements.namedItem("company").value = task.company ?? "";
     taskForm.elements.namedItem("category").value = task.category ?? "";
+    taskForm.elements.namedItem("validator").value = task.validator ?? "";
     taskForm.elements.namedItem("due").value = task.due ?? "";
     taskForm.elements.namedItem("priority").value = task.priority ?? "Media";
+    taskForm.elements.namedItem("status").value = task.status ?? "todo";
+    taskForm.elements.namedItem("description").value = task.description ?? "";
+    taskForm.elements.namedItem("expectedResult").value = task.expectedResult ?? "";
+    taskForm.elements.namedItem("blocker").value = task.blocker ?? "";
+    taskForm.elements.namedItem("evidenceLink").value = task.evidenceLink ?? "";
     taskForm.elements.namedItem("checklist").value = (task.checklist ?? []).join("\n");
   }
   taskModal.showModal();
@@ -3879,7 +3943,9 @@ document.querySelector("#print-expansion")?.addEventListener("click", () => {
   window.print();
   window.setTimeout(() => document.body.classList.remove("printing-expansion"), 300);
 });
-document.querySelectorAll("#board-search, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
+document.querySelectorAll("#board-search, #board-owner-filter, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
+document.querySelector("#board-view-kanban").addEventListener("click", () => { boardViewMode = "kanban"; storageSet("acessa-board-view", boardViewMode); renderKanban(); });
+document.querySelector("#board-view-list").addEventListener("click", () => { boardViewMode = "list"; storageSet("acessa-board-view", boardViewMode); renderKanban(); });
 document.querySelector("#board-email-summary").addEventListener("click", () => prepareBoardEmail());
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
 document.querySelectorAll("#meeting-search, #meeting-status-filter, #meeting-period-filter, #meeting-forum-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderMeetings));
@@ -3890,6 +3956,8 @@ document.querySelector("#back-to-meetings").addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 document.querySelector("#new-document").addEventListener("click", () => openArtifactModal("workspace", "general"));
+document.querySelector("#new-document-link").addEventListener("click", () => openSimpleModal("document"));
+document.querySelectorAll("#document-search, #document-type-filter, #document-access-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderDocuments));
 document.querySelector("#new-person")?.addEventListener("click", () => openSimpleModal("person"));
 document.querySelector("#new-kpi").addEventListener("click", () => openSimpleModal("kpi"));
 document.querySelector("#new-process").addEventListener("click", () => openSimpleModal("process"));
@@ -3987,8 +4055,14 @@ taskForm.addEventListener("submit", (event) => {
     phase: data.get("phase"),
     company: data.get("company"),
     category: data.get("category"),
+    validator: data.get("validator"),
     due: data.get("due"),
     priority: data.get("priority"),
+    status: data.get("status") || task.status,
+    description: data.get("description"),
+    expectedResult: data.get("expectedResult"),
+    blocker: data.get("blocker"),
+    evidenceLink: data.get("evidenceLink"),
     checklist: String(data.get("checklist") || "")
       .split("\n")
       .map((item) => item.trim())
@@ -4218,6 +4292,20 @@ authForm.addEventListener("submit", async (event) => {
   } finally {
     button.disabled = false;
     button.textContent = "Entrar com segurança";
+  }
+});
+
+document.querySelector("#google-sign-in")?.addEventListener("click", async () => {
+  const button = document.querySelector("#google-sign-in");
+  authError.textContent = "";
+  button.disabled = true;
+  button.innerHTML = `<span aria-hidden="true">G</span>Conectando ao Google...`;
+  try {
+    await signInWithGoogle();
+  } catch (error) {
+    authError.textContent = error instanceof Error ? error.message : "Não foi possível iniciar o acesso com Google.";
+    button.disabled = false;
+    button.innerHTML = `<span aria-hidden="true">G</span>Continuar com Google`;
   }
 });
 
