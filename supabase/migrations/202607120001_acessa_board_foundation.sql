@@ -5,7 +5,7 @@ create table if not exists public.board_profiles (
   display_name text,
   role text not null default 'colaborador' check (role in ('admin','socio','diretor','gestor','rh','auditor','colaborador')),
   directorate text,
-  active boolean not null default true,
+  active boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -64,14 +64,15 @@ create or replace function public.board_handle_new_user()
 returns trigger language plpgsql security definer set search_path = public
 as $$
 begin
-  insert into public.board_profiles (user_id, display_name, role)
+  insert into public.board_profiles (user_id, display_name, role, active)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', new.email),
     case
       when not exists (select 1 from public.board_profiles) then 'admin'
       else 'colaborador'
-    end
+    end,
+    not exists (select 1 from public.board_profiles)
   );
   return new;
 end;

@@ -77,6 +77,19 @@ export async function listBoardProfiles() {
   return data || [];
 }
 
+export async function signInWithGoogle() {
+  if (!supabase) throw new Error("A conexão corporativa ainda não foi configurada.");
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/`,
+      scopes: "openid email profile",
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
 function safeStorageFilename(name) {
   const extension = String(name || "arquivo").split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   return `${crypto.randomUUID()}.${extension}`;
