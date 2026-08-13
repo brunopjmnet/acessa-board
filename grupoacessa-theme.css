@@ -663,7 +663,7 @@ html[data-theme="dark"] #board .column.has-tasks { background: rgba(79,70,229,.0
   .task-details-grid section.full { grid-column: auto; }
 }
 
-/* Painel AVIX: visão geral, operação, evolução estratégica e reuniões */
+/* Painel Acessa: visão geral, operação, evolução estratégica e reuniões */
 #board .board-heading { margin-bottom: 14px; }
 .avix-tabs { display: flex; gap: 6px; margin-bottom: 16px; padding: 5px; border: 1px solid #dfe4ef; border-radius: 12px; background: rgba(255,255,255,.78); width: fit-content; max-width: 100%; overflow-x: auto; }
 .avix-tabs button { border: 0; border-radius: 8px; padding: 9px 14px; background: transparent; color: #5d6679; font: inherit; font-size: 12px; font-weight: 750; white-space: nowrap; cursor: pointer; }

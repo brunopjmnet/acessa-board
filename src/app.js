@@ -618,38 +618,43 @@ const defaultConnectors = [
   { id: "connector-accounting", system: "Contabilidade", scope: "Despesas, impostos, folha consolidada e centros de custo", mode: "Planilha / API", owner: "Bruno", status: "Não conectado", lastSync: "", note: "Importar apenas dados aprovados e separar informações restritas." },
 ];
 
-const avixChecklistUrl = "https://docs.google.com/spreadsheets/d/1G9zJmAiYsg5iB0uoQ6P4R9L4wgyvXO5rDbSBsmbDb8I/edit?usp=sharing";
-const avixSource = "Decisões da reunião de 11/08/2026";
-const avixTasks = [
+const acessaProjectName = "Implantação e estruturação da Acessa";
+const acessaChecklistUrl = "https://docs.google.com/spreadsheets/d/1G9zJmAiYsg5iB0uoQ6P4R9L4wgyvXO5rDbSBsmbDb8I/edit?usp=sharing";
+const acessaMeetingSource = "Decisões da reunião de 11/08/2026";
+const acessaDocumentSource = "PAUTA CONSOLIDADA DAS REUNIÕES - PROJETO AVIX - GRUPO DE PROVEDORES";
+const acessaDocumentSourceLabel = `Documento de origem: “${acessaDocumentSource}” · Grupo relacionado no sistema: Acessa`;
+const acessaImportedTasks = [
   {
-    id: "avix-2026-08-11-checklist-principal", sourceId: "whatsapp-2026-08-11-checklist-principal", title: "Preencher checklist dos funcionários", owner: "A definir", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-13", priority: "Alta", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Gestão de pessoas", strategicFront: "Estrutura organizacional", phase: "Gestão de pessoas", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, referenceLink: avixChecklistUrl, expectedResult: "Checklist dos funcionários preenchido individualmente pelos participantes indicados.", description: "Tarefa principal que consolida as entregas individuais registradas na mensagem do grupo.", checklist: ["Filipe", "Rodrigo", "Harley"], childTaskIds: ["avix-2026-08-11-checklist-filipe", "avix-2026-08-11-checklist-rodrigo", "avix-2026-08-11-checklist-harley"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00",
+    id: "avix-2026-08-11-checklist-principal", sourceId: "whatsapp-2026-08-11-checklist-principal", legacyProjectName: "AVIX", searchAliases: ["AVIX"], title: "Preencher checklist dos funcionários", owner: "A definir", requester: "Grupo Acessa", validator: "A definir", due: "2026-08-13", priority: "Alta", status: "todo", project: acessaProjectName, company: "Acessa", category: "Gestão de pessoas", strategicFront: "Estrutura organizacional", phase: "Gestão de pessoas", origin: "WhatsApp", sourceLabel: acessaMeetingSource, evidenceRequired: true, referenceLink: acessaChecklistUrl, expectedResult: "Checklist dos funcionários preenchido individualmente pelos participantes indicados.", description: "Tarefa principal que consolida as entregas individuais registradas na mensagem do grupo.", checklist: ["Filipe", "Rodrigo", "Harley"], childTaskIds: ["avix-2026-08-11-checklist-filipe", "avix-2026-08-11-checklist-rodrigo", "avix-2026-08-11-checklist-harley"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00",
   },
   ...["Filipe", "Rodrigo", "Harley"].map((owner) => ({
-    id: `avix-2026-08-11-checklist-${owner.toLocaleLowerCase("pt-BR")}`, sourceId: `whatsapp-2026-08-11-checklist-${owner.toLocaleLowerCase("pt-BR")}`, parentTaskId: "avix-2026-08-11-checklist-principal", title: `Preencher checklist dos funcionários — ${owner}`, owner, requester: "Grupo AVIX", validator: "A definir", due: "2026-08-13", priority: "Alta", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Gestão de pessoas", strategicFront: "Estrutura organizacional", phase: "Gestão de pessoas", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, referenceLink: avixChecklistUrl, expectedResult: `Checklist dos funcionários sob responsabilidade de ${owner} preenchido.`, checklist: ["Abrir a planilha de referência", "Preencher os dados", "Enviar para validação"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00",
+    id: `avix-2026-08-11-checklist-${owner.toLocaleLowerCase("pt-BR")}`, sourceId: `whatsapp-2026-08-11-checklist-${owner.toLocaleLowerCase("pt-BR")}`, legacyProjectName: "AVIX", searchAliases: ["AVIX"], parentTaskId: "avix-2026-08-11-checklist-principal", title: `Preencher checklist dos funcionários — ${owner}`, owner, requester: "Grupo Acessa", validator: "A definir", due: "2026-08-13", priority: "Alta", status: "todo", project: acessaProjectName, company: "Acessa", category: "Gestão de pessoas", strategicFront: "Estrutura organizacional", phase: "Gestão de pessoas", origin: "WhatsApp", sourceLabel: acessaMeetingSource, evidenceRequired: true, referenceLink: acessaChecklistUrl, expectedResult: `Checklist dos funcionários sob responsabilidade de ${owner} preenchido.`, checklist: ["Abrir a planilha de referência", "Preencher os dados", "Enviar para validação"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00",
   })),
-  { id: "avix-2026-08-11-marketing", sourceId: "whatsapp-2026-08-11-marketing", title: "Analisar agências de marketing", owner: "Filipe", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-18", priority: "Media", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Marketing", strategicFront: "Naming e marca", phase: "Marketing", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, expectedResult: "Comparação das agências analisadas.", description: "Comparar as agências avaliadas e apresentar uma recomendação ao grupo.", checklist: ["Levantar agências", "Comparar propostas", "Registrar recomendação"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
-  { id: "avix-2026-08-11-contaxx", sourceId: "whatsapp-2026-08-11-contaxx", title: "Enviar dados para a Contaxx", owner: "Rodrigo", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-12", priority: "Alta", status: "todo", project: "AVIX", company: "Grupo AVIX", category: "Contabilidade/Contaxx", strategicFront: "Consultorias e estruturação", phase: "Contabilidade", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, expectedResult: "Dados solicitados entregues à Contaxx com confirmação de recebimento.", checklist: ["Consolidar dados", "Enviar à Contaxx", "Anexar comprovante"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
-  { id: "avix-2026-08-11-pjm", sourceId: "whatsapp-2026-08-11-pjm", title: "Analisar estrutura física da PJM", owner: "Harley", requester: "Grupo AVIX", validator: "A definir", due: "2026-08-14", priority: "Media", status: "todo", project: "AVIX", company: "PJMNET", category: "Infraestrutura", strategicFront: "Infraestrutura e rede", phase: "Infraestrutura", origin: "WhatsApp", sourceLabel: avixSource, evidenceRequired: true, expectedResult: "Diagnóstico da estrutura física da PJM.", checklist: ["Realizar vistoria", "Registrar fotos", "Elaborar relatório"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
+  { id: "avix-2026-08-11-marketing", sourceId: "whatsapp-2026-08-11-marketing", legacyProjectName: "AVIX", searchAliases: ["AVIX"], title: "Analisar agências de marketing", owner: "Filipe", requester: "Grupo Acessa", validator: "A definir", due: "2026-08-18", priority: "Media", status: "todo", project: acessaProjectName, company: "Acessa", category: "Marketing", strategicFront: "Naming e marca", phase: "Marketing", origin: "WhatsApp", sourceLabel: acessaMeetingSource, evidenceRequired: true, expectedResult: "Comparação das agências analisadas.", description: "Comparar as agências avaliadas e apresentar uma recomendação ao grupo.", checklist: ["Levantar agências", "Comparar propostas", "Registrar recomendação"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
+  { id: "avix-2026-08-11-contaxx", sourceId: "whatsapp-2026-08-11-contaxx", legacyProjectName: "AVIX", searchAliases: ["AVIX"], title: "Enviar dados para a Contaxx", owner: "Rodrigo", requester: "Grupo Acessa", validator: "A definir", due: "2026-08-12", priority: "Alta", status: "todo", project: acessaProjectName, company: "Acessa", category: "Contabilidade/Contaxx", strategicFront: "Consultorias e estruturação", phase: "Contabilidade", origin: "WhatsApp", sourceLabel: acessaMeetingSource, evidenceRequired: true, expectedResult: "Dados solicitados entregues à Contaxx com confirmação de recebimento.", checklist: ["Consolidar dados", "Enviar à Contaxx", "Anexar comprovante"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
+  { id: "avix-2026-08-11-pjm", sourceId: "whatsapp-2026-08-11-pjm", legacyProjectName: "AVIX", searchAliases: ["AVIX"], title: "Analisar estrutura física da PJM", owner: "Harley", requester: "Grupo Acessa", validator: "A definir", due: "2026-08-14", priority: "Media", status: "todo", project: acessaProjectName, company: "PJMNET", category: "Infraestrutura", strategicFront: "Infraestrutura e rede", phase: "Infraestrutura", origin: "WhatsApp", sourceLabel: acessaMeetingSource, evidenceRequired: true, expectedResult: "Diagnóstico da estrutura física da PJM.", checklist: ["Realizar vistoria", "Registrar fotos", "Elaborar relatório"], createdAt: "2026-08-11T18:32:00-03:00", updatedAt: "2026-08-11T18:32:00-03:00" },
 ];
 
-const avixStrategicFronts = [
-  { id: "formation", name: "Formação do grupo", status: "Concluído", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Grupo iniciado com sete provedores", "Link X desligada após análise técnica e estratégica", "Motivos: equipamentos fora do padrão desejado, alto investimento para adequação e impacto financeiro incompatível com a fase inicial", "Formação atual: PJMNET, PointNet, TurboLink, ISPTEC, MegaLink e Linax"], underway: ["Composição atual registrada e definida"], next: "Manter o cadastro societário alinhado às decisões formais.", evidence: "Pauta consolidada das reuniões", stages: ["done", "done", "done"] },
+const acessaStrategicFronts = [
+  { id: "formation", name: "Formação do grupo", status: "Concluído", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Grupo iniciado com sete provedores", "Link X desligada após análise técnica e estratégica", "Motivos: equipamentos fora do padrão desejado, alto investimento para adequação e impacto financeiro incompatível com a fase inicial", "Formação atual: PJMNET, PointNet, TurboLink, ISPTEC, MegaLink e Linax"], underway: ["Composição atual registrada e definida"], next: "Manter o cadastro societário alinhado às decisões formais.", evidence: acessaDocumentSource, stages: ["done", "done", "done"] },
   { id: "consulting", name: "Consultorias e estruturação", status: "Em andamento", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Tríade Consultoria envolvida", "Gustavo Posser conduz valuation e Memorando de Entendimentos"], underway: ["Valuation das empresas", "Análise de possível fusão ou holding", "Modelo societário, organização tributária e segurança jurídica"], next: "Consolidar o modelo societário e registrar a decisão.", evidence: "Pauta consolidada das reuniões", stages: ["done", "doing", "doing", "definition"] },
   { id: "organization", name: "Estrutura organizacional", status: "Em definição", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Discussão iniciada sobre a diretoria do grupo"], underway: ["Criação da diretoria", "Definição de setores estratégicos compartilhados"], next: "Aprovar composição, papéis e alçadas da diretoria.", evidence: "Pauta consolidada das reuniões", stages: ["definition", "definition"] },
   { id: "standards", name: "Padronização operacional", status: "Em estudo", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Necessidade de padronização registrada"], underway: ["Planos comerciais", "Equipamentos padrão para rede", "Redução de complexidade e ganho de escala"], next: "Definir responsáveis, critérios e cronograma.", evidence: "Pauta consolidada das reuniões", stages: ["study", "study", "study"] },
   { id: "brand", name: "Naming e marca", status: "Em andamento", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Profissional contratado para criação do nome e da identidade"], underway: ["Desenvolvimento do posicionamento institucional da marca"], next: "Validar nome, identidade e aplicações finais.", evidence: "Pauta consolidada das reuniões", stages: ["done", "doing"] },
   { id: "network", name: "Infraestrutura e rede", status: "Em estudo", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Estudo de integração registrado"], underway: ["Interligação entre redes", "Desenvolvimento da rede neutra", "Compartilhamento de infraestrutura e redução de custos"], next: "Consolidar diagnóstico técnico e arquitetura da rede neutra.", evidence: "Pauta consolidada das reuniões", stages: ["study", "study", "study"] },
   { id: "partnerships", name: "Parcerias e novos produtos", status: "Em andamento", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Deezer, ExitLag e intermediação via PlayHub iniciados"], underway: ["Avaliação de implantação e oferta comercial"], next: "Comprovar produtos implantados e medir ticket médio, churn e competitividade.", evidence: "Pauta consolidada das reuniões", stages: ["doing", "study", "study"] },
-  { id: "next", name: "Próximos passos", status: "Aguardando decisão", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Prioridades estratégicas consolidadas"], underway: ["Definir modelo societário", "Consolidar diretoria", "Avançar na rede neutra", "Integrar operações entre empresas", "Estruturar o AVIX como grupo sólido e escalável"], next: "Converter cada decisão aprovada em tarefa com responsável e prazo.", evidence: "Pauta consolidada das reuniões", stages: ["definition", "not-started", "study", "not-started", "not-started"] },
+  { id: "next", name: "Próximos passos", status: "Aguardando decisão", updatedAt: "2026-08-11", owner: "A definir", due: "A definir", advanced: ["Prioridades estratégicas consolidadas"], underway: ["Definir modelo societário", "Consolidar diretoria", "Avançar na rede neutra", "Integrar operações entre empresas", "Estruturar a Acessa como grupo sólido e escalável"], next: "Converter cada decisão aprovada em tarefa com responsável e prazo.", evidence: acessaDocumentSource, stages: ["definition", "not-started", "study", "not-started", "not-started"] },
 ];
 
-const avixMeetings = [
-  { id: "avix-meeting-group-2026-08-13", sourceId: "whatsapp-meeting-group-2026-08-13-14", title: "Reunião do grupo", forum: "Grupo AVIX", status: "Agendada", organizer: "A definir", date: "2026-08-13", time: "14:00", duration: 60, participants: "A definir", objective: "Acompanhar decisões, tarefas e próximos passos do grupo.", agenda: "A definir", materials: "Mensagem do grupo de 11/08/2026.", decisions: "", minutes: "Ata pendente.", actionItems: "Relacionar as tarefas originadas na reunião.", confidentiality: "Interno", origin: "WhatsApp" },
-  { id: "avix-meeting-contaxx-2026-08-13", sourceId: "whatsapp-meeting-contaxx-2026-08-13-17", title: "Reunião Contaxx", forum: "Grupo AVIX", status: "Agendada", organizer: "A definir", date: "2026-08-13", time: "17:00", duration: 60, participants: "A definir", objective: "Reunião com a Contaxx.", agenda: "A definir", materials: "Mensagem do grupo de 11/08/2026.", decisions: "", minutes: "Ata pendente.", actionItems: "Registrar decisões, responsáveis e prazos.", confidentiality: "Interno", origin: "WhatsApp" },
+acessaStrategicFronts.forEach((front) => { front.evidence = acessaDocumentSourceLabel; });
+
+const acessaImportedMeetings = [
+  { id: "avix-meeting-group-2026-08-13", sourceId: "whatsapp-meeting-group-2026-08-13-14", legacyProjectName: "AVIX", searchAliases: ["AVIX"], title: "Reunião do grupo", forum: "Grupo Acessa", status: "Agendada", organizer: "A definir", date: "2026-08-13", time: "14:00", duration: 60, participants: "A definir", objective: "Acompanhar decisões, tarefas e próximos passos do grupo Acessa.", agenda: "A definir", materials: "Mensagem do grupo de 11/08/2026.", decisions: "", minutes: "Ata pendente.", actionItems: "Relacionar as tarefas originadas na reunião.", confidentiality: "Interno", origin: "WhatsApp" },
+  { id: "avix-meeting-contaxx-2026-08-13", sourceId: "whatsapp-meeting-contaxx-2026-08-13-17", legacyProjectName: "AVIX", searchAliases: ["AVIX"], title: "Reunião Contaxx", forum: "Grupo Acessa", status: "Agendada", organizer: "A definir", date: "2026-08-13", time: "17:00", duration: 60, participants: "A definir", objective: "Reunião da Acessa com a Contaxx.", agenda: "A definir", materials: "Mensagem do grupo de 11/08/2026.", decisions: "", minutes: "Ata pendente.", actionItems: "Registrar decisões, responsáveis e prazos.", confidentiality: "Interno", origin: "WhatsApp" },
 ];
 
 const seed = {
-  businessModelVersion: 21,
+  businessModelVersion: 22,
   companies: defaultCompanies,
   milestones: defaultMilestones,
   decisions: defaultDecisions,
@@ -678,9 +683,9 @@ const seed = {
   processManuals: defaultProcessManuals,
   governance: defaultGovernance,
   raci: defaultRaci,
-  strategicFronts: avixStrategicFronts,
+  strategicFronts: acessaStrategicFronts,
   tasks: [
-    ...avixTasks,
+    ...acessaImportedTasks,
     ...phaseZeroTasks,
     {
       id: crypto.randomUUID(),
@@ -729,7 +734,7 @@ const seed = {
     },
   ],
   meetings: [
-    ...avixMeetings,
+    ...acessaImportedMeetings,
     {
       id: "meeting-conselho-demo",
       title: "Conselho de Sócios — Reunião demonstrativa",
@@ -1135,21 +1140,48 @@ function mergeImportedRecords(existingItems, importedItems) {
     if (index < 0) current.push(structuredClone(imported));
     else current[index] = { ...imported, ...current[index], id: imported.id, sourceId: imported.sourceId };
   });
-  return current;
+  const seen = new Set();
+  return current.filter((item) => {
+    const key = item.sourceId ? `source:${item.sourceId}` : item.id ? `id:${item.id}` : null;
+    if (!key || !seen.has(key)) { if (key) seen.add(key); return true; }
+    return false;
+  });
 }
 
-function enrichAvixState(source) {
-  const tasks = mergeImportedRecords(source.tasks, avixTasks).map((task) => {
-    const clean = { project: task.project || "Acessa", origin: task.origin || "Criação manual", comments: Array.isArray(task.comments) ? task.comments : [], history: Array.isArray(task.history) ? task.history : [], createdAt: task.createdAt || "", updatedAt: task.updatedAt || task.createdAt || "", ...task };
+function normalizeAcessaReference(record) {
+  const clean = { ...record };
+  const hadAvixReference = [clean.project, clean.company, clean.group, clean.forum, clean.requester, clean.legacyProjectName].some((value) => /avix/i.test(String(value || "")));
+  if (/^avix$/i.test(String(clean.project || "").trim())) clean.project = acessaProjectName;
+  if (/^(grupo\s+)?avix$/i.test(String(clean.company || "").trim())) clean.company = "Acessa";
+  if (/^(grupo\s+)?avix$/i.test(String(clean.group || "").trim())) clean.group = "Acessa";
+  if (/^grupo\s+avix$/i.test(String(clean.forum || "").trim())) clean.forum = "Grupo Acessa";
+  if (/^grupo\s+avix$/i.test(String(clean.requester || "").trim())) clean.requester = "Grupo Acessa";
+  if (hadAvixReference) {
+    clean.legacyProjectName = "AVIX";
+    clean.searchAliases = [...new Set([...(Array.isArray(clean.searchAliases) ? clean.searchAliases : []), "AVIX"])];
+  }
+  return clean;
+}
+
+function enrichAcessaState(source) {
+  const tasks = mergeImportedRecords(source.tasks, acessaImportedTasks).map((task) => {
+    const clean = normalizeAcessaReference({ project: task.project || "Acessa", origin: task.origin || "Criação manual", comments: Array.isArray(task.comments) ? task.comments : [], history: Array.isArray(task.history) ? task.history : [], createdAt: task.createdAt || "", updatedAt: task.updatedAt || task.createdAt || "", ...task });
     if (clean.status === "waiting") clean.status = "waiting-third";
     ["title", "owner", "category"].forEach((field) => {
       if (String(clean[field] || "").trim().toLocaleLowerCase("pt-BR") === "teste") clean[field] = field === "title" ? "Tarefa sem título — revisar cadastro" : "A definir";
     });
     return clean;
   });
-  const meetings = mergeImportedRecords(source.meetings, avixMeetings);
-  const strategicFronts = mergeImportedRecords(source.strategicFronts, avixStrategicFronts);
-  return { ...source, businessModelVersion: 21, tasks, meetings, strategicFronts };
+  const meetings = mergeImportedRecords(source.meetings, acessaImportedMeetings).map(normalizeAcessaReference);
+  const strategicFronts = mergeImportedRecords(source.strategicFronts, acessaStrategicFronts).map((front) => ({
+    ...front,
+    evidence: acessaDocumentSourceLabel,
+    underway: (front.underway || []).map((item) => String(item).replace("Estruturar o AVIX como grupo sólido e escalável", "Estruturar a Acessa como grupo sólido e escalável")),
+    next: String(front.next || "").replace("Estruturar o AVIX como grupo sólido e escalável", "Estruturar a Acessa como grupo sólido e escalável"),
+  }));
+  const documents = (Array.isArray(source.documents) ? source.documents : []).map(normalizeAcessaReference);
+  const decisions = (Array.isArray(source.decisions) ? source.decisions : []).map(normalizeAcessaReference);
+  return { ...source, businessModelVersion: 22, tasks, meetings, strategicFronts, documents, decisions };
 }
 
 async function persistStateToCloud() {
@@ -1166,7 +1198,7 @@ async function persistStateToCloud() {
 }
 
 function enrichProgramState(source) {
-  source = enrichAvixState(source);
+  source = enrichAcessaState(source);
   const phaseSource = Array.isArray(source.programPhases) ? source.programPhases : [];
   const programPhases = integrationPhaseBlueprints.map((blueprint) => {
     const existing = phaseSource.find((phase) => phase.id === blueprint.id) || {};
@@ -1193,7 +1225,7 @@ function enrichProgramState(source) {
   const weeklyPlan = (Array.isArray(source.weeklyPlan) ? source.weeklyPlan : []).slice(0, 3).map((item) => ({ status: "not-started", blocker: "", decisionNeeded: "", evidence: "", front: "", expectedResult: "", ...item }));
   return {
     ...source,
-    businessModelVersion: 21,
+    businessModelVersion: 22,
     companies,
     meetings,
     kpis,
@@ -1369,7 +1401,7 @@ async function initializeCloud() {
     if (remoteState && Object.keys(remoteState).length) {
       state = mergeCloudState(remoteState);
       storageRemove(storageKey);
-      if (cloudContext.canEdit && Number(remoteState.businessModelVersion || 0) < 21) await persistStateToCloud();
+      if (cloudContext.canEdit && Number(remoteState.businessModelVersion || 0) < 22) await persistStateToCloud();
     } else if (cloudContext.canEdit) {
       await persistStateToCloud();
     }
@@ -1518,8 +1550,8 @@ function setView(id) {
   const topbarTitle = document.querySelector("#topbar-title");
   const topbarSubtitle = document.querySelector("#topbar-subtitle");
   if (id === "board") {
-    topbarTitle.textContent = "Projeto AVIX";
-    topbarSubtitle.textContent = "Plano de ação, evolução e decisões do grupo";
+    topbarTitle.textContent = "Grupo Acessa";
+    topbarSubtitle.textContent = "Implantação, evolução e decisões do grupo";
   } else {
     topbarTitle.textContent = "Visão geral da Acessa";
     topbarSubtitle.textContent = "O que precisa avançar agora, sem perder o controle da integração.";
@@ -1726,7 +1758,7 @@ function render() {
   renderCareer();
   renderLearning();
   renderKpis();
-  renderAvixDashboard();
+  renderAcessaDashboard();
   renderKanban();
   renderMeetings();
   renderDocuments();
@@ -2753,7 +2785,7 @@ function kpiStatus(status) {
   return ["good", "watch", "risk"].includes(status) ? status : "watch";
 }
 
-function avixTaskProgress(task) {
+function acessaTaskProgress(task) {
   return task.status === "done" ? 100 : task.status === "waiting-validation" ? 90 : task.status === "doing" ? 50 : 0;
 }
 
@@ -2771,8 +2803,8 @@ function meetingTemporalStatus(meeting) {
   return meeting.date === currentCivilDateIso() ? "Hoje" : "Agendada";
 }
 
-function renderAvixDashboard() {
-  const tasks = state.tasks.filter((task) => task.project === "AVIX" && !task.archivedAt);
+function renderAcessaDashboard() {
+  const tasks = state.tasks.filter((task) => task.project === acessaProjectName && !task.archivedAt);
   const active = tasks.filter((task) => !["done", "archived"].includes(task.status));
   const overdue = active.filter((task) => task.due && task.due < currentCivilDateIso()).length;
   const critical = active.filter((task) => task.priority === "Critica").length;
@@ -2780,25 +2812,29 @@ function renderAvixDashboard() {
   const validation = active.filter((task) => task.status === "waiting-validation").length;
   const done = tasks.filter((task) => task.status === "done").length;
   const progressBase = tasks.filter((task) => !["archived", "cancelled"].includes(task.status) && !task.parentTaskId);
-  const progress = progressBase.length ? Math.round(progressBase.reduce((sum, task) => sum + avixTaskProgress(task), 0) / progressBase.length) : 0;
+  const progress = progressBase.length ? Math.round(progressBase.reduce((sum, task) => sum + acessaTaskProgress(task), 0) / progressBase.length) : 0;
   const futureMeetings = state.meetings.filter((meeting) => !meeting.archivedAt && meeting.status !== "Cancelada" && meeting.date && new Date(`${meeting.date}T${meeting.time || "23:59"}:00`).getTime() >= Date.now()).sort((a, b) => `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`));
   const nextMeeting = futureMeetings[0];
   document.querySelector("#avix-overview-metrics").innerHTML = [
     ["Tarefas abertas", active.length, "Entrega pendente"], ["Atrasadas", overdue, overdue ? "Requer ação" : "Dentro do prazo"], ["Críticas", critical, "Prioridade máxima"], ["Em andamento", doing, "Execução ativa"], ["Em validação", validation, "Aguardando aprovação"], ["Concluídas", done, "Com entrega registrada"], ["Evolução", `${progress}%`, `${progressBase.length} tarefas calculadas`], ["Próxima reunião", nextMeeting ? formatDate(nextMeeting.date) : "A definir", nextMeeting ? nextMeeting.time : "Sem agenda futura"],
   ].map(([label, value, note], index) => `<article class="${index === 1 && overdue ? "danger" : index === 6 ? "progress" : ""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
-  const advances = (state.strategicFronts || []).flatMap((front) => (front.advanced || []).map((text) => ({ text, front: front.name, date: front.updatedAt, source: front.evidence }))).slice(0, 5);
-  document.querySelector("#avix-latest-progress").innerHTML = advances.length ? `<div class="avix-advance-list">${advances.map((item) => `<article><span class="avix-advance-icon" aria-hidden="true">✓</span><div><strong>${escapeHtml(item.text)}</strong><small>${formatDate(item.date)} · ${escapeHtml(item.front)} · Origem: ${escapeHtml(item.source)}</small></div></article>`).join("")}</div>` : `<p class="empty">Nenhum avanço registrado.</p>`;
+  const identityHistory = [
+    { text: "Projeto iniciado com o nome AVIX", front: "Nome inicial do projeto: AVIX", dateLabel: "Data a definir", source: acessaDocumentSourceLabel },
+    { text: "Alteração do nome para Acessa", front: "Nome atual e oficial: Acessa", dateLabel: "Data a definir", source: acessaDocumentSourceLabel },
+  ];
+  const advances = [...identityHistory, ...(state.strategicFronts || []).flatMap((front) => (front.advanced || []).map((text) => ({ text, front: front.name, date: front.updatedAt, source: front.evidence })))].slice(0, 6);
+  document.querySelector("#avix-latest-progress").innerHTML = advances.length ? `<div class="avix-advance-list">${advances.map((item) => `<article><span class="avix-advance-icon" aria-hidden="true">✓</span><div><strong>${escapeHtml(item.text)}</strong><small>${escapeHtml(item.dateLabel || formatDate(item.date))} · ${escapeHtml(item.front)} · Origem: ${escapeHtml(item.source)}</small></div></article>`).join("")}</div>` : `<p class="empty">Nenhum avanço registrado.</p>`;
   document.querySelector("#avix-next-meeting").innerHTML = nextMeeting ? `<article class="avix-next-card"><span class="avix-meeting-date"><strong>${formatDate(nextMeeting.date)}</strong><small>${escapeHtml(nextMeeting.time || "A definir")}</small></span><div><strong>${escapeHtml(nextMeeting.title)}</strong><p>${escapeHtml(nextMeeting.objective || "Objetivo a definir")}</p><span class="avix-status status-scheduled">${meetingTemporalStatus(nextMeeting)}</span></div></article>` : `<div class="avix-empty-state"><strong>Nenhuma reunião futura cadastrada</strong><p>Os encontros de 13/08/2026 permanecem disponíveis no histórico.</p></div>`;
   document.querySelector("#avix-strategic-grid").innerHTML = (state.strategicFronts || []).map((front) => {
     const percent = strategicProgress(front);
     return `<article class="avix-strategic-card"><header><div><span class="avix-status status-${String(front.status).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}">${escapeHtml(front.status)}</span><h4>${escapeHtml(front.name)}</h4></div><strong>${percent}%</strong></header><div class="avix-progress" role="progressbar" aria-label="Evolução de ${escapeHtml(front.name)}" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><i style="width:${percent}%"></i></div><dl><div><dt>O que já evoluiu</dt><dd><ul>${(front.advanced || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></dd></div><div><dt>Em andamento</dt><dd><ul>${(front.underway || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></dd></div><div><dt>Próxima decisão</dt><dd>${escapeHtml(front.next || "A definir")}</dd></div></dl><footer><span><b>Responsável:</b> ${escapeHtml(front.owner || "A definir")}</span><span><b>Prazo:</b> ${escapeHtml(front.due || "A definir")}</span><span><b>Atualização:</b> ${formatDate(front.updatedAt)}</span><button class="ghost-button" type="button" data-front-task="${front.id}">Criar tarefa</button></footer></article>`;
   }).join("");
-  const avixMeetingsList = state.meetings.filter((meeting) => meeting.sourceId?.startsWith("whatsapp-meeting-") && !meeting.archivedAt).sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`));
-  document.querySelector("#avix-meeting-list").innerHTML = avixMeetingsList.map((meeting) => `<article class="avix-meeting-row"><div class="avix-meeting-date"><strong>${formatDate(meeting.date)}</strong><small>${escapeHtml(meeting.time || "A definir")}</small></div><div><span class="avix-status ${meetingTemporalStatus(meeting) === "No histórico" ? "status-history" : "status-scheduled"}">${meetingTemporalStatus(meeting)}</span><h4>${escapeHtml(meeting.title)}</h4><p>${escapeHtml(meeting.objective || "Objetivo a definir")}</p><small>Participantes: ${escapeHtml(meeting.participants || "A definir")} · ${meetingTasks(meeting).length} tarefa(s) relacionada(s)</small></div><div class="avix-meeting-actions"><button class="ghost-button" type="button" data-avix-meeting-edit="${meeting.id}">Abrir e editar</button>${cloudContext.connected && cloudContext.canEdit ? `<button class="text-button" type="button" data-artifact-context="meeting" data-artifact-id="${meeting.id}">Anexos</button>` : ""}</div></article>`).join("") || `<p class="empty">Nenhuma reunião do AVIX cadastrada.</p>`;
+  const acessaMeetingsList = state.meetings.filter((meeting) => meeting.sourceId?.startsWith("whatsapp-meeting-") && !meeting.archivedAt).sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`));
+  document.querySelector("#avix-meeting-list").innerHTML = acessaMeetingsList.map((meeting) => `<article class="avix-meeting-row"><div class="avix-meeting-date"><strong>${formatDate(meeting.date)}</strong><small>${escapeHtml(meeting.time || "A definir")}</small></div><div><span class="avix-status ${meetingTemporalStatus(meeting) === "No histórico" ? "status-history" : "status-scheduled"}">${meetingTemporalStatus(meeting)}</span><h4>${escapeHtml(meeting.title)}</h4><p>${escapeHtml(meeting.objective || "Objetivo a definir")}</p><small>Participantes: ${escapeHtml(meeting.participants || "A definir")} · ${meetingTasks(meeting).length} tarefa(s) relacionada(s)</small></div><div class="avix-meeting-actions"><button class="ghost-button" type="button" data-avix-meeting-edit="${meeting.id}">Abrir e editar</button>${cloudContext.connected && cloudContext.canEdit ? `<button class="text-button" type="button" data-artifact-context="meeting" data-artifact-id="${meeting.id}">Anexos</button>` : ""}</div></article>`).join("") || `<p class="empty">Nenhuma reunião da Acessa cadastrada.</p>`;
   document.querySelectorAll("[data-front-task]").forEach((button) => button.addEventListener("click", () => {
     const front = state.strategicFronts.find((item) => item.id === button.dataset.frontTask);
     openTaskModal();
-    taskForm.elements.namedItem("project").value = "AVIX";
+    taskForm.elements.namedItem("project").value = acessaProjectName;
     taskForm.elements.namedItem("strategicFront").value = front?.name || "";
     taskForm.elements.namedItem("phase").value = front?.name || "";
     taskForm.elements.namedItem("description").value = front?.next || "";
@@ -2844,7 +2880,7 @@ function renderKanban() {
   phaseSelect.innerHTML = `<option value="">Todos os status</option>${statuses.map((item) => `<option value="${item.id}">${item.label}</option>`).join("")}`;
   phaseSelect.value = statuses.some((item) => item.id === selectedPhase) ? selectedPhase : "";
   const filtered = boardTasks.filter((task) => {
-    const haystack = `${task.title} ${task.owner} ${task.company || ""} ${task.category || ""} ${task.phase || ""}`.toLowerCase();
+    const haystack = `${task.title} ${task.owner} ${task.company || ""} ${task.project || ""} ${task.category || ""} ${task.phase || ""} ${(task.searchAliases || []).join(" ")}`.toLowerCase();
     if (search && !haystack.includes(search)) return false;
     if (selectedOwner && task.owner !== selectedOwner) return false;
     if (companyFilter && task.company !== companyFilter) return false;
@@ -3151,7 +3187,7 @@ function renderMeetings() {
   const period = document.querySelector("#meeting-period-filter").value;
   const forum = forumFilter.value;
   const meetings = activeMeetings.filter((meeting) => {
-    const haystack = [meeting.title, meeting.forum, meeting.organizer, meeting.participants, meeting.objective, meeting.agenda, meeting.decisions, meeting.minutes, meeting.actionItems, meeting.deferredTopics, ...meetingTasks(meeting).flatMap((task) => [task.title, task.owner])].join(" ").toLocaleLowerCase("pt-BR");
+    const haystack = [meeting.title, meeting.forum, meeting.organizer, meeting.participants, meeting.objective, meeting.agenda, meeting.decisions, meeting.minutes, meeting.actionItems, meeting.deferredTopics, ...(meeting.searchAliases || []), ...meetingTasks(meeting).flatMap((task) => [task.title, task.owner, ...(task.searchAliases || [])])].join(" ").toLocaleLowerCase("pt-BR");
     const periodMatch = !period
       || (period === "upcoming" && meeting.date >= today)
       || (period === "week" && meeting.date >= today && meeting.date <= weekDate)
@@ -3609,7 +3645,7 @@ function openTaskModal(id = null) {
   taskModalTitle.textContent = id ? "Editar tarefa" : "Nova tarefa";
   const task = id ? state.tasks.find((item) => item.id === id) : null;
   if (!task) {
-    taskForm.elements.namedItem("project").value = "AVIX";
+    taskForm.elements.namedItem("project").value = acessaProjectName;
     taskForm.elements.namedItem("origin").value = "Criação manual";
   }
   if (task) {
