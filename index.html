@@ -684,7 +684,11 @@
           <h2 id="task-modal-title">Nova tarefa</h2>
           <button class="icon-button" type="button" data-dialog-close="task-modal" aria-label="Fechar sem salvar" title="Fechar sem salvar">×</button>
         </div>
-        <p class="task-form-intro">Deixe claro quem entrega, qual resultado será aceito e onde está a evidência.</p>
+        <p class="task-form-intro" id="task-form-intro">Deixe claro quem entrega, qual resultado será aceito e onde está a evidência.</p>
+        <div class="task-duplicate-notice" id="task-duplicate-notice" hidden role="status">
+          <p>Revise os dados abaixo. Uma nova tarefa será criada somente após salvar.</p>
+          <p class="task-duplicate-overdue-notice" id="task-duplicate-overdue-notice" hidden>⚠️ O prazo copiado já venceu. Defina uma nova data ou a tarefa será criada como atrasada.</p>
+        </div>
         <div class="task-form-grid">
           <label class="full">Título da entrega <input name="title" required placeholder="Ex.: comparar propostas das agências de marketing" /></label>
           <label>Responsável <input name="owner" required placeholder="Uma pessoa, ex.: Felipe" /></label>
@@ -706,7 +710,7 @@
           <label>Origem <select name="origin"><option value="Criação manual">Criação manual</option><option value="Reunião">Reunião</option><option value="WhatsApp">WhatsApp</option><option value="Documento">Documento</option></select></label>
           <label class="task-evidence-required"><input name="evidenceRequired" type="checkbox" /> Exigir evidência antes da conclusão</label>
         </div>
-        <div class="modal-actions"><button class="ghost-button" type="button" data-dialog-close="task-modal">Cancelar</button><button class="primary-button" type="submit">Salvar tarefa</button></div>
+        <div class="modal-actions"><button class="ghost-button" type="button" data-dialog-close="task-modal">Cancelar</button><button class="primary-button" type="submit" id="task-form-submit">Salvar tarefa</button></div>
       </form>
     </dialog>
 

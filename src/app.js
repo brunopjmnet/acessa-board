@@ -979,6 +979,7 @@ const signatureMessage = document.querySelector("#signature-message");
 let simpleMode = null;
 let simpleEditId = null;
 let taskEditId = null;
+let taskDuplicateSourceId = null;
 let activeCareerTrackId = null;
 let careerLevelContext = null;
 let careerBenefitContext = null;
@@ -1051,7 +1052,7 @@ function showAuthPanel(panel) {
 }
 
 function clearDialogContext(dialog) {
-  if (dialog === taskModal) taskEditId = null;
+  if (dialog === taskModal) { taskEditId = null; resetTaskModalDefaults(); taskDuplicateSourceId = null; }
   if (dialog === userPasswordModal) {
     passwordTargetUserId = null;
     userPasswordForm.reset();
@@ -2951,6 +2952,7 @@ function bindTaskActions(container) {
     logAudit("arquivado", "tasks", task);
     saveState(); render();
   }));
+  container.querySelectorAll("[data-task-duplicate]").forEach((button) => button.addEventListener("click", () => openTaskDuplicate(button.dataset.taskDuplicate)));
   container.querySelectorAll("[data-task-delete]").forEach((button) => button.addEventListener("click", () => deleteTask(button.dataset.taskDelete)));
   container.querySelectorAll("[data-task-restore]").forEach((button) => button.addEventListener("click", () => moveTaskToStatus(button.dataset.taskRestore, "todo")));
   container.querySelectorAll(".task-card[draggable='true']").forEach((card) => {
@@ -3044,7 +3046,9 @@ function renderTaskMenu(task) {
   return `<details class="task-menu"><summary aria-label="Ações da tarefa ${escapeHtml(task.title)}" title="Ações da tarefa">•••</summary><div class="task-menu-popover" role="menu">
     <button type="button" role="menuitem" data-task-details="${task.id}">Abrir detalhes</button>
     <button type="button" role="menuitem" data-task-email="${task.id}">Avisar responsável</button>
-    ${editable ? `<button type="button" role="menuitem" data-task-edit="${task.id}">Editar</button>${task.status === "archived" ? `<button type="button" role="menuitem" data-task-restore="${task.id}">Restaurar para A fazer</button>` : `<button type="button" role="menuitem" data-task-archive="${task.id}">Arquivar</button>`}` : ""}
+    ${editable ? `<button type="button" role="menuitem" data-task-edit="${task.id}">Editar</button>` : ""}
+    ${editable ? `<button type="button" role="menuitem" data-task-duplicate="${task.id}" aria-label="Duplicar tarefa: ${escapeHtml(task.title)}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false" style="vertical-align:-2px;margin-right:4px"><rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 11H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Duplicar tarefa</button>` : ""}
+    ${editable ? (task.status === "archived" ? `<button type="button" role="menuitem" data-task-restore="${task.id}">Restaurar para A fazer</button>` : `<button type="button" role="menuitem" data-task-archive="${task.id}">Arquivar</button>`) : ""}
     ${editable && canDeleteTask() ? `<button class="danger" type="button" role="menuitem" data-task-delete="${task.id}">Excluir</button>` : ""}
   </div></details>`;
 }
@@ -3639,9 +3643,19 @@ function managerName(managerId) {
   return state.people.find((person) => person.id === managerId)?.name || managerId;
 }
 
+function resetTaskModalDefaults() {
+  document.querySelector("#task-duplicate-notice").hidden = true;
+  document.querySelector("#task-duplicate-overdue-notice").hidden = true;
+  document.querySelector("#task-form-submit").textContent = "Salvar tarefa";
+  document.querySelector("#task-form-submit").disabled = false;
+  document.querySelector("#task-form-intro").hidden = false;
+}
+
 function openTaskModal(id = null) {
+  taskDuplicateSourceId = null;
   taskEditId = id;
   taskForm.reset();
+  resetTaskModalDefaults();
   taskModalTitle.textContent = id ? "Editar tarefa" : "Nova tarefa";
   const task = id ? state.tasks.find((item) => item.id === id) : null;
   if (!task) {
@@ -3670,6 +3684,72 @@ function openTaskModal(id = null) {
     taskForm.elements.namedItem("checklist").value = (task.checklist ?? []).join("\n");
   }
   taskModal.showModal();
+}
+
+function openTaskDuplicate(id) {
+  const source = state.tasks.find((item) => item.id === id);
+  if (!source) return;
+  if (!(!cloudContext.configured || cloudContext.canEdit)) return; // checar permissão
+  taskDuplicateSourceId = id;
+  taskEditId = null;
+  taskForm.reset();
+  taskModalTitle.textContent = "Duplicar tarefa";
+  // Ocultar intro padrão e exibir banner de duplicação
+  document.querySelector("#task-form-intro").hidden = true;
+  document.querySelector("#task-duplicate-notice").hidden = false;
+  // Verificar prazo vencido
+  const today = currentCivilDateIso();
+  document.querySelector("#task-duplicate-overdue-notice").hidden = !(source.due && source.due < today);
+  // Alterar texto do botão de submit
+  document.querySelector("#task-form-submit").textContent = "Criar cópia";
+  // Preencher com dados da tarefa original (exceto campos que não devem ser copiados)
+  taskForm.elements.namedItem("title").value = `Cópia de ${source.title ?? ""}`;
+  taskForm.elements.namedItem("owner").value = source.owner ?? "";
+  taskForm.elements.namedItem("requester").value = source.requester ?? "";
+  taskForm.elements.namedItem("project").value = source.project ?? "Acessa";
+  taskForm.elements.namedItem("strategicFront").value = source.strategicFront ?? "";
+  taskForm.elements.namedItem("phase").value = source.phase ?? "";
+  taskForm.elements.namedItem("company").value = source.company ?? "";
+  taskForm.elements.namedItem("category").value = source.category ?? "";
+  taskForm.elements.namedItem("validator").value = source.validator ?? "";
+  taskForm.elements.namedItem("due").value = source.due ?? "";
+  taskForm.elements.namedItem("priority").value = source.priority ?? "Media";
+  taskForm.elements.namedItem("status").value = "todo"; // sempre "A fazer"
+  taskForm.elements.namedItem("description").value = source.description ?? "";
+  taskForm.elements.namedItem("expectedResult").value = source.expectedResult ?? "";
+  taskForm.elements.namedItem("origin").value = source.origin ?? "Criação manual";
+  taskForm.elements.namedItem("evidenceRequired").checked = Boolean(source.evidenceRequired);
+  // Checklist copiado, mas todos os itens começam desmarcados (estrutura de texto)
+  taskForm.elements.namedItem("checklist").value = (source.checklist ?? []).join("\n");
+  // Não copiar: blocker, evidenceLink (evidências/anexos da original)
+  taskForm.elements.namedItem("blocker").value = "";
+  taskForm.elements.namedItem("evidenceLink").value = "";
+  taskModal.showModal();
+  // Focar e selecionar o título para edição imediata
+  requestAnimationFrame(() => {
+    const titleInput = taskForm.elements.namedItem("title");
+    titleInput?.focus();
+    titleInput?.select();
+  });
+}
+
+function showBoardToast(message, actionLabel, onAction) {
+  let toast = document.querySelector(".board-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "board-toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span>${escapeHtml(message)}</span>${actionLabel ? `<button class="board-toast-action" type="button">${escapeHtml(actionLabel)}</button>` : ""}`;
+  if (actionLabel && onAction) toast.querySelector(".board-toast-action")?.addEventListener("click", onAction);
+  // Força reflow antes de adicionar a classe para a animação funcionar
+  toast.classList.remove("toast-visible");
+  void toast.offsetWidth;
+  toast.classList.add("toast-visible");
+  clearTimeout(toast._hideTimeout);
+  toast._hideTimeout = setTimeout(() => toast.classList.remove("toast-visible"), 5000);
 }
 
 function openSimpleModal(mode, id = null) {
@@ -4419,64 +4499,96 @@ document.querySelector("#email-summary").addEventListener("click", () => {
 
 taskForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  const submitBtn = document.querySelector("#task-form-submit");
+  // Proteção contra clique duplo
+  if (submitBtn?.disabled) return;
   const data = new FormData(taskForm);
-  const existing = taskEditId ? state.tasks.find((task) => task.id === taskEditId) : null;
-  const requestedStatus = String(data.get("status") || existing?.status || "todo");
+  const isDuplicate = Boolean(taskDuplicateSourceId);
+  const existing = !isDuplicate && taskEditId ? state.tasks.find((task) => task.id === taskEditId) : null;
+  // No modo duplicação, status sempre "A fazer"; no modo normal, respeitar o campo
+  const requestedStatus = isDuplicate ? "todo" : String(data.get("status") || existing?.status || "todo");
   const evidenceWillExist = Boolean(String(data.get("evidenceLink") || "").trim()) || (existing ? artifactsFor("task", existing.id).length > 0 : false);
-  if (["waiting-validation", "done"].includes(requestedStatus) && data.get("evidenceRequired") && !evidenceWillExist) {
+  if (!isDuplicate && ["waiting-validation", "done"].includes(requestedStatus) && data.get("evidenceRequired") && !evidenceWillExist) {
     window.alert("Esta tarefa exige evidência. Informe o link ou anexe a entrega antes de enviá-la para validação.");
     return;
   }
-  if (requestedStatus === "done" && existing?.status !== "waiting-validation") {
-    window.alert("A conclusão exige o fluxo de validação. Salve primeiro como “Aguardando validação”.");
+  if (!isDuplicate && requestedStatus === "done" && existing?.status !== "waiting-validation") {
+    window.alert('A conclusão exige o fluxo de validação. Salve primeiro como “Aguardando validação”.');
     return;
   }
-  if (requestedStatus === "done" && cloudContext.configured && !["admin", "socio", "diretor", "gestor"].includes(cloudContext.role)) {
+  if (!isDuplicate && requestedStatus === "done" && cloudContext.configured && !["admin", "socio", "diretor", "gestor"].includes(cloudContext.role)) {
     window.alert("Somente líder ou validador pode aprovar e concluir esta tarefa.");
     return;
   }
-  const task = existing ?? {
-    id: crypto.randomUUID(),
-    status: "todo",
-    createdAt: new Date().toISOString(),
-    history: [],
-  };
-  const previousStatus = task.status;
-  const previousDue = task.due;
-  Object.assign(task, {
-    title: data.get("title"),
-    owner: data.get("owner"),
-    requester: data.get("requester"),
-    project: data.get("project") || "Acessa",
-    strategicFront: data.get("strategicFront"),
-    phase: data.get("phase"),
-    company: data.get("company"),
-    category: data.get("category"),
-    validator: data.get("validator"),
-    due: data.get("due"),
-    priority: data.get("priority"),
-    status: requestedStatus,
-    description: data.get("description"),
-    expectedResult: data.get("expectedResult"),
-    blocker: data.get("blocker"),
-    evidenceLink: data.get("evidenceLink"),
-    origin: data.get("origin") || "Criação manual",
-    evidenceRequired: Boolean(data.get("evidenceRequired")),
-    updatedAt: new Date().toISOString(),
-    checklist: String(data.get("checklist") || "")
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean),
-  });
-  if (existing && previousStatus !== task.status) task.history.unshift({ at: task.updatedAt, actor: cloudContext.role || "Usuário local", action: task.status === "done" ? "Aprovou a entrega" : "Alterou o status", detail: `${previousStatus} → ${task.status}` });
-  if (existing && previousDue !== task.due) task.history.unshift({ at: task.updatedAt, actor: cloudContext.role || "Usuário local", action: "Alterou o prazo", detail: `${previousDue || "A definir"} → ${task.due || "A definir"}` });
-  if (!existing) state.tasks.push(task);
-  logAudit(existing ? "editado" : "criado", "tasks", task);
-  saveState();
-  taskModal.close();
-  taskEditId = null;
-  setView("board");
-  render();
+  // Desabilitar botão durante o processamento (proteção contra clique duplo)
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = isDuplicate ? "Criando cópia…" : "Salvando…"; }
+  try {
+    const now = new Date().toISOString();
+    const task = existing ?? {
+      id: crypto.randomUUID(),
+      status: "todo",
+      createdAt: now,
+      history: [],
+    };
+    const previousStatus = task.status;
+    const previousDue = task.due;
+    Object.assign(task, {
+      title: data.get("title"),
+      owner: data.get("owner"),
+      requester: data.get("requester"),
+      project: data.get("project") || "Acessa",
+      strategicFront: data.get("strategicFront"),
+      phase: data.get("phase"),
+      company: data.get("company"),
+      category: data.get("category"),
+      validator: data.get("validator"),
+      due: data.get("due"),
+      priority: data.get("priority"),
+      status: requestedStatus,
+      description: data.get("description"),
+      expectedResult: data.get("expectedResult"),
+      blocker: data.get("blocker"),
+      evidenceLink: data.get("evidenceLink"),
+      origin: data.get("origin") || "Criação manual",
+      evidenceRequired: Boolean(data.get("evidenceRequired")),
+      updatedAt: now,
+      checklist: String(data.get("checklist") || "")
+        .split("\n")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    });
+    if (isDuplicate) {
+      // Campos de rastreamento da duplicação
+      const sourceTask = state.tasks.find((t) => t.id === taskDuplicateSourceId);
+      task.duplicatedFromTaskId = taskDuplicateSourceId;
+      task.duplicatedAt = now;
+      task.duplicatedByUser = cloudContext.role || "Usuário local";
+      task.history = [{ at: now, actor: cloudContext.role || "Usuário local", action: "Tarefa criada como cópia", detail: sourceTask ? `Cópia de: ${sourceTask.title}` : "Duplicação de tarefa" }];
+      state.tasks.push(task);
+      logAudit("criado", "tasks", task, `Duplicado de: ${sourceTask?.title ?? taskDuplicateSourceId}`);
+    } else {
+      if (existing && previousStatus !== task.status) task.history.unshift({ at: now, actor: cloudContext.role || "Usuário local", action: task.status === "done" ? "Aprovou a entrega" : "Alterou o status", detail: `${previousStatus} → ${task.status}` });
+      if (existing && previousDue !== task.due) task.history.unshift({ at: now, actor: cloudContext.role || "Usuário local", action: "Alterou o prazo", detail: `${previousDue || "A definir"} → ${task.due || "A definir"}` });
+      if (!existing) state.tasks.push(task);
+      logAudit(existing ? "editado" : "criado", "tasks", task);
+    }
+    saveState();
+    const createdTaskId = task.id;
+    const createdTaskTitle = task.title;
+    const wasDuplicate = isDuplicate;
+    taskDuplicateSourceId = null;
+    taskEditId = null;
+    taskModal.close();
+    setView("board");
+    render();
+    if (wasDuplicate) {
+      showBoardToast("Tarefa duplicada com sucesso.", "Abrir tarefa", () => openTaskDetails(createdTaskId));
+    }
+  } catch (error) {
+    // Em caso de erro, reabilitar o botão sem fechar o formulário
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isDuplicate ? "Criar cópia" : "Salvar tarefa"; }
+    window.alert(error instanceof Error ? error.message : "Não foi possível salvar a tarefa. Tente novamente.");
+  }
 });
 
 function prepareTaskEmail(task) {
