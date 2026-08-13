@@ -46,7 +46,7 @@ const statuses = [
   { id: "doing", label: "Em andamento" },
   { id: "waiting", label: "Aguardando" },
   { id: "done", label: "Concluído" },
-  { id: "archived", label: "Arquivo" },
+  { id: "archived", label: "Arquivado" },
 ];
 
 const weeklyStatuses = [
@@ -891,6 +891,11 @@ const navigationModeToggle = document.querySelector("#navigation-mode-toggle");
 const taskModal = document.querySelector("#task-modal");
 const taskForm = document.querySelector("#task-form");
 const taskModalTitle = document.querySelector("#task-modal-title");
+const taskDetailsModal = document.querySelector("#task-details-modal");
+const taskDetailsContext = document.querySelector("#task-details-context");
+const taskDetailsTitle = document.querySelector("#task-details-title");
+const taskDetailsContent = document.querySelector("#task-details-content");
+const taskDetailsActions = document.querySelector("#task-details-actions");
 const simpleModal = document.querySelector("#simple-modal");
 const simpleForm = document.querySelector("#simple-form");
 const simpleTitle = document.querySelector("#simple-title");
@@ -1032,7 +1037,7 @@ document.querySelectorAll("[data-dialog-close]").forEach((button) => {
   });
 });
 
-[taskModal, simpleModal, userPasswordModal, onboardingModal].forEach((dialog) => {
+[taskModal, taskDetailsModal, simpleModal, userPasswordModal, onboardingModal].forEach((dialog) => {
   dialog.addEventListener("cancel", () => clearDialogContext(dialog));
 });
 
@@ -1075,7 +1080,7 @@ function setCloudStatus(label, mode = "local") {
 function applyAccessMode() {
   const readOnly = cloudContext.configured && (!cloudContext.connected || !cloudContext.canEdit);
   document.body.classList.toggle("read-only", readOnly);
-  document.querySelectorAll("[data-task-status]").forEach((control) => { control.disabled = readOnly; });
+  document.querySelectorAll(".task-card").forEach((card) => { card.draggable = !readOnly && card.dataset.taskStatus !== "archived"; });
   document.querySelectorAll("[data-weekly-status]").forEach((control) => { control.disabled = readOnly; });
   document.querySelectorAll("[data-phase-item-id], [data-gate-id], [data-ixc-stage]").forEach((control) => { control.disabled = readOnly; });
   applyNavigationMode(navigationMode);
@@ -1449,6 +1454,15 @@ async function restoreBackup(file) {
 function setView(id) {
   views.forEach((view) => view.classList.toggle("active", view.id === id));
   navButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === id));
+  const topbarTitle = document.querySelector("#topbar-title");
+  const topbarSubtitle = document.querySelector("#topbar-subtitle");
+  if (id === "board") {
+    topbarTitle.textContent = "Implantação";
+    topbarSubtitle.textContent = "Projeto ativo · Execução integrada";
+  } else {
+    topbarTitle.textContent = "Visão geral da Acessa";
+    topbarSubtitle.textContent = "O que precisa avançar agora, sem perder o controle da integração.";
+  }
   if (id === "users") renderUsers();
 }
 
@@ -1701,10 +1715,12 @@ function artifactListHtml(relationType, relationId) {
 
 async function openArtifactModal(relationType, relationId) {
   if (!cloudContext.connected) return window.alert("Entre no Acessa Board corporativo para anexar arquivos e coletar assinaturas.");
-  const related = relationType === "milestone" ? state.milestones.find((item) => item.id === relationId) : state.meetings.find((item) => item.id === relationId);
+  const relationCollections = { milestone: state.milestones, meeting: state.meetings, task: state.tasks };
+  const relationLabels = { milestone: "Marco", meeting: "Reunião", task: "Tarefa", workspace: "Workspace" };
+  const related = relationCollections[relationType]?.find((item) => item.id === relationId);
   artifactContext = { relationType, relationId };
   artifactForm.reset();
-  artifactContextLabel.textContent = `${relationType === "milestone" ? "Marco" : "Reunião"}: ${related?.name || related?.title || relationId}`;
+  artifactContextLabel.textContent = `${relationLabels[relationType] || "Registro"}: ${related?.name || related?.title || relationId}`;
   artifactForm.elements.artifactType.value = relationType === "meeting" ? "minutes" : "document";
   artifactSignerList.innerHTML = boardProfiles.map((profile) => `<label class="artifact-signer-option"><input type="checkbox" name="signerIds" value="${escapeHtml(profile.user_id)}" /><span><strong>${escapeHtml(profile.display_name || "Usuário")}</strong><small>${escapeHtml(profile.role)}</small></span></label>`).join("") || `<p class="muted">Seu perfil não pode listar outros usuários. Um administrador poderá definir os signatários.</p>`;
   document.querySelector("#artifact-current-list").innerHTML = artifactListHtml(relationType, relationId);
@@ -2678,22 +2694,23 @@ function renderKanban() {
   const today = currentCivilDateIso();
   const weekDate = new Date(`${today}T12:00:00`); weekDate.setDate(weekDate.getDate() + 7);
   const weekIso = weekDate.toISOString().slice(0, 10);
-  const activeTasks = state.tasks.filter((task) => task.status !== "archived");
+  const boardTasks = state.tasks.filter((task) => !task.archivedAt);
+  const activeTasks = boardTasks.filter((task) => task.status !== "archived");
   const ownerSelect = document.querySelector("#board-owner-filter");
-  const owners = [...new Set(activeTasks.map((task) => task.owner).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const owners = [...new Set(boardTasks.map((task) => task.owner).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
   ownerSelect.innerHTML = `<option value="">Todos os responsáveis</option>${owners.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
   ownerSelect.value = owners.includes(selectedOwner) ? selectedOwner : "";
   const phaseSelect = document.querySelector("#board-phase-filter");
-  const phases = [...new Set(activeTasks.map((task) => task.phase).filter(Boolean))].sort();
+  const phases = [...new Set(boardTasks.map((task) => task.phase).filter(Boolean))].sort();
   phaseSelect.innerHTML = `<option value="">Todas as fases</option>${phases.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("")}`;
   phaseSelect.value = selectedPhase;
-  const filtered = activeTasks.filter((task) => {
+  const filtered = boardTasks.filter((task) => {
     const haystack = `${task.title} ${task.owner} ${task.company || ""} ${task.category || ""} ${task.phase || ""}`.toLowerCase();
     if (search && !haystack.includes(search)) return false;
     if (selectedOwner && task.owner !== selectedOwner) return false;
     if (priority && task.priority !== priority) return false;
     if (selectedPhase && task.phase !== selectedPhase) return false;
-    if (dueFilter === "overdue" && !(task.due && task.due < today && task.status !== "done")) return false;
+    if (dueFilter === "overdue" && !(task.due && task.due < today && !["done", "archived"].includes(task.status))) return false;
     if (dueFilter === "week" && !(task.due && task.due >= today && task.due <= weekIso)) return false;
     if (dueFilter === "nodate" && task.due) return false;
     return true;
@@ -2703,14 +2720,21 @@ function renderKanban() {
   const waiting = activeTasks.filter((task) => task.status === "waiting").length;
   const done = activeTasks.filter((task) => task.status === "done").length;
   document.querySelector("#board-health").innerHTML = `<article class="${overdue ? "danger" : "good"}"><span>Atrasadas</span><strong>${overdue}</strong><small>exigem replanejamento</small></article><article class="${critical ? "warning" : "good"}"><span>Críticas abertas</span><strong>${critical}</strong><small>prioridade máxima</small></article><article><span>Aguardando</span><strong>${waiting}</strong><small>dependências externas</small></article><article class="good"><span>Concluídas</span><strong>${done}</strong><small>entregas registradas</small></article>`;
+  const filterValues = [search, selectedOwner, priority, selectedPhase, dueFilter].filter(Boolean);
+  const clearFilters = document.querySelector("#board-clear-filters");
+  clearFilters.hidden = filterValues.length === 0;
+  document.querySelector("#board-filter-count").textContent = filterValues.length ? `(${filterValues.length})` : "";
+  const boardHelp = document.querySelector("#board-help");
+  if (!boardHelp.dataset.initialized) {
+    boardHelp.open = boardTasks.length === 0;
+    boardHelp.dataset.initialized = "true";
+  }
   document.querySelector("#board-result-count").textContent = `${filtered.length} ${filtered.length === 1 ? "tarefa" : "tarefas"}`;
   kanban.innerHTML = statuses
     .map((status) => {
-      const cards = filtered
-        .filter((task) => task.status === status.id)
-        .map(renderTaskCard)
-        .join("");
-      return `<section class="column"><h3>${status.label}</h3>${cards || `<p class="empty">Sem itens.</p>`}</section>`;
+      const tasks = filtered.filter((task) => task.status === status.id);
+      const cards = tasks.map(renderTaskCard).join("");
+      return `<section class="column ${tasks.length ? "has-tasks" : ""}" data-board-status="${status.id}" aria-label="${status.label}, ${tasks.length} tarefa(s)"><header><h3>${status.label}</h3><span>${tasks.length}</span></header>${cards || `<p class="column-empty">Nenhuma tarefa nesta fase</p>`}</section>`;
     })
     .join("");
   boardList.innerHTML = filtered.length ? `<div class="board-list-head"><span>Entrega</span><span>Responsável</span><span>Prazo</span><span>Status</span><span></span></div>${filtered.map(renderTaskListRow).join("")}` : `<p class="empty">Nenhuma tarefa corresponde aos filtros.</p>`;
@@ -2718,21 +2742,14 @@ function renderKanban() {
   boardList.hidden = boardViewMode !== "list";
   document.querySelector("#board-view-kanban").classList.toggle("active", boardViewMode === "kanban");
   document.querySelector("#board-view-list").classList.toggle("active", boardViewMode === "list");
+  document.querySelector("#board-view-kanban").setAttribute("aria-pressed", String(boardViewMode === "kanban"));
+  document.querySelector("#board-view-list").setAttribute("aria-pressed", String(boardViewMode === "list"));
   bindTaskActions(kanban);
   bindTaskActions(boardList);
 }
 
 function bindTaskActions(container) {
-  container.querySelectorAll("[data-task-status]").forEach((select) => {
-    select.addEventListener("change", () => {
-      const task = state.tasks.find((item) => item.id === select.dataset.taskStatus);
-      const previousStatus = task.status;
-      task.status = select.value;
-      logAudit("status_alterado", "tasks", task, `${previousStatus} → ${task.status}`);
-      saveState();
-      render();
-    });
-  });
+  container.querySelectorAll("[data-task-details]").forEach((button) => button.addEventListener("click", () => openTaskDetails(button.dataset.taskDetails)));
   container.querySelectorAll("[data-task-edit]").forEach((button) => {
     button.addEventListener("click", () => openTaskModal(button.dataset.taskEdit));
   });
@@ -2744,42 +2761,141 @@ function bindTaskActions(container) {
     logAudit("arquivado", "tasks", task);
     saveState(); render();
   }));
+  container.querySelectorAll("[data-task-delete]").forEach((button) => button.addEventListener("click", () => deleteTask(button.dataset.taskDelete)));
+  container.querySelectorAll("[data-task-restore]").forEach((button) => button.addEventListener("click", () => moveTaskToStatus(button.dataset.taskRestore, "todo")));
+  container.querySelectorAll(".task-card[draggable='true']").forEach((card) => {
+    card.addEventListener("dragstart", (event) => {
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", card.dataset.taskId);
+      card.classList.add("dragging");
+    });
+    card.addEventListener("dragend", () => card.classList.remove("dragging"));
+  });
+  container.querySelectorAll(".task-card").forEach((card) => card.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.target.closest("button,summary,a")) return;
+    event.preventDefault();
+    openTaskDetails(card.dataset.taskId);
+  }));
+  container.querySelectorAll("[data-board-status]").forEach((column) => {
+    column.addEventListener("dragover", (event) => {
+      if (!cloudContext.canEdit) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      column.classList.add("drag-over");
+    });
+    column.addEventListener("dragleave", () => column.classList.remove("drag-over"));
+    column.addEventListener("drop", (event) => {
+      event.preventDefault();
+      column.classList.remove("drag-over");
+      moveTaskToStatus(event.dataTransfer.getData("text/plain"), column.dataset.boardStatus);
+    });
+  });
 }
 
 function renderTaskCard(task) {
   const isOverdue = task.due && task.due < currentCivilDateIso() && !["done", "archived"].includes(task.status);
+  const isDueSoon = taskDueSoon(task);
+  const evidenceCount = taskEvidenceCount(task);
+  const category = taskCardCategory(task);
+  const canDrag = (!cloudContext.configured || cloudContext.canEdit) && task.status !== "archived";
   return `
-    <article class="task-card ${isOverdue ? "overdue" : ""}" data-priority="${escapeHtml(task.priority)}">
-      <div class="task-card-head"><span class="task-phase">${escapeHtml(task.phase || task.category || "Operação")}</span>${isOverdue ? `<b class="overdue-label">Atrasada</b>` : ""}</div>
+    <article class="task-card ${isOverdue ? "overdue" : isDueSoon ? "due-soon" : ""}" data-priority="${escapeHtml(task.priority)}" data-task-id="${task.id}" data-task-status="${task.status}" draggable="${canDrag}" tabindex="0">
+      <div class="task-card-head"><span class="task-phase">${escapeHtml(category)}</span>${renderTaskMenu(task)}</div>
       <h4>${escapeHtml(task.title)}</h4>
-      <div class="task-meta">
-        <span class="tag">${escapeHtml(task.owner)}</span>
-        <span class="tag violet">${task.due ? formatDate(task.due) : "Sem prazo"}</span>
-        <span class="tag ${task.priority === "Critica" || task.priority === "Alta" ? "warning" : ""}">${escapeHtml(task.priority)}</span>
-        ${task.company ? `<span class="tag company">${escapeHtml(task.company)}</span>` : ""}
+      <div class="task-owner"><span class="task-avatar" aria-hidden="true">${escapeHtml(ownerInitials(task.owner))}</span><span><small>Responsável</small><strong>${escapeHtml(task.owner || "Não definido")}</strong></span></div>
+      <div class="task-card-footer">
+        <span class="task-due ${isOverdue ? "overdue" : isDueSoon ? "due-soon" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}${isOverdue ? `<b>Atrasada</b>` : isDueSoon ? `<b>Vence em breve</b>` : ""}</span>
+        <span class="task-priority priority-${String(task.priority || "media").toLowerCase()}">${escapeHtml(task.priority || "Média")}</span>
       </div>
-      ${task.expectedResult ? `<p class="task-outcome"><span>Resultado esperado</span>${escapeHtml(task.expectedResult)}</p>` : ""}
-      ${task.blocker ? `<p class="task-blocker"><span>Bloqueio</span>${escapeHtml(task.blocker)}</p>` : ""}
-      <ul class="checklist">
-        ${task.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-      </ul>
-      <select data-task-status="${task.id}" aria-label="Status da tarefa">
-        ${statuses.map((status) => `<option value="${status.id}" ${task.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}
-      </select>
-      ${task.evidenceLink ? `<a class="task-evidence" href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer">Abrir evidência ↗</a>` : ""}
-      <div class="task-actions"><button class="text-button" type="button" data-task-email="${task.id}">Avisar</button><button class="ghost-button" type="button" data-task-edit="${task.id}">Editar</button><button class="icon-button task-archive" type="button" data-task-archive="${task.id}" title="Arquivar" aria-label="Arquivar tarefa">⌁</button></div>
+      ${(evidenceCount || task.checklist?.length) ? `<div class="task-indicators">${evidenceCount ? `<span title="${evidenceCount} evidência(s) vinculada(s)" aria-label="${evidenceCount} evidência(s) vinculada(s)">↗ ${evidenceCount}</span>` : ""}${task.checklist?.length ? `<span title="${task.checklist.length} item(ns) no checklist" aria-label="${task.checklist.length} item(ns) no checklist">✓ ${task.checklist.length}</span>` : ""}</div>` : ""}
     </article>
   `;
 }
 
 function renderTaskListRow(task) {
   const isOverdue = task.due && task.due < currentCivilDateIso() && !["done", "archived"].includes(task.status);
+  const statusLabel = statuses.find((status) => status.id === task.status)?.label || task.status;
   return `<article class="board-list-row ${isOverdue ? "overdue" : ""}">
-    <div><span class="task-phase">${escapeHtml(task.phase || task.category || "Operação")}</span><strong>${escapeHtml(task.title)}</strong>${task.company ? `<small>${escapeHtml(task.company)}</small>` : ""}</div>
-    <span>${escapeHtml(task.owner)}</span><span class="${isOverdue ? "due-overdue" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}</span>
-    <select data-task-status="${task.id}" aria-label="Status da tarefa">${statuses.map((status) => `<option value="${status.id}" ${task.status === status.id ? "selected" : ""}>${status.label}</option>`).join("")}</select>
-    <div class="board-list-actions">${task.evidenceLink ? `<a href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer" title="Abrir evidência">↗</a>` : ""}<button class="ghost-button" type="button" data-task-edit="${task.id}">Abrir</button></div>
+    <div><span class="task-phase">${escapeHtml(taskCardCategory(task))}</span><strong>${escapeHtml(task.title)}</strong></div>
+    <span class="task-owner-inline"><i class="task-avatar" aria-hidden="true">${escapeHtml(ownerInitials(task.owner))}</i>${escapeHtml(task.owner)}</span><span class="${isOverdue ? "due-overdue" : ""}">${task.due ? formatDate(task.due) : "Sem prazo"}${isOverdue ? `<small>Atrasada</small>` : ""}</span>
+    <span class="board-status-badge status-${task.status}">${escapeHtml(statusLabel)}</span>
+    <div class="board-list-actions">${renderTaskMenu(task)}</div>
   </article>`;
+}
+
+function taskCardCategory(task) {
+  const title = String(task.title || "").trim().toLocaleLowerCase("pt-BR");
+  return [task.category, task.phase, task.company, "Operação"].find((value) => value && String(value).trim().toLocaleLowerCase("pt-BR") !== title) || "Operação";
+}
+
+function ownerInitials(owner) {
+  return String(owner || "?").trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+}
+
+function taskDueSoon(task) {
+  if (!task.due || ["done", "archived"].includes(task.status)) return false;
+  const today = currentCivilDateIso();
+  const limit = new Date(`${today}T12:00:00`);
+  limit.setDate(limit.getDate() + 3);
+  return task.due >= today && task.due <= limit.toISOString().slice(0, 10);
+}
+
+function taskEvidenceCount(task) {
+  return (task.evidenceLink ? 1 : 0) + artifactsFor("task", task.id).length;
+}
+
+function canDeleteTask() {
+  return !cloudContext.configured || ["admin", "socio"].includes(cloudContext.role);
+}
+
+function renderTaskMenu(task) {
+  const editable = !cloudContext.configured || cloudContext.canEdit;
+  return `<details class="task-menu"><summary aria-label="Ações da tarefa ${escapeHtml(task.title)}" title="Ações da tarefa">•••</summary><div class="task-menu-popover" role="menu">
+    <button type="button" role="menuitem" data-task-details="${task.id}">Abrir detalhes</button>
+    <button type="button" role="menuitem" data-task-email="${task.id}">Avisar responsável</button>
+    ${editable ? `<button type="button" role="menuitem" data-task-edit="${task.id}">Editar</button>${task.status === "archived" ? `<button type="button" role="menuitem" data-task-restore="${task.id}">Restaurar para A fazer</button>` : `<button type="button" role="menuitem" data-task-archive="${task.id}">Arquivar</button>`}` : ""}
+    ${editable && canDeleteTask() ? `<button class="danger" type="button" role="menuitem" data-task-delete="${task.id}">Excluir</button>` : ""}
+  </div></details>`;
+}
+
+function moveTaskToStatus(taskId, nextStatus) {
+  const task = state.tasks.find((item) => item.id === taskId);
+  if (!task || !statuses.some((status) => status.id === nextStatus) || task.status === nextStatus) return;
+  const previousStatus = task.status;
+  task.status = nextStatus;
+  logAudit("status_alterado", "tasks", task, `${previousStatus} → ${nextStatus}`);
+  saveState(); render();
+}
+
+function deleteTask(taskId) {
+  if (!canDeleteTask()) return;
+  const index = state.tasks.findIndex((item) => item.id === taskId);
+  if (index < 0 || !window.confirm(`Excluir definitivamente a tarefa “${state.tasks[index].title}”? Esta ação não pode ser desfeita.`)) return;
+  const [task] = state.tasks.splice(index, 1);
+  logAudit("excluido", "tasks", task);
+  saveState(); render();
+}
+
+function openTaskDetails(taskId) {
+  const task = state.tasks.find((item) => item.id === taskId);
+  if (!task) return;
+  const artifacts = artifactsFor("task", task.id);
+  taskDetailsContext.textContent = `${taskCardCategory(task)} · ${statuses.find((status) => status.id === task.status)?.label || task.status}`;
+  taskDetailsTitle.textContent = task.title;
+  taskDetailsContent.innerHTML = `<div class="task-details-grid">
+    <section><span>Responsável</span><strong>${escapeHtml(task.owner || "Não definido")}</strong></section><section><span>Validador</span><strong>${escapeHtml(task.validator || "Não definido")}</strong></section>
+    <section><span>Prazo</span><strong>${task.due ? formatDate(task.due) : "Sem prazo"}</strong></section><section><span>Prioridade</span><strong>${escapeHtml(task.priority || "Média")}</strong></section>
+    <section class="full"><span>Descrição</span><p>${escapeHtml(task.description || "Sem descrição adicional.")}</p></section>
+    <section class="full"><span>Resultado esperado</span><p>${escapeHtml(task.expectedResult || "Resultado ainda não informado.")}</p></section>
+    ${task.blocker ? `<section class="full task-detail-warning"><span>Bloqueio ou dependência</span><p>${escapeHtml(task.blocker)}</p></section>` : ""}
+    <section class="full"><span>Checklist</span>${task.checklist?.length ? `<ul>${task.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : `<p>Nenhum item cadastrado.</p>`}</section>
+    <section class="full"><span>Evidências</span>${task.evidenceLink ? `<a href="${escapeHtml(task.evidenceLink)}" target="_blank" rel="noreferrer">Abrir link da evidência ↗</a>` : ""}<p>${artifacts.length} arquivo(s) protegido(s) anexado(s).</p></section>
+  </div>`;
+  const editable = !cloudContext.configured || cloudContext.canEdit;
+  taskDetailsActions.innerHTML = `${cloudContext.connected && editable ? `<button class="ghost-button" type="button" data-task-artifacts="${task.id}">Anexos e evidências</button>` : ""}${editable ? `<button class="primary-button" type="button" data-task-edit="${task.id}">Editar tarefa</button>` : ""}`;
+  taskDetailsActions.querySelector("[data-task-edit]")?.addEventListener("click", () => { taskDetailsModal.close(); openTaskModal(task.id); });
+  taskDetailsActions.querySelector("[data-task-artifacts]")?.addEventListener("click", () => { taskDetailsModal.close(); openArtifactModal("task", task.id); });
+  taskDetailsModal.showModal();
 }
 
 function renderActionItem(task) {
@@ -3926,8 +4042,7 @@ document.addEventListener("click", (event) => {
   }
 });
 
-document.querySelector("#new-task").addEventListener("click", openTaskModal);
-document.querySelector("#new-task-board").addEventListener("click", openTaskModal);
+document.querySelector("#new-task-board").addEventListener("click", () => openTaskModal());
 document.querySelector("#new-weekly-priority").addEventListener("click", () => {
   const count = (state.weeklyPlan || []).filter((item) => !item.archivedAt).length;
   if (count >= 3) return window.alert("O Plano da Semana aceita no máximo três prioridades.");
@@ -3944,9 +4059,22 @@ document.querySelector("#print-expansion")?.addEventListener("click", () => {
   window.setTimeout(() => document.body.classList.remove("printing-expansion"), 300);
 });
 document.querySelectorAll("#board-search, #board-owner-filter, #board-priority-filter, #board-phase-filter, #board-due-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderKanban));
+document.querySelector("#board-clear-filters").addEventListener("click", () => {
+  document.querySelector("#board-search").value = "";
+  document.querySelector("#board-owner-filter").value = "";
+  document.querySelector("#board-priority-filter").value = "";
+  document.querySelector("#board-phase-filter").value = "";
+  document.querySelector("#board-due-filter").value = "";
+  renderKanban();
+  document.querySelector("#board-search").focus();
+});
 document.querySelector("#board-view-kanban").addEventListener("click", () => { boardViewMode = "kanban"; storageSet("acessa-board-view", boardViewMode); renderKanban(); });
 document.querySelector("#board-view-list").addEventListener("click", () => { boardViewMode = "list"; storageSet("acessa-board-view", boardViewMode); renderKanban(); });
-document.querySelector("#board-email-summary").addEventListener("click", () => prepareBoardEmail());
+const boardMobileMedia = window.matchMedia("(max-width: 700px)");
+if (boardMobileMedia.matches) document.querySelector("#board-filters-panel").open = false;
+boardMobileMedia.addEventListener("change", (event) => {
+  document.querySelector("#board-filters-panel").open = !event.matches;
+});
 document.querySelector("#new-meeting").addEventListener("click", () => openSimpleModal("meeting"));
 document.querySelectorAll("#meeting-search, #meeting-status-filter, #meeting-period-filter, #meeting-forum-filter").forEach((field) => field.addEventListener(field.tagName === "INPUT" ? "input" : "change", renderMeetings));
 document.querySelector("#back-to-meetings").addEventListener("click", () => {

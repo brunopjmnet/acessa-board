@@ -95,8 +95,8 @@
         <header class="topbar">
           <div class="topbar-identity">
             <div class="topbar-copy">
-              <h1>Visão geral da Acessa</h1>
-              <p class="topbar-subtitle">O que precisa avançar agora, sem perder o controle da integração.</p>
+              <h1 id="topbar-title">Visão geral da Acessa</h1>
+              <p class="topbar-subtitle" id="topbar-subtitle">O que precisa avançar agora, sem perder o controle da integração.</p>
             </div>
           </div>
           <div class="top-actions">
@@ -114,7 +114,6 @@
             </div>
             <input id="backup-file" type="file" accept="application/json,.json" hidden />
             <button class="ghost-button" id="account-button" type="button" hidden>Entrar</button>
-            <button class="primary-button" id="new-task">Nova tarefa</button>
           </div>
         </header>
 
@@ -417,27 +416,34 @@
         </section>
 
         <section class="view" id="board">
-          <div class="section-heading">
+          <div class="section-heading board-heading">
             <div>
-              <p class="eyebrow">Execução integrada</p>
-              <h2>Quadro operacional da implantação</h2>
-              <p class="section-description">Um quadro único para os sócios acompanharem responsáveis, entregas, prazos, bloqueios e evidências.</p>
+              <p class="eyebrow">Projeto · Implantação</p>
+              <h2>Plano de ação da Acessa</h2>
+              <p class="section-description">Acompanhe responsáveis, entregas, prazos, bloqueios e evidências.</p>
             </div>
-            <div class="top-actions"><button class="ghost-button" id="board-email-summary" type="button">Preparar e-mail</button><button class="primary-button" id="new-task-board">Adicionar tarefa</button></div>
+            <button class="primary-button" id="new-task-board" type="button">Nova tarefa</button>
           </div>
-          <div class="board-orientation" aria-label="Como usar o quadro">
-            <div><span>1</span><p><strong>Defina a entrega</strong><small>Registre um resultado verificável, não apenas uma atividade.</small></p></div>
-            <div><span>2</span><p><strong>Nomeie uma pessoa</strong><small>O responsável coordena a tarefa e mantém o prazo atualizado.</small></p></div>
-            <div><span>3</span><p><strong>Anexe a evidência</strong><small>Use arquivo, Google Drive, Planilhas ou outro link seguro.</small></p></div>
-          </div>
+          <details class="board-help" id="board-help">
+            <summary>Como utilizar o quadro</summary>
+            <div class="board-orientation" aria-label="Como utilizar o quadro">
+              <div><span>1</span><p><strong>Defina a entrega</strong><small>Registre um resultado verificável, não apenas uma atividade.</small></p></div>
+              <div><span>2</span><p><strong>Nomeie uma pessoa</strong><small>O responsável coordena a tarefa e mantém o prazo atualizado.</small></p></div>
+              <div><span>3</span><p><strong>Anexe a evidência</strong><small>Use arquivo, Google Drive, Planilhas ou outro link seguro.</small></p></div>
+            </div>
+          </details>
           <div class="board-health" id="board-health"></div>
-          <div class="board-toolbar">
-            <label>Buscar<input id="board-search" type="search" placeholder="Tarefa, responsável ou empresa" /></label>
-            <label>Responsável<select id="board-owner-filter"><option value="">Todos os responsáveis</option></select></label>
-            <label>Prioridade<select id="board-priority-filter"><option value="">Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></label>
-            <label>Fase<select id="board-phase-filter"><option value="">Todas as fases</option></select></label>
-            <label>Prazo<select id="board-due-filter"><option value="">Todos</option><option value="overdue">Atrasados</option><option value="week">Próximos 7 dias</option><option value="nodate">Sem prazo</option></select></label>
-          </div>
+          <details class="board-filters-panel" id="board-filters-panel" open>
+            <summary>Filtros do quadro <span id="board-filter-count"></span></summary>
+            <div class="board-toolbar">
+              <label>Buscar<input id="board-search" type="search" placeholder="Tarefa, responsável ou empresa" /></label>
+              <label>Responsável<select id="board-owner-filter"><option value="">Todos os responsáveis</option></select></label>
+              <label>Prioridade<select id="board-priority-filter"><option value="">Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></label>
+              <label>Fase<select id="board-phase-filter"><option value="">Todas as fases</option></select></label>
+              <label>Prazo<select id="board-due-filter"><option value="">Todos</option><option value="overdue">Atrasados</option><option value="week">Próximos 7 dias</option><option value="nodate">Sem prazo</option></select></label>
+              <button class="text-button board-clear-filters" id="board-clear-filters" type="button" hidden>Limpar filtros</button>
+            </div>
+          </details>
           <div class="board-viewbar">
             <div class="segmented-control" aria-label="Formato do quadro"><button class="active" id="board-view-kanban" type="button">Quadro</button><button id="board-view-list" type="button">Lista</button></div>
             <p><strong id="board-result-count">0 tarefas</strong><span> · filtros atualizados automaticamente</span></p>
@@ -670,6 +676,17 @@
         </div>
         <div class="modal-actions"><button class="ghost-button" type="button" data-dialog-close="task-modal">Cancelar</button><button class="primary-button" type="submit">Salvar tarefa</button></div>
       </form>
+    </dialog>
+
+    <dialog class="modal task-details-modal" id="task-details-modal">
+      <div class="modal-card">
+        <div class="modal-heading">
+          <div><p class="eyebrow" id="task-details-context">Tarefa</p><h2 id="task-details-title">Detalhes da tarefa</h2></div>
+          <button class="icon-button" type="button" data-dialog-close="task-details-modal" aria-label="Fechar detalhes" title="Fechar detalhes">×</button>
+        </div>
+        <div id="task-details-content"></div>
+        <div class="modal-actions" id="task-details-actions"></div>
+      </div>
     </dialog>
 
     <dialog class="modal" id="simple-modal">
